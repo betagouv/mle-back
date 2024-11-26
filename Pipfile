@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "==4.2.16"
+djangorestframework = "*"
+django-cors-headers = "*"
+django-environ = "*"
+psycopg2 = "*"
+psycopg2-binary = "*"
+
+[dev-packages]
+ruff = "*"
+ipdb = "*"
+pre-commit = "*"
+
+[requires]
+python_version = "3.11"
+
+[pipenv]
+allow_prereleases = false

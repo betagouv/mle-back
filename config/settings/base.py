@@ -16,6 +16,16 @@ ALLOWED_HOSTS = []
 
 
 INSTALLED_APPS = [
+    # Wagtail minimum apps
+    "wagtail.contrib.forms",
+    "wagtail.contrib.redirects",
+    "wagtail.images",
+    "wagtail.admin",
+    "wagtail",
+    # Wagtail deps
+    "taggit",
+    "modelcluster",
+    # Django
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -109,3 +119,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+WAGTAILADMIN_BASE_URL = ""
+WAGTAIL_SITE_NAME = "JDE CMS"

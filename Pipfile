@@ -11,6 +11,7 @@ django-environ = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 whitenoise = "*"
+wagtail = "*"
 
 [dev-packages]
 ruff = "*"

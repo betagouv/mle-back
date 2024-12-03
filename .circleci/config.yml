@@ -1,0 +1,90 @@
+version: 2.1
+
+env_vars: &shared_env_vars
+  PIPENV_VENV_IN_PROJECT: true
+  DJANGO_SETTINGS_MODULE: config.settings.test
+  DJANGO_SECRET_KEY: secret-key
+  DATABASE_URL: postgres://root:password@localhost/circle_test
+
+executors:
+  for_tests:
+    docker:
+      - image: cimg/python:3.13
+        environment:
+          <<: *shared_env_vars
+      - image: cimg/postgres:15.8-postgis
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: circle_test
+      - image: cimg/redis:7.0
+
+  for_checks:
+    docker:
+      - image: cimg/python:3.13
+        environment:
+          <<: *shared_env_vars
+jobs:
+  checks:
+    executor:
+      name: for_checks
+    steps:
+      - checkout
+      - run:
+          name: Install System dependencies
+          command: |
+            sudo apt update
+            sudo apt install -y gdal-bin gettext
+      - run:
+          name: Install Python dependencies
+          command: |
+            pipenv sync --dev
+      - save_cache:
+          key: python-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          paths:
+            - '.venv'
+            - '/usr/local/lib/python3.13/site-packages'
+      - run:
+          name: Check production security
+          command: |
+            DJANGO_SETTINGS_MODULE=config.settings.production pipenv run ./manage.py check --deploy
+
+  tests:
+    executor:
+      name: for_tests
+    parallelism: 4
+    steps:
+      - checkout
+      - run:
+          name: Install System dependencies
+          command: |
+            sudo apt update
+            sudo apt install -y gdal-bin
+      - run:
+          name: Install Python dependencies
+          command: |
+            pipenv sync --dev
+      - run:
+          name: Wait for Postgres
+          command: dockerize -wait tcp://localhost:5432 -timeout 10s
+      - run:
+          name: Run database migrations
+          command: |
+            pipenv run ./manage.py migrate
+      - run:
+          name: Run tests
+          command: |
+            mkdir test-results
+            pipenv run pytest --circleci-parallelize --junitxml=test-results/junit.xml
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: tr1
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - checks
+      - tests

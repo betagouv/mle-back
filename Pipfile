@@ -21,6 +21,7 @@ pre-commit = "*"
 pytest = "*"
 pytest-circleci-parallelized = "*"
 pytest-django = "*"
+pytest-socket = "*"
 pytest-xdist = "*"
 ruff = "*"
 

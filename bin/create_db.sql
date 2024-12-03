@@ -1,9 +1,11 @@
-CREATE DATABASE jde;
 CREATE USER jde WITH PASSWORD 'jde';
 ALTER ROLE jde SET client_encoding TO 'utf8';
 ALTER ROLE jde SET default_transaction_isolation TO 'read committed';
 ALTER ROLE jde SET timezone TO 'UTC';
+
+CREATE DATABASE jde;
 GRANT ALL PRIVILEGES ON DATABASE jde TO jde;
+
 \c jde;
 CREATE EXTENSION postgis;
 CREATE EXTENSION pg_trgm;

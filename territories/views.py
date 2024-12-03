@@ -7,6 +7,8 @@ from .serializers import TerritoryCombinedSerializer
 
 
 class TerritoryCombinedListAPIView(APIView):
+    serializer_class = TerritoryCombinedSerializer
+
     def get(self, request, *args, **kwargs):
         data = {
             "academies": Academy.objects.all(),

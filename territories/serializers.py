@@ -33,3 +33,9 @@ class TerritorySerializer(serializers.Serializer):
         elif isinstance(instance, Academy):
             return AcademySerializer(instance).data
         return {}
+
+
+class TerritoryCombinedSerializer(serializers.Serializer):
+    academies = AcademySerializer(many=True)
+    departments = DepartmentSerializer(many=True)
+    cities = CitySerializer(many=True)

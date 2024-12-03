@@ -52,7 +52,7 @@ jobs:
   tests:
     executor:
       name: for_tests
-    parallelism: 4
+    parallelism: 2
     steps:
       - checkout
       - run:

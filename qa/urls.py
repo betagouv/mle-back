@@ -1,7 +1,7 @@
 from django.urls import path
 
-from .views import QuestionAnswerReadOnlyViewSet
+from .views import QuestionAnswerListByTerritoryAPIView
 
 urlpatterns = [
-    path("", QuestionAnswerReadOnlyViewSet.as_view({"get": "list"}), name="questionanswers-list-create"),
+    path("", QuestionAnswerListByTerritoryAPIView.as_view(), name="questionanswers-by-territory"),
 ]

@@ -1,5 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
 
 
 class Territory(models.Model):
@@ -10,6 +11,9 @@ class Territory(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_content_type(self):
+        return ContentType.objects.get_for_model(self.__class__)
 
 
 class Academy(Territory):

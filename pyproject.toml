@@ -18,7 +18,7 @@ norecursedirs = [
 addopts = [
     "-p", "no:warnings",
     "--ds=config.settings.test",
-    # "--reuse-db",
+    "--reuse-db",
     "--disable-socket",
     "--allow-hosts=127.0.0.1,127.0.1.1,localhost"
 ]

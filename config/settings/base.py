@@ -23,6 +23,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "territories",
+    "qa",
+    "django_summernote",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -89,11 +93,19 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "fr-fr"
+LANGUAGES = [
+    ("fr", "French"),
+    ("en", "English"),
+]
 
-TIME_ZONE = "UTC"
+MODELTRANSLATION_DEFAULT_LANGUAGE = "fr"
+MODELTRANSLATION_LANGUAGES = ("fr", "en")
+MODELTRANSLATION_FALLBACK_LANGUAGES = ("fr",)
 
 USE_I18N = True
+
+TIME_ZONE = "UTC"
 
 USE_TZ = True
 
@@ -103,9 +115,21 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, "staticfiles"))
+# FIXME The STATICFILES_STORAGE setting is deprecated. Use STORAGES instead.
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+SPECTACULAR_SETTINGS = {
+    "TITLE": f"{SITE_NAME} API",
+    "DESCRIPTION": "",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}

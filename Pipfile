@@ -5,17 +5,22 @@ name = "pypi"
 
 [packages]
 django = "==4.2.16"
-djangorestframework = "*"
+django-summernote = "*"
 django-cors-headers = "*"
 django-environ = "*"
+djangorestframework = "*"
+drf-spectacular = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 whitenoise = "*"
 
 [dev-packages]
-ruff = "*"
+factory-boy = "*"
 ipdb = "*"
 pre-commit = "*"
+pytest = "*"
+pytest-django = "*"
+ruff = "*"
 
 [requires]
 python_version = "3.13"

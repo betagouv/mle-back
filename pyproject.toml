@@ -1,3 +1,24 @@
 [tool.ruff]
 line-length = 120
 target-version = "py313"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = [
+    "tests.py",
+    "test_*.py",
+    "*_tests.py"
+]
+testpaths = [
+    "tests"
+]
+norecursedirs = [
+    ".*",
+]
+addopts = [
+    "-p", "no:warnings",
+    "--ds=config.settings.test",
+    # "--reuse-db",
+    # "--disable-socket",
+    # "--allow-hosts=127.0.0.1,127.0.1.1,localhost"
+]

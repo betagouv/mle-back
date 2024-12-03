@@ -12,6 +12,7 @@ djangorestframework = "*"
 drf-spectacular = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
+requests = "*"
 whitenoise = "*"
 
 [dev-packages]

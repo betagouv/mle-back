@@ -19,7 +19,9 @@ factory-boy = "*"
 ipdb = "*"
 pre-commit = "*"
 pytest = "*"
+pytest-circleci-parallelized = "*"
 pytest-django = "*"
+pytest-xdist = "*"
 ruff = "*"
 
 [requires]

@@ -1,4 +1,5 @@
 from django.db.models import Func
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from unidecode import unidecode
@@ -16,6 +17,16 @@ class Unaccent(Func):
 class TerritoryCombinedListAPIView(APIView):
     serializer_class = TerritoryCombinedSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="q",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Term to filter academies, departments, and cities by name (case-insensitive, accent-insensitive).",
+            ),
+        ]
+    )
     def get(self, request, *args, **kwargs):
         query = request.GET.get("q") or None
 

@@ -13,6 +13,7 @@ drf-spectacular = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 requests = "*"
+Unidecode = "*"
 whitenoise = "*"
 
 [dev-packages]

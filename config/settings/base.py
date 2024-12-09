@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "territories",
     "qa",
+    "accommodation",
     "django_summernote",
     "drf_spectacular",
 ]

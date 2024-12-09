@@ -68,7 +68,7 @@ class Command(BaseCommand):
                             float(longitude.replace(",", ".")), float(latitude.replace(",", ".")), srid=4326
                         )
                     except ValueError:
-                        print(f"Invalid latitude/longitude : {latitude}/{longitude}. Ignoring geom...")
+                        print("Invalid latitude/longitude values. Ignoring geom...")
 
                 residence_type_clef = row.get("Type de résidence", "").strip()
                 if residence_type_clef:

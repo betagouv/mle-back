@@ -25,6 +25,7 @@ from .serializers import QuestionAnswerSerializer
 )
 class QuestionAnswerListByTerritoryAPIView(ListAPIView):
     serializer_class = QuestionAnswerSerializer
+    pagination_class = None
 
     def get_queryset(self):
         content_type = self.request.query_params.get("content_type")

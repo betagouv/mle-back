@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
         self.stdout.write("Importing academies into the database...")
         for academy_json in data:
-            academy_name = academy_json.get("name", "").strip().capitalize()
+            academy_name = academy_json.get("name", "").strip()
 
             if not academy_name:
                 self.stderr.write("Skipping entry with empty name")

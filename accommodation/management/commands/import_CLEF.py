@@ -74,9 +74,11 @@ class Command(BaseCommand):
                 if residence_type_clef:
                     accommodation.residence_type = RESIDENCE_TYPE_MAPPING.get(residence_type_clef)
 
+                accommodation.published = row.get("Statut de la résidence").lower() == "en service"
+
                 if self.should_write:
                     accommodation.save()
-                    print(f"{accommodation} saved")
+                    print(f"{accommodation} saved (published = {accommodation.published})")
                 else:
                     print(f"Would have save {accommodation.__dict__} and manage external sources {source_id}")
                     continue

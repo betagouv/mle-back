@@ -10,6 +10,7 @@ class AccommodationListAPITests(APITestCase):
         self.accommodation_paris = AccommodationFactory(geom=Point(2.35, 48.85))
         self.accommodation_lyon = AccommodationFactory(geom=Point(4.85, 45.75))
         self.accommodation_unpublished = AccommodationFactory(published=False)
+        self.accommodation_no_geom = AccommodationFactory(geom=None)
 
     def test_accommodation_list_no_filter(self):
         response = self.client.get(reverse("accommodation-list"))
@@ -24,6 +25,7 @@ class AccommodationListAPITests(APITestCase):
         assert self.accommodation_paris.id in returned_ids
         assert self.accommodation_lyon.id in returned_ids
         assert self.accommodation_unpublished.id not in returned_ids
+        assert self.accommodation_no_geom.id not in returned_ids
 
     def test_accommodation_list_view_bbox_filter(self):
         bbox = "2.30,48.80,2.40,48.90"

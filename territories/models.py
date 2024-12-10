@@ -1,10 +1,11 @@
-from django.contrib.postgres.fields import ArrayField
-from django.db import models
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 
 
 class Territory(models.Model):
     name = models.CharField(max_length=200)
+    boundary = models.MultiPolygonField(null=True)
 
     class Meta:
         abstract = True

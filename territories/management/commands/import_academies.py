@@ -1,4 +1,5 @@
 import requests
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.core.management.base import BaseCommand
 
 from territories.models import Academy
@@ -30,6 +31,24 @@ class Command(BaseCommand):
                 continue
 
             academy, created = Academy.objects.update_or_create(name=academy_name)
+            geo_shape = academy_json.get("geo_shape")
+            multipolygon = None
+            if geo_shape:
+                geometry_type = geo_shape["geometry"]["type"]
+
+                if geometry_type == "Polygon":
+                    polygon = Polygon(geo_shape["geometry"]["coordinates"][0])
+                    multipolygon = MultiPolygon(polygon)
+                elif geometry_type == "MultiPolygon":
+                    multipolygon = MultiPolygon(
+                        *[Polygon(coords[0]) for coords in geo_shape["geometry"]["coordinates"]]
+                    )
+                else:
+                    print(f"Unsupported geometry type: {geometry_type}. Ignoring...")
+
+            academy.boundary = multipolygon
+
+            academy.save()
 
             if created:
                 self.stdout.write(f"Added new academy: {academy_name}")

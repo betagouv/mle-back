@@ -1,5 +1,6 @@
 from unittest import mock
 
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -10,7 +11,8 @@ from tests.territories.factories import AcademyFactory, CityFactory, DepartmentF
 class TerritoryCombinedListAPITests(APITestCase):
     def setUp(self):
         self.academy = AcademyFactory.create(name="Academie du Rhône")
-        self.department = DepartmentFactory.create(name="Rhône", academy=self.academy)
+        multi_polygon = MultiPolygon(Polygon(((5, 5), (5, 10), (10, 10), (10, 5), (5, 5))))
+        self.department = DepartmentFactory.create(name="Rhône", academy=self.academy, boundary=multi_polygon)
         self.city = CityFactory.create(
             name="Lyon", postal_codes=["69001", "690002", "69003"], department=self.department
         )
@@ -22,9 +24,31 @@ class TerritoryCombinedListAPITests(APITestCase):
         self.assertEqual(
             response.json(),
             {
-                "academies": [{"id": mock.ANY, "name": "Academie du Rhône"}],
-                "departments": [{"id": mock.ANY, "name": "Rhône"}],
-                "cities": [{"id": mock.ANY, "name": "Lyon", "postal_codes": ["69001", "69000", "69003"]}],
+                "academies": [
+                    {
+                        "id": mock.ANY,
+                        "name": "Academie du Rhône",
+                        "boundary": None,
+                    }
+                ],
+                "departments": [
+                    {
+                        "id": mock.ANY,
+                        "name": "Rhône",
+                        "boundary": {
+                            "type": "MultiPolygon",
+                            "coordinates": [[[[5.0, 5.0], [5.0, 10.0], [10.0, 10.0], [10.0, 5.0], [5.0, 5.0]]]],
+                        },
+                    }
+                ],
+                "cities": [
+                    {
+                        "id": mock.ANY,
+                        "name": "Lyon",
+                        "postal_codes": ["69001", "69000", "69003"],
+                        "boundary": None,
+                    }
+                ],
             },
         )
 
@@ -36,8 +60,23 @@ class TerritoryCombinedListAPITests(APITestCase):
             self.assertEqual(
                 response.json(),
                 {
-                    "academies": [{"id": mock.ANY, "name": "Academie du Rhône"}],
-                    "departments": [{"id": mock.ANY, "name": "Rhône"}],
+                    "academies": [
+                        {
+                            "id": mock.ANY,
+                            "name": "Academie du Rhône",
+                            "boundary": None,
+                        }
+                    ],
+                    "departments": [
+                        {
+                            "id": mock.ANY,
+                            "name": "Rhône",
+                            "boundary": {
+                                "type": "MultiPolygon",
+                                "coordinates": [[[[5.0, 5.0], [5.0, 10.0], [10.0, 10.0], [10.0, 5.0], [5.0, 5.0]]]],
+                            },
+                        }
+                    ],
                     "cities": [],
                 },
             )

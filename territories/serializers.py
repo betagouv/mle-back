@@ -6,19 +6,19 @@ from .models import Academy, City, Department
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
-        fields = ["id", "name", "postal_codes"]
+        fields = ["id", "name", "postal_codes", "boundary"]
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
-        fields = ["id", "name"]
+        fields = ["id", "name", "boundary"]
 
 
 class AcademySerializer(serializers.ModelSerializer):
     class Meta:
         model = Academy
-        fields = ["id", "name"]
+        fields = ["id", "name", "boundary"]
 
 
 class TerritorySerializer(serializers.Serializer):

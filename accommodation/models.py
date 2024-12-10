@@ -34,6 +34,7 @@ class Accommodation(models.Model):
     nb_t2 = models.IntegerField(null=True, blank=True)
     nb_t3 = models.IntegerField(null=True, blank=True)
     nb_t4_more = models.IntegerField(null=True, blank=True)
+    published = models.BooleanField(default=True)
 
 
 class ExternalSource(models.Model):
@@ -47,7 +48,6 @@ class ExternalSource(models.Model):
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")
     source = models.CharField(max_length=100, verbose_name="Source", default=SOURCE_CLEF, choices=SOURCE_CHOICES)
     source_id = models.CharField(max_length=100, verbose_name="Source ID")
-    published = models.BooleanField(default=True)
 
     class Meta:
         unique_together = ("source", "accommodation")

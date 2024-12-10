@@ -24,3 +24,9 @@ dump.rdb
 
 # IDE
 .vscode
+
+
+staticfiles/
+
+# Files for imports
+*.csv

@@ -19,7 +19,7 @@ from .serializers import AccommodationGeoSerializer
     responses=AccommodationGeoSerializer,
 )
 class AccommodationListView(generics.ListAPIView):
-    queryset = Accommodation.objects.filter(published=True)
+    queryset = Accommodation.objects.filter(published=True).exclude(geom__isnull=True)
     serializer_class = AccommodationGeoSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ZoneFilter

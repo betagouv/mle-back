@@ -19,6 +19,7 @@ class AccommodationListAPITests(APITestCase):
         results = response.json()
 
         assert results["count"] == 2
+        assert results["page_size"] == 30
         assert results["next"] is None and results["previous"] is None
         assert len(results["results"]["features"]) == 2
         returned_ids = [feature["id"] for feature in results["results"]["features"]]

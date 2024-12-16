@@ -11,8 +11,7 @@ class AccommodationDetailAPITests(APITestCase):
         self.accommodation_unpublished = AccommodationFactory(published=False)
 
     def test_accommodation_detail_success(self):
-        url = reverse("accommodation-detail", kwargs={"pk": self.accommodation_published.id})
-        response = self.client.get(url)
+        response = self.client.get(reverse("accommodation-detail", kwargs={"slug": self.accommodation_published.slug}))
 
         assert response.status_code == 200
         result = response.json()
@@ -23,14 +22,14 @@ class AccommodationDetailAPITests(APITestCase):
         assert result["geom"]["coordinates"] == [2.35, 48.85]
 
     def test_accommodation_detail_not_found_if_unpublished(self):
-        url = reverse("accommodation-detail", kwargs={"pk": self.accommodation_unpublished.id})
-        response = self.client.get(url)
+        response = self.client.get(
+            reverse("accommodation-detail", kwargs={"slug": self.accommodation_unpublished.slug})
+        )
 
         assert response.status_code == 404
 
     def test_accommodation_detail_404_if_invalid_id(self):
-        url = reverse("accommodation-detail", kwargs={"pk": 999999})
-        response = self.client.get(url)
+        response = self.client.get(reverse("accommodation-detail", kwargs={"slug": "unknown-slug-in-db"}))
 
         assert response.status_code == 404
 

@@ -5,8 +5,9 @@ from rest_framework.exceptions import ValidationError
 from .models import Accommodation
 
 
-class ZoneFilter(FilterSet):
+class AccommodationFilter(FilterSet):
     bbox = filters.CharFilter(method="filter_bbox", label="Bounding box")
+    is_accessible = filters.BooleanFilter(method="filter_is_accessible", label="Only accessible accommodations")
 
     def filter_bbox(self, queryset, name, value):
         try:
@@ -18,6 +19,11 @@ class ZoneFilter(FilterSet):
             return queryset.filter(geom__within=polygon)
         except ValueError:
             raise ValidationError("Invalid bbox format. Coordinates should be numbers.")
+
+    def filter_is_accessible(self, queryset, name, value):
+        if value is True:
+            return queryset.filter(nb_accessible_apartments__gt=0)
+        return queryset
 
     class Meta:
         model = Accommodation

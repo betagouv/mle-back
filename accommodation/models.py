@@ -1,5 +1,6 @@
 from autoslug import AutoSlugField
 from django.contrib.gis.db import models
+from .managers import AccommodationManager
 
 
 class Accommodation(models.Model):
@@ -37,6 +38,8 @@ class Accommodation(models.Model):
     nb_t3 = models.IntegerField(null=True, blank=True)
     nb_t4_more = models.IntegerField(null=True, blank=True)
     published = models.BooleanField(default=True)
+
+    objects = AccommodationManager()
 
 
 class ExternalSource(models.Model):

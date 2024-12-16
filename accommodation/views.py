@@ -4,7 +4,15 @@ from rest_framework import generics
 
 from .filters import AccommodationFilter
 from .models import Accommodation
-from .serializers import AccommodationGeoSerializer
+from .serializers import AccommodationDetailSerializer, AccommodationGeoSerializer
+
+
+@extend_schema(
+    responses=AccommodationDetailSerializer,
+)
+class AccommodationDetailView(generics.RetrieveAPIView):
+    queryset = Accommodation.objects.online()
+    serializer_class = AccommodationDetailSerializer
 
 
 @extend_schema(
@@ -25,7 +33,7 @@ from .serializers import AccommodationGeoSerializer
     responses=AccommodationGeoSerializer,
 )
 class AccommodationListView(generics.ListAPIView):
-    queryset = Accommodation.objects.filter(published=True).exclude(geom__isnull=True)
+    queryset = Accommodation.objects.online()
     serializer_class = AccommodationGeoSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = AccommodationFilter

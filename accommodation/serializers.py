@@ -10,6 +10,7 @@ class AccommodationGeoSerializer(GeoFeatureModelSerializer):
         fields = (
             "id",
             "name",
+            "slug",
             "address",
             "city",
             "postal_code",

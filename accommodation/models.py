@@ -1,3 +1,4 @@
+from autoslug import AutoSlugField
 from django.contrib.gis.db import models
 
 
@@ -19,6 +20,7 @@ class Accommodation(models.Model):
     )
 
     name = models.CharField(max_length=200)
+    slug = AutoSlugField(max_length=255, default="", unique=True, populate_from="name")
     geom = models.PointField(null=True, blank=True, verbose_name="Localisation")
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=150)

@@ -5,6 +5,36 @@ from rest_framework.test import APITestCase
 from .factories import AccommodationFactory
 
 
+class AccommodationDetailAPITests(APITestCase):
+    def setUp(self):
+        self.accommodation_published = AccommodationFactory(geom=Point(2.35, 48.85), published=True)
+        self.accommodation_unpublished = AccommodationFactory(published=False)
+
+    def test_accommodation_detail_success(self):
+        url = reverse("accommodation-detail", kwargs={"pk": self.accommodation_published.id})
+        response = self.client.get(url)
+
+        assert response.status_code == 200
+        result = response.json()
+
+        assert result["id"] == self.accommodation_published.id
+        assert result["slug"] == self.accommodation_published.slug
+        assert result["name"] == self.accommodation_published.name
+        assert result["geom"]["coordinates"] == [2.35, 48.85]
+
+    def test_accommodation_detail_not_found_if_unpublished(self):
+        url = reverse("accommodation-detail", kwargs={"pk": self.accommodation_unpublished.id})
+        response = self.client.get(url)
+
+        assert response.status_code == 404
+
+    def test_accommodation_detail_404_if_invalid_id(self):
+        url = reverse("accommodation-detail", kwargs={"pk": 999999})
+        response = self.client.get(url)
+
+        assert response.status_code == 404
+
+
 class AccommodationListAPITests(APITestCase):
     def setUp(self):
         self.accommodation_paris = AccommodationFactory(geom=Point(2.35, 48.85))

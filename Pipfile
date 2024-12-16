@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 django = "==4.2.17"
+django-autoslug = "*"
 django-cors-headers = "*"
 django-environ = "*"
 django-filter = "*"

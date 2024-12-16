@@ -23,6 +23,7 @@ class AccommodationListAPITests(APITestCase):
         assert results["next"] is None and results["previous"] is None
         assert len(results["results"]["features"]) == 2
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
+        assert "slug" in results["results"]["features"][0]["properties"]
         assert self.accommodation_paris.id in returned_ids
         assert self.accommodation_lyon.id in returned_ids
         assert self.accommodation_unpublished.id not in returned_ids

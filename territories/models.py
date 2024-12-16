@@ -17,6 +17,13 @@ class Territory(models.Model):
         return ContentType.objects.get_for_model(self.__class__)
 
 
+class Country(Territory):
+    boundary = None
+
+    def __str__(self):
+        return self.name
+
+
 class Academy(Territory):
     def __str__(self):
         return self.name

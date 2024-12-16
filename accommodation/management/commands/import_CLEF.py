@@ -42,7 +42,6 @@ class Command(BaseCommand):
                     accommodation = Accommodation(name=name)
 
                 for attr_db, attr_clef in [
-                    ("address", "Adresse administrative"),
                     ("city", "Commune"),
                     ("postal_code", "Code postal"),
                     ("owner_name", "Gestionnaire - Nom"),
@@ -61,6 +60,8 @@ class Command(BaseCommand):
                         continue
 
                     setattr(accommodation, attr_db, value)
+
+                accommodation.address = row.get("Adresse administrative") or row.get("Adresse géolocalisée")
 
                 if (latitude := row.get("Latitude")) and (longitude := row.get("Longitude")):
                     try:

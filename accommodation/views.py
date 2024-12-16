@@ -13,6 +13,7 @@ from .serializers import AccommodationDetailSerializer, AccommodationGeoSerializ
 class AccommodationDetailView(generics.RetrieveAPIView):
     queryset = Accommodation.objects.online()
     serializer_class = AccommodationDetailSerializer
+    lookup_field = "slug"
 
 
 @extend_schema(

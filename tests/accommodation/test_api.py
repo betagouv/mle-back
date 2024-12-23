@@ -85,3 +85,37 @@ class AccommodationListAPITests(APITestCase):
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
         assert self.accommodation_nantes_accessible.id in returned_ids
         assert self.accommodation_nantes_non_accessible.id not in returned_ids
+
+    def test_accommodation_list_center_radius(self):
+        center = "-1.5536,47.2184"  # Nantes (near the accessible accommodation)
+
+        response = self.client.get(reverse("accommodation-list"), {"center": center, "radius": 0.2})
+        results = response.json()
+
+        assert len(results["results"]["features"]) == 1
+
+        returned_ids = [feature["id"] for feature in results["results"]["features"]]
+        assert self.accommodation_nantes_accessible.id in returned_ids
+        assert self.accommodation_nantes_non_accessible.id not in returned_ids
+
+        response = self.client.get(reverse("accommodation-list"), {"center": center, "radius": 2})
+        results = response.json()
+
+        assert len(results["results"]["features"]) == 2
+
+        returned_ids = [feature["id"] for feature in results["results"]["features"]]
+        assert self.accommodation_nantes_accessible.id in returned_ids
+        assert self.accommodation_nantes_non_accessible.id in returned_ids
+
+        center_paris = "2.35,48.85"  # Paris
+
+        response = self.client.get(reverse("accommodation-list"), {"center": center_paris, "radius": 10})
+        results = response.json()
+
+        assert len(results["results"]["features"]) == 1
+
+        returned_ids = [feature["id"] for feature in results["results"]["features"]]
+        assert self.accommodation_paris.id in returned_ids
+        assert self.accommodation_lyon.id not in returned_ids
+        assert self.accommodation_nantes_accessible.id not in returned_ids
+        assert self.accommodation_nantes_non_accessible.id not in returned_ids

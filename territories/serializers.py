@@ -1,24 +1,25 @@
 from rest_framework import serializers
 
+from .mixins import BBoxMixin
 from .models import Academy, City, Department
 
 
-class CitySerializer(serializers.ModelSerializer):
+class CitySerializer(BBoxMixin):
     class Meta:
         model = City
-        fields = ["id", "name", "postal_codes", "boundary"]
+        fields = ["id", "name", "postal_codes", "boundary", "bbox"]
 
 
-class DepartmentSerializer(serializers.ModelSerializer):
+class DepartmentSerializer(BBoxMixin):
     class Meta:
         model = Department
-        fields = ["id", "name", "boundary"]
+        fields = ["id", "name", "boundary", "bbox"]
 
 
-class AcademySerializer(serializers.ModelSerializer):
+class AcademySerializer(BBoxMixin):
     class Meta:
         model = Academy
-        fields = ["id", "name", "boundary"]
+        fields = ["id", "name", "boundary", "bbox"]
 
 
 class TerritorySerializer(serializers.Serializer):

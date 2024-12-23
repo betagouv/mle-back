@@ -1,4 +1,4 @@
-# JDE (Je Deviens Étudiant)
+# MLE (Mon Logement Étudiant)
 
 ...
 

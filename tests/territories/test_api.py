@@ -14,7 +14,7 @@ class TerritoryCombinedListAPITests(APITestCase):
         multi_polygon = MultiPolygon(Polygon(((5, 5), (5, 10), (10, 10), (10, 5), (5, 5))))
         self.department = DepartmentFactory.create(name="Rhône", academy=self.academy, boundary=multi_polygon)
         self.city = CityFactory.create(
-            name="Lyon", postal_codes=["69001", "690002", "69003"], department=self.department
+            name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department
         )
 
     def test_get_territory_combined_list(self):
@@ -29,6 +29,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                         "id": mock.ANY,
                         "name": "Academie du Rhône",
                         "boundary": None,
+                        "bbox": None,
                     }
                 ],
                 "departments": [
@@ -39,14 +40,21 @@ class TerritoryCombinedListAPITests(APITestCase):
                             "type": "MultiPolygon",
                             "coordinates": [[[[5.0, 5.0], [5.0, 10.0], [10.0, 10.0], [10.0, 5.0], [5.0, 5.0]]]],
                         },
+                        "bbox": {
+                            "xmin": 5.0,
+                            "ymin": 5.0,
+                            "xmax": 10.0,
+                            "ymax": 10.0,
+                        },
                     }
                 ],
                 "cities": [
                     {
                         "id": mock.ANY,
                         "name": "Lyon",
-                        "postal_codes": ["69001", "69000", "69003"],
+                        "postal_codes": ["69001", "69002", "69003"],
                         "boundary": None,
+                        "bbox": None,
                     }
                 ],
             },
@@ -65,6 +73,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                             "id": mock.ANY,
                             "name": "Academie du Rhône",
                             "boundary": None,
+                            "bbox": None,
                         }
                     ],
                     "departments": [
@@ -74,6 +83,12 @@ class TerritoryCombinedListAPITests(APITestCase):
                             "boundary": {
                                 "type": "MultiPolygon",
                                 "coordinates": [[[[5.0, 5.0], [5.0, 10.0], [10.0, 10.0], [10.0, 5.0], [5.0, 5.0]]]],
+                            },
+                            "bbox": {
+                                "xmin": 5.0,
+                                "ymin": 5.0,
+                                "xmax": 10.0,
+                                "ymax": 10.0,
                             },
                         }
                     ],

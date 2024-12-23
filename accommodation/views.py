@@ -30,6 +30,18 @@ class AccommodationDetailView(generics.RetrieveAPIView):
             description="Filter to return only accommodations with accessible apartments (nb_accessible_apartments > 0).",
             required=False,
         ),
+        OpenApiParameter(
+            "center",
+            OpenApiTypes.STR,
+            description="Center point for radius filtering. Format: longitude,latitude.",
+            required=False,
+        ),
+        OpenApiParameter(
+            "radius",
+            OpenApiTypes.NUMBER,
+            description="Radius in kilometers for filtering accommodations around the center point.",
+            required=False,
+        ),
     ],
     responses=AccommodationGeoSerializer,
 )

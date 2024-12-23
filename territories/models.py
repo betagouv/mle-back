@@ -16,6 +16,17 @@ class Territory(models.Model):
     def get_content_type(self):
         return ContentType.objects.get_for_model(self.__class__)
 
+    def get_bbox(self):
+        if self.boundary:
+            extent = self.boundary.extent
+            return {
+                "xmin": extent[0],
+                "ymin": extent[1],
+                "xmax": extent[2],
+                "ymax": extent[3],
+            }
+        return None
+
 
 class Country(Territory):
     boundary = None

@@ -1,12 +1,24 @@
 import csv
+import json
 
-from django.contrib.gis.geos import Point
+import requests
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Point, Polygon
 from django.core.management.base import BaseCommand
 
 from accommodation.models import Accommodation, ExternalSource
+from territories.models import City, Department
 
 TO_IGNORE = ("a définir", "nc", "-", "x", "?")
 RESIDENCE_TYPE_MAPPING = {label: key for key, label in Accommodation.RESIDENCE_TYPE_CHOICES}
+
+
+def geojson_mpoly(geojson):
+    mpoly = GEOSGeometry(geojson if isinstance(geojson, str) else json.dumps(geojson))
+    if isinstance(mpoly, MultiPolygon):
+        return mpoly
+    if isinstance(mpoly, Polygon):
+        return MultiPolygon([mpoly])
+    raise TypeError(f"{mpoly.geom_type} not acceptable for this model")
 
 
 class Command(BaseCommand):
@@ -19,10 +31,12 @@ class Command(BaseCommand):
             help="Path of the CSV file to process (separator: ,)",
         )
         parser.add_argument("--write", action="store_true", help="Actually edit the database", default=False)
+        parser.add_argument("--skip-cities", action="store_true", help="Skip management of cities", default=False)
 
     def handle(self, *args, **options):
         self.input_file = options.get("file")
         self.should_write = options["write"]
+        self.skip_cities = options["skip_cities"]
 
         with open(self.input_file, "r") as csvfile:
             reader = csv.DictReader(csvfile, delimiter=",")
@@ -77,6 +91,8 @@ class Command(BaseCommand):
 
                 accommodation.published = row.get("Statut de la résidence").lower() == "en service"
 
+                self.ensure_city_created(row)
+
                 if self.should_write:
                     accommodation.save()
                     print(f"{accommodation} saved (published = {accommodation.published})")
@@ -94,3 +110,33 @@ class Command(BaseCommand):
                 external_source.source_id = source_id
                 external_source.save()
                 print(f"ExternalSource {external_source} saved")
+
+    def ensure_city_created(self, row):
+        if self.skip_cities:
+            return
+
+        city = City.objects.filter(
+            name__iexact=row.get("Commune"), postal_codes__contains=[row.get("Code postal")]
+        ).first()
+        if city:
+            return
+
+        response = requests.get(
+            f"https://geo.api.gouv.fr/communes/?codePostal={row.get('Code postal')}&nom={row.get('Commune')}&fields=nom,codesPostaux,codeDepartement,contour&format=json"
+        )
+        if not response.json():
+            print(f"Cannot found city with postal code {row.get('Code postal')}")
+            return
+
+        response = response.json()[0]
+        city = City.objects.create(
+            name=response["nom"],
+            boundary=geojson_mpoly(response["contour"]),
+            postal_codes=response["codesPostaux"],
+            department=Department.objects.get(code=response["codeDepartement"]),
+        )
+        if self.should_write:
+            city.save()
+            print(f"City {city} created")
+        else:
+            print(f"Would have created city {city}")

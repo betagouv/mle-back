@@ -24,11 +24,12 @@ class TerritoryCombinedListAPIView(APIView):
                 type=str,
                 location=OpenApiParameter.QUERY,
                 description="Term to filter academies, departments, and cities by name (case-insensitive, accent-insensitive).",
+                required=True,
             ),
         ]
     )
     def get(self, request, *args, **kwargs):
-        query = request.GET.get("q") or None
+        query = request.GET["q"]
 
         academies = Academy.objects.all()
         departments = Department.objects.all()

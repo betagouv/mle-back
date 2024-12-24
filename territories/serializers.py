@@ -7,19 +7,19 @@ from .models import Academy, City, Department
 class CitySerializer(BBoxMixin):
     class Meta:
         model = City
-        fields = ["id", "name", "postal_codes", "boundary", "bbox"]
+        fields = ("id", "name", "postal_codes", "bbox")
 
 
 class DepartmentSerializer(BBoxMixin):
     class Meta:
         model = Department
-        fields = ["id", "name", "boundary", "bbox"]
+        fields = ("id", "name", "bbox")
 
 
 class AcademySerializer(BBoxMixin):
     class Meta:
         model = Academy
-        fields = ["id", "name", "boundary", "bbox"]
+        fields = ("id", "name", "bbox")
 
 
 class TerritorySerializer(serializers.Serializer):

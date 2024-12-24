@@ -28,7 +28,6 @@ class TerritoryCombinedListAPITests(APITestCase):
                     {
                         "id": mock.ANY,
                         "name": "Academie du Rhône",
-                        "boundary": None,
                         "bbox": None,
                     }
                 ],
@@ -36,10 +35,6 @@ class TerritoryCombinedListAPITests(APITestCase):
                     {
                         "id": mock.ANY,
                         "name": "Rhône",
-                        "boundary": {
-                            "type": "MultiPolygon",
-                            "coordinates": [[[[5.0, 5.0], [5.0, 10.0], [10.0, 10.0], [10.0, 5.0], [5.0, 5.0]]]],
-                        },
                         "bbox": {
                             "xmin": 5.0,
                             "ymin": 5.0,
@@ -53,7 +48,6 @@ class TerritoryCombinedListAPITests(APITestCase):
                         "id": mock.ANY,
                         "name": "Lyon",
                         "postal_codes": ["69001", "69002", "69003"],
-                        "boundary": None,
                         "bbox": None,
                     }
                 ],
@@ -72,7 +66,6 @@ class TerritoryCombinedListAPITests(APITestCase):
                         {
                             "id": mock.ANY,
                             "name": "Academie du Rhône",
-                            "boundary": None,
                             "bbox": None,
                         }
                     ],
@@ -80,10 +73,6 @@ class TerritoryCombinedListAPITests(APITestCase):
                         {
                             "id": mock.ANY,
                             "name": "Rhône",
-                            "boundary": {
-                                "type": "MultiPolygon",
-                                "coordinates": [[[[5.0, 5.0], [5.0, 10.0], [10.0, 10.0], [10.0, 5.0], [5.0, 5.0]]]],
-                            },
                             "bbox": {
                                 "xmin": 5.0,
                                 "ymin": 5.0,

@@ -10,8 +10,11 @@ from tests.territories.factories import AcademyFactory, CityFactory, DepartmentF
 
 class TerritoryCombinedListAPITests(APITestCase):
     def setUp(self):
-        self.academy = AcademyFactory.create(name="Academie du Rhône")
         multi_polygon = MultiPolygon(Polygon(((5, 5), (5, 10), (10, 10), (10, 5), (5, 5))))
+        self.academy = AcademyFactory.create(name="Academie du Rhône", boundary=multi_polygon)
+        self.academy_paris = AcademyFactory.create(
+            name="Académie de Paris", boundary=MultiPolygon(Polygon(((2, 48), (2, 49), (3, 49), (3, 48), (2, 48))))
+        )
         self.department = DepartmentFactory.create(name="Rhône", academy=self.academy, boundary=multi_polygon)
         self.city = CityFactory.create(
             name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department
@@ -29,7 +32,12 @@ class TerritoryCombinedListAPITests(APITestCase):
                         {
                             "id": mock.ANY,
                             "name": "Academie du Rhône",
-                            "bbox": None,
+                            "bbox": {
+                                "xmin": 5.0,
+                                "ymin": 5.0,
+                                "xmax": 10.0,
+                                "ymax": 10.0,
+                            },
                         }
                     ],
                     "departments": [
@@ -47,3 +55,33 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "cities": [],
                 },
             )
+
+    def test_get_academies_list(self):
+        response = self.client.get(reverse("academies-list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(
+            response.json(),
+            [
+                {
+                    "id": mock.ANY,
+                    "name": "Academie du Rhône",
+                    "bbox": {
+                        "xmin": 5.0,
+                        "ymin": 5.0,
+                        "xmax": 10.0,
+                        "ymax": 10.0,
+                    },
+                },
+                {
+                    "id": mock.ANY,
+                    "name": "Académie de Paris",
+                    "bbox": {
+                        "xmin": 2.0,
+                        "ymin": 48.0,
+                        "xmax": 3.0,
+                        "ymax": 49.0,
+                    },
+                },
+            ],
+        )

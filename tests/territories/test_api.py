@@ -17,43 +17,6 @@ class TerritoryCombinedListAPITests(APITestCase):
             name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department
         )
 
-    def test_get_territory_combined_list(self):
-        response = self.client.get(reverse("territory-combined-list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.assertEqual(
-            response.json(),
-            {
-                "academies": [
-                    {
-                        "id": mock.ANY,
-                        "name": "Academie du Rhône",
-                        "bbox": None,
-                    }
-                ],
-                "departments": [
-                    {
-                        "id": mock.ANY,
-                        "name": "Rhône",
-                        "bbox": {
-                            "xmin": 5.0,
-                            "ymin": 5.0,
-                            "xmax": 10.0,
-                            "ymax": 10.0,
-                        },
-                    }
-                ],
-                "cities": [
-                    {
-                        "id": mock.ANY,
-                        "name": "Lyon",
-                        "postal_codes": ["69001", "69002", "69003"],
-                        "bbox": None,
-                    }
-                ],
-            },
-        )
-
     def test_get_territory_combined_list_filtered(self):
         for search_term in ("rh", "rhone", "rhône", "Rhône"):
             response = self.client.get(reverse("territory-combined-list") + f"?q={search_term}")

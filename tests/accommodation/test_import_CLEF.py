@@ -4,10 +4,17 @@ import pytest
 from django.core.management import call_command
 
 from accommodation.models import Accommodation
+from tests.territories.factories import DepartmentFactory, AcademyFactory
 
 
 @pytest.mark.django_db
 def test_residence_type_mapping():
+    academy = AcademyFactory(name="France")
+
+    DepartmentFactory(code="75", academy=academy)
+    DepartmentFactory(code="13", academy=academy)
+    DepartmentFactory(code="69", academy=academy)
+
     csv_data = """Identifiant fonctionnel,Nom de la résidence,Type de résidence,Adresse administrative,Commune,Code postal,Latitude,Longitude,Gestionnaire - Nom,Gestionnaire - Site,Nombre total de logements,Nombre de logements PMR,Nombre de logements en collocation,T1,T1 bis,T2,T3,T4 et plus,Statut de la résidence
 12345,First residence,Résidence Universitaire conventionnée,10 Rue de la Paix,Paris,75002,48.8698,2.3311,Example Manager,http://first.com,100,5,10,20,10,30,15,10,En service
 67890,Second residence,Résidence sociale Jeunes Actifs,14 Boulevard de la Libération,Marseille,13001,43.2965,5.3698,Another Manager,http://second.com,150,10,5,25,20,40,10,30,En Service

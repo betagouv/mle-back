@@ -59,7 +59,7 @@ class AcademyListAPIView(APIView):
     serializer_class = AcademySerializer
 
     def get(self, request, *args, **kwargs):
-        academies = Academy.objects.all()
+        academies = Academy.objects.all().order_by("name")
 
         serializer = AcademySerializer(academies, many=True)
         return Response(serializer.data)
@@ -69,7 +69,7 @@ class DepartmentListAPIView(APIView):
     serializer_class = DepartmentSerializer
 
     def get(self, request, *args, **kwargs):
-        departments = Department.objects.all()
+        departments = Department.objects.all().order_by("name")
 
         serializer = DepartmentSerializer(departments, many=True)
         return Response(serializer.data)
@@ -95,5 +95,6 @@ class CityListAPIView(APIView):
         if department := (request.GET.get("department") or None):
             cities = cities.filter(department__code=department)
 
+        cities.order_by("name")
         serializer = AcademySerializer(cities, many=True)
         return Response(serializer.data)

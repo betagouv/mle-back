@@ -3,8 +3,8 @@ from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import ListAPIView
 
-from .models import QuestionAnswer
-from .serializers import QuestionAnswerSerializer
+from .models import QuestionAnswer, QuestionAnswerGlobal
+from .serializers import QuestionAnswerSerializer, QuestionAnswerGlobalSerializer
 
 
 @extend_schema(
@@ -40,3 +40,9 @@ class QuestionAnswerListByTerritoryAPIView(ListAPIView):
             raise NotFound(f"Invalid content_type: {content_type}")
 
         return QuestionAnswer.objects.filter(content_type=content_type_instance, object_id=object_id)
+
+
+class QuestionAnswerGlobalListAPIView(ListAPIView):
+    serializer_class = QuestionAnswerGlobalSerializer
+    queryset = QuestionAnswerGlobal.objects.all()
+    pagination_class = None

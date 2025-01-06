@@ -86,6 +86,15 @@ class TerritoryCombinedListAPITests(APITestCase):
             ],
         )
 
+    def test_get_departments_list(self):
+        response = self.client.get(reverse("departments-list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(
+            response.json(),
+            [{"id": mock.ANY, "name": "Rhône", "bbox": {"xmin": 5.0, "ymin": 5.0, "xmax": 10.0, "ymax": 10.0}}],
+        )
+
     def test_get_cities_list(self):
         response = self.client.get(reverse("cities-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -6,7 +6,7 @@ from unidecode import unidecode
 
 from territories.models import Academy, City, Department
 
-from .serializers import AcademySerializer, CitySerializer, TerritoryCombinedSerializer
+from .serializers import AcademySerializer, CitySerializer, DepartmentSerializer, TerritoryCombinedSerializer
 
 
 class Unaccent(Func):
@@ -65,7 +65,17 @@ class AcademyListAPIView(APIView):
         return Response(serializer.data)
 
 
-class CitiesListApiView(APIView):
+class DepartmentListAPIView(APIView):
+    serializer_class = DepartmentSerializer
+
+    def get(self, request, *args, **kwargs):
+        departments = Department.objects.all()
+
+        serializer = DepartmentSerializer(departments, many=True)
+        return Response(serializer.data)
+
+
+class CityListAPIView(APIView):
     serializer_class = CitySerializer
 
     @extend_schema(

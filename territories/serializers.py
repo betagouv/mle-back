@@ -13,7 +13,7 @@ class CitySerializer(BBoxMixin):
 class DepartmentSerializer(BBoxMixin):
     class Meta:
         model = Department
-        fields = ("id", "name", "bbox")
+        fields = ("id", "name", "code", "bbox")
 
 
 class AcademySerializer(BBoxMixin):

@@ -65,22 +65,22 @@ class TerritoryCombinedListAPITests(APITestCase):
             [
                 {
                     "id": mock.ANY,
-                    "name": "Academie du Rhône",
-                    "bbox": {
-                        "xmin": 5.0,
-                        "ymin": 5.0,
-                        "xmax": 10.0,
-                        "ymax": 10.0,
-                    },
-                },
-                {
-                    "id": mock.ANY,
                     "name": "Académie de Paris",
                     "bbox": {
                         "xmin": 2.0,
                         "ymin": 48.0,
                         "xmax": 3.0,
                         "ymax": 49.0,
+                    },
+                },
+                {
+                    "id": mock.ANY,
+                    "name": "Academie du Rhône",
+                    "bbox": {
+                        "xmin": 5.0,
+                        "ymin": 5.0,
+                        "xmax": 10.0,
+                        "ymax": 10.0,
                     },
                 },
             ],

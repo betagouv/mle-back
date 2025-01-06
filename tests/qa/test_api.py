@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.qa.factories import QuestionAnswerFactory
+from tests.qa.factories import QuestionAnswerFactory, QuestionAnswerGlobalFactory
 from tests.territories.factories import CityFactory
 
 
@@ -11,6 +11,13 @@ class QuestionAnswerAPITests(APITestCase):
         self.city = CityFactory(name="Lyon")
         self.qa1 = QuestionAnswerFactory(content_type=self.city.get_content_type(), object_id=self.city.id)
         self.qa2 = QuestionAnswerFactory(content_type=self.city.get_content_type(), object_id=self.city.id)
+        self.qa_global = QuestionAnswerGlobalFactory()
+
+    def test_list_question_answers_global(self):
+        response = self.client.get(reverse("questionanswers-global"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()), 1)
+        self.assertEqual(response.json()[0]["title_fr"], self.qa_global.title_fr)
 
     def test_list_question_answers_by_territory(self):
         response = self.client.get(

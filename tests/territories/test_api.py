@@ -44,6 +44,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                         {
                             "id": mock.ANY,
                             "name": "Rhône",
+                            "code": "69",
                             "bbox": {
                                 "xmin": 5.0,
                                 "ymin": 5.0,
@@ -92,7 +93,14 @@ class TerritoryCombinedListAPITests(APITestCase):
 
         self.assertEqual(
             response.json(),
-            [{"id": mock.ANY, "name": "Rhône", "bbox": {"xmin": 5.0, "ymin": 5.0, "xmax": 10.0, "ymax": 10.0}}],
+            [
+                {
+                    "id": mock.ANY,
+                    "name": "Rhône",
+                    "code": "69",
+                    "bbox": {"xmin": 5.0, "ymin": 5.0, "xmax": 10.0, "ymax": 10.0},
+                }
+            ],
         )
 
     def test_get_cities_list(self):

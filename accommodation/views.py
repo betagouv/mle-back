@@ -31,6 +31,12 @@ class AccommodationDetailView(generics.RetrieveAPIView):
             required=False,
         ),
         OpenApiParameter(
+            "has_coliving",
+            OpenApiTypes.BOOL,
+            description="Filter to return only accommodations with coliving apartments (nb_coliving_apartments > 0).",
+            required=False,
+        ),
+        OpenApiParameter(
             "center",
             OpenApiTypes.STR,
             description="Center point for radius filtering. Format: longitude,latitude.",

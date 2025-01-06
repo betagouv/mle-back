@@ -9,6 +9,9 @@ from .models import Accommodation
 class AccommodationFilter(FilterSet):
     bbox = filters.CharFilter(method="filter_bbox", label="Bounding box")
     is_accessible = filters.BooleanFilter(method="filter_is_accessible", label="Only accessible accommodations")
+    has_coliving = filters.BooleanFilter(
+        method="filter_has_coliving", label="Only accommodations with coliving apartments"
+    )
     center = filters.CharFilter(method="filter_center", label="Center point for radius filtering (lon,lat)")
 
     def filter_bbox(self, queryset, name, value):
@@ -25,6 +28,11 @@ class AccommodationFilter(FilterSet):
     def filter_is_accessible(self, queryset, name, value):
         if value is True:
             return queryset.filter(nb_accessible_apartments__gt=0)
+        return queryset
+
+    def filter_has_coliving(self, queryset, name, value):
+        if value is True:
+            return queryset.filter(nb_coliving_apartments__gt=0)
         return queryset
 
     def filter_center(self, queryset, name, value):

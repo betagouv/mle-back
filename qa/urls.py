@@ -1,7 +1,8 @@
 from django.urls import path
 
-from .views import QuestionAnswerListByTerritoryAPIView
+from .views import QuestionAnswerGlobalListAPIView, QuestionAnswerListByTerritoryAPIView
 
 urlpatterns = [
-    path("", QuestionAnswerListByTerritoryAPIView.as_view(), name="questionanswers-by-territory"),
+    path("by-territory", QuestionAnswerListByTerritoryAPIView.as_view(), name="questionanswers-by-territory"),
+    path("global", QuestionAnswerGlobalListAPIView.as_view(), name="questionanswers-global"),
 ]

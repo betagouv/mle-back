@@ -68,6 +68,17 @@ class AcademyListAPIView(APIView):
 class CitiesListApiView(APIView):
     serializer_class = CitySerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="department",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Department code to filter cities (for example: 75).",
+                required=False,
+            ),
+        ]
+    )
     def get(self, request, *args, **kwargs):
         cities = City.objects.all()
 

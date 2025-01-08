@@ -54,6 +54,9 @@ class City(Territory):
         default=list,
     )
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="cities")
+    insee_code = models.CharField(max_length=5, null=True, blank=True)
+    population = models.IntegerField(null=True, blank=True)
+    average_income = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} ({', '.join(self.postal_codes)})"

@@ -2,6 +2,7 @@ import os
 from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
+import faker
 import pytest
 import requests
 from django.db import connection
@@ -28,13 +29,13 @@ def mock_requests_get(url, *args, **kwargs):
 
     if parsed_url.netloc == "geo.api.gouv.fr":
         postal_code = params.get("codePostal", [None])[0]
-        city = params.get("nom", [None])[0]
 
         mock_response = mock.Mock()
         mock_response.json.return_value = [
             {
-                "nom": city,
+                "nom": faker.Faker().city(),
                 "codesPostaux": [postal_code],
+                "code": f"{postal_code}",
                 "codeDepartement": f"{postal_code[0:2]}",
                 "contour": "POLYGON((2.3522 48.8566, 2.3523 48.8567, 2.3524 48.8568, 2.3525 48.8567, 2.3522 48.8566))",
             }

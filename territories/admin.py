@@ -15,7 +15,8 @@ class CountryAdmin(admin.ModelAdmin):
 @admin.register(City)
 class CityAdmin(OSMGeoAdmin):
     inlines = (QuestionAnswerInline,)
-    search_fields = ("name", "postal_codes")
+    readonly_fields = ("insee_code",)
+    search_fields = ("name", "postal_codes", "insee_code")
 
 
 @admin.register(Department)

@@ -4,6 +4,7 @@ import json
 import requests
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Point, Polygon
 from django.core.management.base import BaseCommand
+from django.db.models import Q
 
 from accommodation.models import Accommodation, ExternalSource
 from territories.models import City, Department
@@ -91,7 +92,7 @@ class Command(BaseCommand):
 
                 accommodation.published = row.get("Statut de la résidence").lower() == "en service"
 
-                self.ensure_city_created(row)
+                self._ensure_city_created(row)
 
                 if self.should_write:
                     accommodation.save()
@@ -111,29 +112,44 @@ class Command(BaseCommand):
                 external_source.save()
                 print(f"ExternalSource {external_source} saved")
 
-    def ensure_city_created(self, row):
+    def _fetch_city_from_api(self, code):
+        base_api_url = "https://geo.api.gouv.fr/communes/"
+        returned_fields = "&fields=nom,codesPostaux,codeDepartement,contour&format=json"
+
+        response = requests.get(f"{base_api_url}?codePostal={code}{returned_fields}")
+        if response_json := response.json():
+            return response_json[0]
+
+        # NOTE: this is a dirty workaround, data stored in CLEF is not clean, we can have postal or insee code in same field
+        print(f"Cannot found city with postal code {code}, assuming we have an insee code here.")
+
+        response = requests.get(f"{base_api_url}?code={code}{returned_fields}")
+        if response_json := response.json():
+            return response_json[0]
+
+        print(f"Cannot found city with insee code {code}")
+        return
+
+    def _ensure_city_created(self, row):
         if self.skip_cities:
             return
 
         city = City.objects.filter(
-            name__iexact=row.get("Commune"), postal_codes__contains=[row.get("Code postal")]
+            Q(postal_codes__contains=[row.get("Code postal")]) | Q(insee_code=row.get("Code postal"))
         ).first()
         if city:
             return
 
-        response = requests.get(
-            f"https://geo.api.gouv.fr/communes/?codePostal={row.get('Code postal')}&nom={row.get('Commune')}&fields=nom,codesPostaux,codeDepartement,contour&format=json"
-        )
-        if not response.json():
-            print(f"Cannot found city with postal code {row.get('Code postal')}")
+        response = self._fetch_city_from_api(row.get("Code postal"))
+        if not response:
             return
 
-        response = response.json()[0]
         city = City.objects.create(
             name=response["nom"],
             boundary=geojson_mpoly(response["contour"]),
             postal_codes=response["codesPostaux"],
             department=Department.objects.get(code=response["codeDepartement"]),
+            insee_code=response["code"],
         )
         if self.should_write:
             city.save()

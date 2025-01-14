@@ -114,7 +114,7 @@ class Command(BaseCommand):
 
     def _fetch_city_from_api(self, code):
         base_api_url = "https://geo.api.gouv.fr/communes/"
-        returned_fields = "&fields=nom,codesPostaux,codeDepartement,contour&format=json"
+        returned_fields = "&fields=nom,codesPostaux,codeDepartement,contour,codeEpci&format=json"
 
         response = requests.get(f"{base_api_url}?codePostal={code}{returned_fields}")
         if response_json := response.json():
@@ -150,6 +150,7 @@ class Command(BaseCommand):
             postal_codes=response["codesPostaux"],
             department=Department.objects.get(code=response["codeDepartement"]),
             insee_code=response["code"],
+            epci_code=response["codeEpci"],
         )
         if self.should_write:
             city.save()

@@ -38,6 +38,7 @@ def mock_requests_get(url, *args, **kwargs):
                 "code": f"{postal_code}",
                 "codeDepartement": f"{postal_code[0:2]}",
                 "contour": "POLYGON((2.3522 48.8566, 2.3523 48.8567, 2.3524 48.8568, 2.3525 48.8567, 2.3522 48.8566))",
+                "codeEpci": "123456789",
             }
         ]
         return mock_response

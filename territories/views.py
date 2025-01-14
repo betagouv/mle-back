@@ -96,5 +96,5 @@ class CityListAPIView(APIView):
             cities = cities.filter(department__code=department)
 
         cities.order_by("name")
-        serializer = AcademySerializer(cities, many=True)
+        serializer = CitySerializer(cities, many=True)
         return Response(serializer.data)

@@ -17,7 +17,7 @@ class TerritoryCombinedListAPITests(APITestCase):
         )
         self.department = DepartmentFactory.create(name="Rhône", code=69, academy=self.academy, boundary=multi_polygon)
         self.city = CityFactory.create(
-            name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department
+            name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department, average_income=30000
         )
 
     def test_get_territory_combined_list_filtered(self):
@@ -109,7 +109,15 @@ class TerritoryCombinedListAPITests(APITestCase):
 
         self.assertEqual(
             response.json(),
-            [{"id": mock.ANY, "name": "Lyon", "bbox": None}],
+            [
+                {
+                    "id": mock.ANY,
+                    "name": "Lyon",
+                    "bbox": None,
+                    "average_income": 30000,
+                    "postal_codes": ["69001", "69002", "69003"],
+                }
+            ],
         )
 
         response = self.client.get(reverse("cities-list") + "?department=69")
@@ -117,7 +125,15 @@ class TerritoryCombinedListAPITests(APITestCase):
 
         self.assertEqual(
             response.json(),
-            [{"id": mock.ANY, "name": "Lyon", "bbox": None}],
+            [
+                {
+                    "id": mock.ANY,
+                    "name": "Lyon",
+                    "bbox": None,
+                    "average_income": 30000,
+                    "postal_codes": ["69001", "69002", "69003"],
+                }
+            ],
         )
 
         response = self.client.get(reverse("cities-list") + "?department=38")

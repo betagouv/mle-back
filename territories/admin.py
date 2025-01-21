@@ -17,6 +17,7 @@ class CityAdmin(OSMGeoAdmin):
     inlines = (QuestionAnswerInline,)
     readonly_fields = ("insee_code", "epci_code", "average_income")
     search_fields = ("name", "postal_codes", "insee_code")
+    list_filter = ("popular",)
 
 
 @admin.register(Department)

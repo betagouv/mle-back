@@ -87,6 +87,13 @@ class CityListAPIView(APIView):
                 description="Department code to filter cities (for example: 75).",
                 required=False,
             ),
+            OpenApiParameter(
+                name="popular",
+                type=bool,
+                location=OpenApiParameter.QUERY,
+                description="Filter popular cities. Use true/false.",
+                required=False,
+            ),
         ]
     )
     def get(self, request, *args, **kwargs):
@@ -94,6 +101,12 @@ class CityListAPIView(APIView):
 
         if department := (request.GET.get("department") or None):
             cities = cities.filter(department__code=department)
+
+        if popular := (request.GET.get("popular") or None):
+            if popular.lower() == "true":
+                cities = cities.filter(popular=True)
+            elif popular.lower() == "false":
+                cities = cities.filter(popular=False)
 
         cities.order_by("name")
         serializer = CitySerializer(cities, many=True)

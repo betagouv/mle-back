@@ -115,7 +115,6 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "name": "Lyon",
                     "popular": False,
                     "bbox": None,
-                    "average_income": 30000,
                     "postal_codes": ["69001", "69002", "69003"],
                 }
             ],
@@ -132,7 +131,6 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "name": "Lyon",
                     "popular": False,
                     "bbox": None,
-                    "average_income": 30000,
                     "postal_codes": ["69001", "69002", "69003"],
                 }
             ],
@@ -168,7 +166,6 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "id": mock.ANY,
                     "name": "Paris",
                     "bbox": None,
-                    "average_income": 40000,
                     "postal_codes": ["75001", "75002"],
                     "popular": True,
                 }
@@ -185,7 +182,6 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "id": mock.ANY,
                     "name": "Lyon",
                     "bbox": None,
-                    "average_income": 30000,
                     "postal_codes": ["69001", "69002", "69003"],
                     "popular": False,
                 },
@@ -193,9 +189,44 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "id": mock.ANY,
                     "name": "Marseille",
                     "bbox": None,
-                    "average_income": 25000,
                     "postal_codes": ["13001", "13002"],
                     "popular": False,
                 },
             ],
         )
+
+
+class CityDetailAPITest(APITestCase):
+    def setUp(self):
+        self.city = CityFactory.create(
+            name="Lyon",
+            slug="lyon",
+            postal_codes=["69001", "69002"],
+            epci_code="EPCI123",
+            insee_code="12345",
+            average_income=30000,
+            popular=True,
+        )
+
+    def test_get_city_details(self):
+        url = reverse("city-detail", kwargs={"slug": self.city.slug})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            {
+                "id": mock.ANY,
+                "name": "Lyon",
+                "postal_codes": ["69001", "69002"],
+                "epci_code": "EPCI123",
+                "insee_code": "12345",
+                "average_income": 30000,
+                "popular": True,
+                "bbox": None,
+            },
+        )
+
+    def test_get_city_details_not_found(self):
+        url = reverse("city-detail", kwargs={"slug": "unknown-city"})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

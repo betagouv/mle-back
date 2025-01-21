@@ -56,6 +56,7 @@ class City(Territory):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="cities")
     insee_code = models.CharField(max_length=5, null=True, blank=True)
     epci_code = models.CharField(max_length=9, null=True, blank=True)
+    popular = models.BooleanField(default=False)
     population = models.IntegerField(null=True, blank=True)
     average_income = models.FloatField(null=True, blank=True)
 

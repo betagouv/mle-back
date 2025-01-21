@@ -113,6 +113,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                 {
                     "id": mock.ANY,
                     "name": "Lyon",
+                    "popular": False,
                     "bbox": None,
                     "average_income": 30000,
                     "postal_codes": ["69001", "69002", "69003"],
@@ -129,6 +130,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                 {
                     "id": mock.ANY,
                     "name": "Lyon",
+                    "popular": False,
                     "bbox": None,
                     "average_income": 30000,
                     "postal_codes": ["69001", "69002", "69003"],
@@ -140,3 +142,60 @@ class TerritoryCombinedListAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(response.json(), [])
+
+        CityFactory.create(
+            name="Paris",
+            postal_codes=["75001", "75002"],
+            department=self.department,
+            popular=True,
+            average_income=40000,
+        )
+        CityFactory.create(
+            name="Marseille",
+            postal_codes=["13001", "13002"],
+            department=self.department,
+            popular=False,
+            average_income=25000,
+        )
+
+        response = self.client.get(reverse("cities-list") + "?popular=true")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(
+            response.json(),
+            [
+                {
+                    "id": mock.ANY,
+                    "name": "Paris",
+                    "bbox": None,
+                    "average_income": 40000,
+                    "postal_codes": ["75001", "75002"],
+                    "popular": True,
+                }
+            ],
+        )
+
+        response = self.client.get(reverse("cities-list") + "?popular=false")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(
+            response.json(),
+            [
+                {
+                    "id": mock.ANY,
+                    "name": "Lyon",
+                    "bbox": None,
+                    "average_income": 30000,
+                    "postal_codes": ["69001", "69002", "69003"],
+                    "popular": False,
+                },
+                {
+                    "id": mock.ANY,
+                    "name": "Marseille",
+                    "bbox": None,
+                    "average_income": 25000,
+                    "postal_codes": ["13001", "13002"],
+                    "popular": False,
+                },
+            ],
+        )

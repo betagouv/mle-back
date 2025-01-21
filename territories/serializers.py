@@ -4,10 +4,16 @@ from .mixins import BBoxMixin
 from .models import Academy, City, Department
 
 
-class CitySerializer(BBoxMixin):
+class CityDetailSerializer(BBoxMixin):
     class Meta:
         model = City
-        fields = ("id", "name", "postal_codes", "bbox", "average_income", "popular")
+        fields = ("id", "name", "postal_codes", "epci_code", "insee_code", "average_income", "bbox", "popular")
+
+
+class CityListSerializer(BBoxMixin):
+    class Meta:
+        model = City
+        fields = ("id", "name", "postal_codes", "bbox", "popular")
 
 
 class DepartmentSerializer(BBoxMixin):
@@ -28,7 +34,7 @@ class TerritorySerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         if isinstance(instance, City):
-            return CitySerializer(instance).data
+            return CityListSerializer(instance).data
         elif isinstance(instance, Department):
             return DepartmentSerializer(instance).data
         elif isinstance(instance, Academy):
@@ -39,4 +45,5 @@ class TerritorySerializer(serializers.Serializer):
 class TerritoryCombinedSerializer(serializers.Serializer):
     academies = AcademySerializer(many=True)
     departments = DepartmentSerializer(many=True)
-    cities = CitySerializer(many=True)
+    cities = CityListSerializer(many=True)
+    cities = CityListSerializer(many=True)

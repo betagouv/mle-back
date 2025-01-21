@@ -1,12 +1,15 @@
 from django.db.models import Func
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from unidecode import unidecode
 
 from territories.models import Academy, City, Department
+from territories.serializers import CityDetailSerializer
 
-from .serializers import AcademySerializer, CitySerializer, DepartmentSerializer, TerritoryCombinedSerializer
+from .serializers import AcademySerializer, CityListSerializer, DepartmentSerializer, TerritoryCombinedSerializer
 
 
 class Unaccent(Func):
@@ -76,7 +79,7 @@ class DepartmentListAPIView(APIView):
 
 
 class CityListAPIView(APIView):
-    serializer_class = CitySerializer
+    serializer_class = CityListSerializer
 
     @extend_schema(
         parameters=[
@@ -109,5 +112,16 @@ class CityListAPIView(APIView):
                 cities = cities.filter(popular=False)
 
         cities.order_by("name")
-        serializer = CitySerializer(cities, many=True)
+        serializer = CityListSerializer(cities, many=True)
         return Response(serializer.data)
+        return Response(serializer.data)
+
+
+class CityDetailView(RetrieveAPIView):
+    queryset = City.objects.all()
+    serializer_class = CityDetailSerializer
+    lookup_field = "slug"
+
+    def get_object(self):
+        slug = self.kwargs.get(self.lookup_field)
+        return get_object_or_404(self.queryset, slug=slug)

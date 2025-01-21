@@ -1,3 +1,4 @@
+from autoslug import AutoSlugField
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
@@ -59,6 +60,8 @@ class City(Territory):
     popular = models.BooleanField(default=False)
     population = models.IntegerField(null=True, blank=True)
     average_income = models.FloatField(null=True, blank=True)
+    slug = AutoSlugField(max_length=255, default="", unique=True, populate_from="name")
 
     def __str__(self):
+        return f"{self.name} ({', '.join(self.postal_codes)})"
         return f"{self.name} ({', '.join(self.postal_codes)})"

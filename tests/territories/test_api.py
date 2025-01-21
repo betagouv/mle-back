@@ -206,6 +206,7 @@ class CityDetailAPITest(APITestCase):
             insee_code="12345",
             average_income=30000,
             popular=True,
+            nb_students=60000,
         )
 
     def test_get_city_details(self):
@@ -223,6 +224,7 @@ class CityDetailAPITest(APITestCase):
                 "average_income": 30000,
                 "popular": True,
                 "bbox": None,
+                "nb_students": 60000,
             },
         )
 

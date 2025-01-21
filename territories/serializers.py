@@ -7,7 +7,17 @@ from .models import Academy, City, Department
 class CityDetailSerializer(BBoxMixin):
     class Meta:
         model = City
-        fields = ("id", "name", "postal_codes", "epci_code", "insee_code", "average_income", "bbox", "popular")
+        fields = (
+            "id",
+            "name",
+            "postal_codes",
+            "epci_code",
+            "insee_code",
+            "average_income",
+            "nb_students",
+            "bbox",
+            "popular",
+        )
 
 
 class CityListSerializer(BBoxMixin):

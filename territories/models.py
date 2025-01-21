@@ -60,8 +60,8 @@ class City(Territory):
     popular = models.BooleanField(default=False)
     population = models.IntegerField(null=True, blank=True)
     average_income = models.FloatField(null=True, blank=True)
+    nb_students = models.PositiveIntegerField(null=True, blank=True)
     slug = AutoSlugField(max_length=255, default="", unique=True, populate_from="name")
 
     def __str__(self):
-        return f"{self.name} ({', '.join(self.postal_codes)})"
         return f"{self.name} ({', '.join(self.postal_codes)})"

@@ -198,6 +198,9 @@ class TerritoryCombinedListAPITests(APITestCase):
 
 class CityDetailAPITest(APITestCase):
     def setUp(self):
+        lyon_multipolygon = MultiPolygon(
+            Polygon(((4.7921, 45.7640), (4.8301, 45.7640), (4.8301, 45.7790), (4.7921, 45.7790), (4.7921, 45.7640)))
+        )
         self.city = CityFactory.create(
             name="Lyon",
             slug="lyon",
@@ -207,6 +210,22 @@ class CityDetailAPITest(APITestCase):
             average_income=30000,
             popular=True,
             nb_students=60000,
+            boundary=lyon_multipolygon,
+        )
+
+        saint_etienne_multipolygon = MultiPolygon(
+            Polygon(((4.3801, 45.4300), (4.4101, 45.4300), (4.4101, 45.4600), (4.3801, 45.4600), (4.3801, 45.4300)))
+        )
+        CityFactory.create(
+            name="Saint-Etienne",
+            slug="saint-etienne",
+            postal_codes=["42000", "42100"],
+            epci_code="EPCI234",
+            insee_code="23456",
+            average_income=20000,
+            popular=True,
+            nb_students=10000,
+            boundary=saint_etienne_multipolygon,
         )
 
     def test_get_city_details(self):
@@ -223,8 +242,9 @@ class CityDetailAPITest(APITestCase):
                 "insee_code": "12345",
                 "average_income": 30000,
                 "popular": True,
-                "bbox": None,
+                "bbox": {"xmax": 4.8301, "xmin": 4.7921, "ymax": 45.779, "ymin": 45.764},
                 "nb_students": 60000,
+                "nearby_cities": [{"name": "Saint-Etienne", "slug": "saint-etienne"}],
             },
         )
 

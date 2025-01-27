@@ -1,10 +1,29 @@
+from django.contrib.gis.db.models.functions import Distance
 from rest_framework import serializers
 
 from .mixins import BBoxMixin
 from .models import Academy, City, Department
 
 
+class NearbyCitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = City
+        fields = ("name", "slug")
+
+
 class CityDetailSerializer(BBoxMixin):
+    nearby_cities = serializers.SerializerMethodField()
+
+    def get_nearby_cities(self, obj):
+        if not obj.boundary:
+            return []
+        cities = (
+            City.objects.exclude(pk=obj.pk)
+            .annotate(distance=Distance("boundary", obj.boundary.centroid))
+            .order_by("distance")
+        )
+        return NearbyCitySerializer(cities[:7], many=True).data
+
     class Meta:
         model = City
         fields = (
@@ -17,6 +36,7 @@ class CityDetailSerializer(BBoxMixin):
             "nb_students",
             "bbox",
             "popular",
+            "nearby_cities",
         )
 
 

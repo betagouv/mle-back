@@ -34,15 +34,17 @@ class Command(BaseCommand):
                 continue
 
             insee_code = entry.get("com_id")
-            nb_students = entry.get("effectifhdccpge")
+            nb_students = entry.get("effectif")
 
             if not insee_code or not nb_students:
                 self.stderr.write(f"Skipping entry due to missing data: {entry}")
                 continue
 
-            city = City.objects.filter(insee_code=insee_code).first()
+            city = City.objects.filter(name=entry.get("com_nom"), department__name=entry.get("dep_nom")).first()
             if not city:
-                continue
+                city = City.objects.filter(insee_codes__contains=[insee_code]).first()
+                if not city:
+                    continue
 
             try:
                 nb_students = int(nb_students)

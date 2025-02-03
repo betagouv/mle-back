@@ -31,7 +31,7 @@ class CityDetailSerializer(BBoxMixin):
             "name",
             "postal_codes",
             "epci_code",
-            "insee_code",
+            "insee_codes",
             "average_income",
             "nb_students",
             "bbox",

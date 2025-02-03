@@ -1,28 +1,17 @@
 import csv
-import json
 
-import requests
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Point, Polygon
-from django.core.management.base import BaseCommand
+from django.contrib.gis.geos import Point
 from django.db.models import Q
 
 from accommodation.models import Accommodation, ExternalSource
+from territories.management.commands.geo_base_command import GeoBaseCommand
 from territories.models import City, Department
 
 TO_IGNORE = ("a définir", "nc", "-", "x", "?")
 RESIDENCE_TYPE_MAPPING = {label: key for key, label in Accommodation.RESIDENCE_TYPE_CHOICES}
 
 
-def geojson_mpoly(geojson):
-    mpoly = GEOSGeometry(geojson if isinstance(geojson, str) else json.dumps(geojson))
-    if isinstance(mpoly, MultiPolygon):
-        return mpoly
-    if isinstance(mpoly, Polygon):
-        return MultiPolygon([mpoly])
-    raise TypeError(f"{mpoly.geom_type} not acceptable for this model")
-
-
-class Command(BaseCommand):
+class Command(GeoBaseCommand):
     help = "Import CLEF data"
 
     def add_arguments(self, parser):
@@ -112,48 +101,42 @@ class Command(BaseCommand):
                 external_source.save()
                 print(f"ExternalSource {external_source} saved")
 
-    def _fetch_city_from_api(self, code):
-        base_api_url = "https://geo.api.gouv.fr/communes/"
-        returned_fields = "&fields=nom,codesPostaux,codeDepartement,contour,codeEpci&format=json"
-
-        response = requests.get(f"{base_api_url}?codePostal={code}{returned_fields}")
-        if response_json := response.json():
-            return response_json[0]
-
-        # NOTE: this is a dirty workaround, data stored in CLEF is not clean, we can have postal or insee code in same field
-        print(f"Cannot found city with postal code {code}, assuming we have an insee code here.")
-
-        response = requests.get(f"{base_api_url}?code={code}{returned_fields}")
-        if response_json := response.json():
-            return response_json[0]
-
-        print(f"Cannot found city with insee code {code}")
-        return
-
     def _ensure_city_created(self, row):
         if self.skip_cities:
             return
 
-        city = City.objects.filter(
-            Q(postal_codes__contains=[row.get("Code postal")]) | Q(insee_code=row.get("Code postal"))
-        ).first()
-        if city:
+        postal_code = row.get("Code postal")
+        if not postal_code:
             return
 
-        response = self._fetch_city_from_api(row.get("Code postal"))
+        city = City.objects.filter(
+            Q(postal_codes__contains=[postal_code]) | Q(insee_codes__contains=[postal_code])
+        ).first()
+
+        if city:
+            response = self.fetch_city_from_api(postal_code)
+            if response and response["code"] not in city.insee_codes:
+                city.insee_codes.append(response["code"])
+                city.save()
+                print(f"Updated city {city} with new INSEE code {response['code']}")
+            return
+
+        response = self.fetch_city_from_api(postal_code)
         if not response:
             return
 
         city = City.objects.create(
             name=response["nom"],
-            boundary=geojson_mpoly(response["contour"]),
-            postal_codes=response["codesPostaux"],
+            boundary=self.geojson_mpoly(response["contour"]),
+            postal_codes=response.get("codesPostaux", []),
             department=Department.objects.get(code=response["codeDepartement"]),
-            insee_code=response["code"],
-            epci_code=response["codeEpci"],
+            insee_codes=[response["code"]],
+            epci_code=response.get("codeEpci"),
+            population=response.get("population", 0),
         )
         if self.should_write:
             city.save()
             print(f"City {city} created")
         else:
+            print(f"Would have created city {city}")
             print(f"Would have created city {city}")

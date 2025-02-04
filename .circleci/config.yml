@@ -5,6 +5,10 @@ env_vars: &shared_env_vars
   DJANGO_SETTINGS_MODULE: config.settings.test
   DJANGO_SECRET_KEY: secret-key
   DATABASE_URL: postgres://root:password@localhost/circle_test
+  OMOGEN_API_API_KEY: xxx
+  OMOGEN_API_CLIENT_ID: xxx
+  OMOGEN_API_CLIENT_SECRET: xxx
+  OMOGEN_API_HOST: xxx.education.gouv.fr
 
 executors:
   for_tests:

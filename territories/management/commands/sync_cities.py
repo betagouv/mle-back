@@ -94,6 +94,7 @@ class Command(GeoBaseCommand):
             city.boundary = self.geojson_mpoly(response["contour"])
             city.epci_code = response.get("codeEpci")
             city.population = response.get("population", 0)
+            city.insee_codes = list(set(city.insee_codes + [response["code"]]))
             city.save()
             self.stdout.write(
                 self.style.SUCCESS(

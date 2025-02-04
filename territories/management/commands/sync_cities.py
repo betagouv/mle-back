@@ -65,12 +65,13 @@ class Command(GeoBaseCommand):
             },
         ]
 
+        main_cities = []
         for city_data in cities_data:
-            department, created = Department.objects.get_or_create(
+            department, _ = Department.objects.get_or_create(
                 code=city_data["department_code"], defaults={"name": f"Department {city_data['department_code']}"}
             )
 
-            city, created = City.objects.get_or_create(
+            city, _ = City.objects.get_or_create(
                 name=city_data["name"],
                 defaults={
                     "postal_codes": city_data["postal_codes"],
@@ -80,19 +81,24 @@ class Command(GeoBaseCommand):
                 },
             )
 
-            if created:
-                response = self.fetch_city_from_api(city_data["postal_codes"][0])
-                if response:
-                    city.boundary = self.geojson_mpoly(response["contour"])
-                    city.epci_code = response.get("codeEpci")
-                    city.population = response.get("population", 0)
-                    city.save()
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f"✔️ {city.name} created with INSEE {city.insee_codes}, boundary, epci_code and population"
-                        )
-                    )
-                else:
-                    self.stdout.write(self.style.WARNING(f"⚠️ Unable to fetch detailed info for {city.name}"))
-            else:
-                self.stdout.write(self.style.WARNING(f"⚠️ {city.name} already exists"))
+            main_cities.append(city.pk)
+
+            self._fill_from_api(city)
+
+        for city in City.objects.exclude(pk__in=main_cities):
+            self._fill_from_api(city)
+
+    def _fill_from_api(self, city):
+        response = self.fetch_city_from_api(city.postal_codes[0])
+        if response:
+            city.boundary = self.geojson_mpoly(response["contour"])
+            city.epci_code = response.get("codeEpci")
+            city.population = response.get("population", 0)
+            city.save()
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"✔️ {city.name} created/updated with INSEE {city.insee_codes}, boundary, epci_code and population"
+                )
+            )
+        else:
+            self.stdout.write(self.style.WARNING(f"⚠️ Unable to fetch detailed info for {city.name}"))

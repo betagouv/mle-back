@@ -12,12 +12,12 @@ django-filter = "*"
 django-summernote = "*"
 djangorestframework = "*"
 djangorestframework-gis = "*"
-drf-spectacular = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 requests = "*"
 Unidecode = "*"
 whitenoise = "*"
+drf-spectacular = "*"
 
 [dev-packages]
 factory-boy = "*"

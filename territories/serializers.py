@@ -33,6 +33,7 @@ class CityDetailSerializer(BBoxMixin):
             "epci_code",
             "insee_codes",
             "average_income",
+            "average_rent",
             "nb_students",
             "bbox",
             "popular",

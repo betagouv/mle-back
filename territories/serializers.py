@@ -1,3 +1,4 @@
+from accommodation.models import Accommodation
 from django.contrib.gis.db.models.functions import Distance
 from rest_framework import serializers
 
@@ -13,6 +14,7 @@ class NearbyCitySerializer(serializers.ModelSerializer):
 
 class CityDetailSerializer(BBoxMixin):
     nearby_cities = serializers.SerializerMethodField()
+    nb_accommodations = serializers.SerializerMethodField()
 
     def get_nearby_cities(self, obj):
         if not obj.boundary:
@@ -23,6 +25,9 @@ class CityDetailSerializer(BBoxMixin):
             .order_by("distance")
         )
         return NearbyCitySerializer(cities[:7], many=True).data
+
+    def get_nb_accommodations(self, obj):
+        return Accommodation.objects.filter(city=obj.name, postal_code__in=obj.postal_codes).count()
 
     class Meta:
         model = City
@@ -38,13 +43,27 @@ class CityDetailSerializer(BBoxMixin):
             "bbox",
             "popular",
             "nearby_cities",
+            "nb_accommodations",
         )
 
 
 class CityListSerializer(BBoxMixin):
+    nb_accommodations = serializers.SerializerMethodField()
+
+    def get_nb_accommodations(self, obj):
+        return Accommodation.objects.filter(city=obj.name, postal_code__in=obj.postal_codes).count()
+
     class Meta:
         model = City
-        fields = ("id", "name", "postal_codes", "bbox", "popular")
+
+        fields = (
+            "id",
+            "name",
+            "postal_codes",
+            "bbox",
+            "popular",
+            "nb_accommodations",
+        )
 
 
 class DepartmentSerializer(BBoxMixin):

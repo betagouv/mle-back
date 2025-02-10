@@ -114,7 +114,6 @@ class CityListAPIView(APIView):
         cities.order_by("name")
         serializer = CityListSerializer(cities, many=True)
         return Response(serializer.data)
-        return Response(serializer.data)
 
 
 class CityDetailView(RetrieveAPIView):

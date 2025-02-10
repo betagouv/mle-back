@@ -4,6 +4,8 @@ ALTER ROLE jde SET default_transaction_isolation TO 'read committed';
 ALTER ROLE jde SET timezone TO 'UTC';
 
 CREATE DATABASE jde;
+ALTER DATABASE jde OWNER TO jde;
+
 GRANT ALL PRIVILEGES ON DATABASE jde TO jde;
 
 \c jde;

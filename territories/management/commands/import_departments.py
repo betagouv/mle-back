@@ -55,10 +55,9 @@ class Command(BaseCommand):
                 self.stdout.write(f"Unknown academy with name {line['fields']['aca_nom']}. Ignoring the line...")
                 continue
 
-            department, _ = Department.objects.get_or_create(code=dep_code)
+            department, _ = Department.objects.get_or_create(code=dep_code, academy=academy)
 
             department.name = line["fields"]["dep_nom"]
-            department.academy = academy
             boundary = boundaries_lookup.get(dep_code)
             if boundary:
                 department.boundary = boundary

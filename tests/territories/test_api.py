@@ -21,7 +21,7 @@ class TerritoryCombinedListAPITests(APITestCase):
         self.city = CityFactory.create(
             name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department, average_income=30000
         )
-        AccommodationFactory.create(city=self.city.name, postal_code="69001")
+        AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12)
 
     def test_get_territory_combined_list_filtered(self):
         for search_term in ("rh", "rhone", "rhône", "Rhône"):
@@ -119,7 +119,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "popular": False,
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
-                    "nb_accommodations": 1,
+                    "nb_apartments": 12,
                 }
             ],
         )
@@ -136,7 +136,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "popular": False,
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
-                    "nb_accommodations": 1,
+                    "nb_apartments": 12,
                 }
             ],
         )
@@ -173,7 +173,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "bbox": None,
                     "postal_codes": ["75001", "75002"],
                     "popular": True,
-                    "nb_accommodations": 0,
+                    "nb_apartments": 0,
                 }
             ],
         )
@@ -190,7 +190,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
                     "popular": False,
-                    "nb_accommodations": 1,
+                    "nb_apartments": 12,
                 },
                 {
                     "id": mock.ANY,
@@ -198,7 +198,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "bbox": None,
                     "postal_codes": ["13001", "13002"],
                     "popular": False,
-                    "nb_accommodations": 0,
+                    "nb_apartments": 0,
                 },
             ],
         )
@@ -258,7 +258,8 @@ class CityDetailAPITest(APITestCase):
             boundary=saint_etienne_multipolygon,
         )
 
-        AccommodationFactory.create(city=self.city.name, postal_code="69001")
+        AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=3)
+        AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12)
 
     def test_get_city_details(self):
         url = reverse("city-detail", kwargs={"slug": self.city.slug})
@@ -296,7 +297,7 @@ class CityDetailAPITest(APITestCase):
                 "popular": True,
                 "bbox": {"xmax": 4.8301, "xmin": 4.7921, "ymax": 45.779, "ymin": 45.764},
                 "nb_students": 60000,
-                "nb_accommodations": 1,
+                "nb_apartments": 15,
                 "nearby_cities": [{"name": "Saint-Etienne", "slug": "saint-etienne"}],
             },
         )

@@ -1,6 +1,8 @@
-from accommodation.models import Accommodation
 from django.contrib.gis.db.models.functions import Distance
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+
+from accommodation.models import Accommodation
 
 from .mixins import BBoxMixin
 from .models import Academy, City, Department
@@ -16,6 +18,7 @@ class CityDetailSerializer(BBoxMixin):
     nearby_cities = serializers.SerializerMethodField()
     nb_accommodations = serializers.SerializerMethodField()
 
+    @extend_schema_field(NearbyCitySerializer(many=True))
     def get_nearby_cities(self, obj):
         if not obj.boundary:
             return []
@@ -26,6 +29,7 @@ class CityDetailSerializer(BBoxMixin):
         )
         return NearbyCitySerializer(cities[:7], many=True).data
 
+    @extend_schema_field(serializers.IntegerField(help_text="Number of accommodations in the city"))
     def get_nb_accommodations(self, obj):
         return Accommodation.objects.filter(city=obj.name, postal_code__in=obj.postal_codes).count()
 
@@ -50,6 +54,7 @@ class CityDetailSerializer(BBoxMixin):
 class CityListSerializer(BBoxMixin):
     nb_accommodations = serializers.SerializerMethodField()
 
+    @extend_schema_field(serializers.IntegerField(help_text="Number of accommodations in the city"))
     def get_nb_accommodations(self, obj):
         return Accommodation.objects.filter(city=obj.name, postal_code__in=obj.postal_codes).count()
 

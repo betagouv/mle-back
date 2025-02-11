@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from territories.models import Academy, City, Department
 from tests.accommodation.factories import AccommodationFactory
 from tests.territories.factories import AcademyFactory, CityFactory, DepartmentFactory
 
@@ -304,3 +305,27 @@ class CityDetailAPITest(APITestCase):
         url = reverse("city-detail", kwargs={"slug": "unknown-city"})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class NewsletterSubscriptionAPITest(APITestCase):
+    def setUp(self):
+        self.academy = Academy.objects.create(name="Academie de Lyon")
+        self.department = Department.objects.create(name="Rhône", code="69", academy=self.academy)
+        self.city = City.objects.create(name="Lyon", department=self.department, postal_codes=["69001"])
+        self.url = reverse("newsletter-subscription")
+
+    def test_successful_subscription(self):
+        data = {"email": "test@example.com", "territory_type": "city", "territory_name": "Lyon"}
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["message"], "Subscription successful")
+
+    def test_subscription_invalid_territory(self):
+        data = {"email": "test@example.com", "territory_type": "city", "territory_name": "Unknown City"}
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_subscription_missing_fields(self):
+        data = {"email": "test@example.com", "territory_type": "city"}
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

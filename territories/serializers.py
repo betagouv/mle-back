@@ -97,3 +97,11 @@ class TerritoryCombinedSerializer(serializers.Serializer):
     departments = DepartmentSerializer(many=True)
     cities = CityListSerializer(many=True)
     cities = CityListSerializer(many=True)
+
+
+class NewsletterSubscriptionSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    territory_type = serializers.ChoiceField(
+        choices=[("academy", "Academy"), ("department", "Department"), ("city", "City")]
+    )
+    territory_name = serializers.CharField()

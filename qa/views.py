@@ -4,7 +4,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.generics import ListAPIView
 
 from .models import QuestionAnswer, QuestionAnswerGlobal
-from .serializers import QuestionAnswerSerializer, QuestionAnswerGlobalSerializer
+from .serializers import QuestionAnswerGlobalSerializer, QuestionAnswerSerializer
 
 
 @extend_schema(
@@ -25,6 +25,7 @@ from .serializers import QuestionAnswerSerializer, QuestionAnswerGlobalSerialize
 )
 class QuestionAnswerListByTerritoryAPIView(ListAPIView):
     serializer_class = QuestionAnswerSerializer
+    queryset = QuestionAnswer.objects.none()
     pagination_class = None
 
     def get_queryset(self):

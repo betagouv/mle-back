@@ -2,9 +2,7 @@ from django.contrib.gis.db.models.functions import Distance
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from accommodation.models import Accommodation
-
-from .mixins import BBoxMixin
+from .mixins import BBoxMixin, CityMixin
 from .models import Academy, City, Department
 
 
@@ -14,9 +12,8 @@ class NearbyCitySerializer(serializers.ModelSerializer):
         fields = ("name", "slug")
 
 
-class CityDetailSerializer(BBoxMixin):
+class CityDetailSerializer(BBoxMixin, CityMixin):
     nearby_cities = serializers.SerializerMethodField()
-    nb_accommodations = serializers.SerializerMethodField()
 
     @extend_schema_field(NearbyCitySerializer(many=True))
     def get_nearby_cities(self, obj):
@@ -28,10 +25,6 @@ class CityDetailSerializer(BBoxMixin):
             .order_by("distance")
         )
         return NearbyCitySerializer(cities[:7], many=True).data
-
-    @extend_schema_field(serializers.IntegerField(help_text="Number of accommodations in the city"))
-    def get_nb_accommodations(self, obj):
-        return Accommodation.objects.filter(city=obj.name, postal_code__in=obj.postal_codes).count()
 
     class Meta:
         model = City
@@ -47,17 +40,11 @@ class CityDetailSerializer(BBoxMixin):
             "bbox",
             "popular",
             "nearby_cities",
-            "nb_accommodations",
+            "nb_apartments",
         )
 
 
-class CityListSerializer(BBoxMixin):
-    nb_accommodations = serializers.SerializerMethodField()
-
-    @extend_schema_field(serializers.IntegerField(help_text="Number of accommodations in the city"))
-    def get_nb_accommodations(self, obj):
-        return Accommodation.objects.filter(city=obj.name, postal_code__in=obj.postal_codes).count()
-
+class CityListSerializer(BBoxMixin, CityMixin):
     class Meta:
         model = City
 
@@ -67,7 +54,7 @@ class CityListSerializer(BBoxMixin):
             "postal_codes",
             "bbox",
             "popular",
-            "nb_accommodations",
+            "nb_apartments",
         )
 
 

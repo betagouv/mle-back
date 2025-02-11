@@ -1,13 +1,14 @@
 from django.db.models import Func
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from unidecode import unidecode
 
 from territories.models import Academy, City, Department
-from territories.serializers import CityDetailSerializer
+from territories.serializers import CityDetailSerializer, NewsletterSubscriptionSerializer
 
 from .serializers import AcademySerializer, CityListSerializer, DepartmentSerializer, TerritoryCombinedSerializer
 
@@ -124,3 +125,57 @@ class CityDetailView(RetrieveAPIView):
     def get_object(self):
         slug = self.kwargs.get(self.lookup_field)
         return get_object_or_404(self.queryset, slug=slug)
+
+
+class NewsletterSubscriptionAPIView(APIView):
+    @extend_schema(
+        request=NewsletterSubscriptionSerializer,
+        responses={201: {"message": "Subscription successful", "email": "string", "territory": "string"}},
+        parameters=[
+            OpenApiParameter(
+                name="email",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Email address of the subscriber",
+                required=True,
+            ),
+            OpenApiParameter(
+                name="territory_type",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Type of territory (academy, department, city)",
+                required=True,
+            ),
+            OpenApiParameter(
+                name="territory_name",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Name of the territory",
+                required=True,
+            ),
+        ],
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = NewsletterSubscriptionSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data["email"]
+            territory_type = serializer.validated_data["territory_type"]
+            territory_name = serializer.validated_data["territory_name"]
+
+            model_map = {
+                "academy": Academy,
+                "department": Department,
+                "city": City,
+            }
+
+            model = model_map.get(territory_type)
+            territory = get_object_or_404(model, name=territory_name)
+
+            ...  # TODO POST contact to Brevo
+
+            return Response(
+                {"message": "Subscription successful", "email": email, "territory": territory.name},
+                status=status.HTTP_201_CREATED,
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

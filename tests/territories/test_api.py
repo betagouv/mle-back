@@ -1,4 +1,6 @@
 from unittest import mock
+from unittest.mock import patch
+import sib_api_v3_sdk
 
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.urls import reverse
@@ -315,11 +317,39 @@ class NewsletterSubscriptionAPITest(APITestCase):
         self.city = City.objects.create(name="Lyon", department=self.department, postal_codes=["69001"])
         self.url = reverse("newsletter-subscription")
 
-    def test_successful_subscription(self):
+    @patch("sib_api_v3_sdk.ContactsApi.get_contact_info")
+    @patch("sib_api_v3_sdk.ContactsApi.update_contact")
+    @patch("sib_api_v3_sdk.ContactsApi.create_contact")
+    def test_successful_subscription(self, mock_create, mock_update, mock_get_info):
+        error_404 = sib_api_v3_sdk.rest.ApiException(status=404, reason="Contact not found")
+        mock_get_info.side_effect = error_404
         data = {"email": "test@example.com", "territory_type": "city", "territory_name": "Lyon"}
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["message"], "Subscription successful")
+        mock_get_info.assert_called_once_with("test@example.com")
+
+        expected_data = {
+            "email": "test@example.com",
+            "attributes": {
+                "TERRITORY_NAME": "Lyon",
+                "TERRITORY_TYPE": "city",
+            },
+            "listIds": [1],
+            "updateEnabled": True,
+        }
+        mock_create.assert_called_once_with(expected_data)
+        mock_update.assert_not_called()
+
+        mock_get_info.reset_mock()
+        mock_create.reset_mock()
+        mock_update.reset_mock()
+
+        mock_get_info.side_effect = None
+        response = self.client.post(self.url, data, format="json")
+        del expected_data["email"]
+        mock_update.assert_called_once_with("test@example.com", expected_data)
+        mock_create.assert_not_called()
 
     def test_subscription_invalid_territory(self):
         data = {"email": "test@example.com", "territory_type": "city", "territory_name": "Unknown City"}

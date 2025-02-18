@@ -1,6 +1,6 @@
 from django.db.models import Func
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
@@ -131,28 +131,14 @@ class NewsletterSubscriptionAPIView(APIView):
     @extend_schema(
         request=NewsletterSubscriptionSerializer,
         responses={201: {"message": "Subscription successful", "email": "string", "territory": "string"}},
-        parameters=[
-            OpenApiParameter(
-                name="email",
-                type=str,
-                location=OpenApiParameter.QUERY,
-                description="Email address of the subscriber",
-                required=True,
-            ),
-            OpenApiParameter(
-                name="territory_type",
-                type=str,
-                location=OpenApiParameter.QUERY,
-                description="Type of territory (academy, department, city)",
-                required=True,
-            ),
-            OpenApiParameter(
-                name="territory_name",
-                type=str,
-                location=OpenApiParameter.QUERY,
-                description="Name of the territory",
-                required=True,
-            ),
+        examples=[
+            OpenApiExample(
+                "Example Request",
+                summary="Example request",
+                description="Example of a newsletter subscription request with an email and a territory.",
+                value={"email": "test@example.com", "territory_type": "city", "territory_name": "Lyon"},
+                request_only=True,
+            )
         ],
     )
     def post(self, request, *args, **kwargs):

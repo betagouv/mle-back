@@ -18,6 +18,7 @@ geopy = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 requests = "*"
+sib-api-v3-sdk = "*"
 Unidecode = "*"
 whitenoise = "*"
 

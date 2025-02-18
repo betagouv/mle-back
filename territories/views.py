@@ -9,6 +9,7 @@ from unidecode import unidecode
 
 from territories.models import Academy, City, Department
 from territories.serializers import CityDetailSerializer, NewsletterSubscriptionSerializer
+from territories.services import sync_newsletter_subscription_to_brevo
 
 from .serializers import AcademySerializer, CityListSerializer, DepartmentSerializer, TerritoryCombinedSerializer
 
@@ -157,7 +158,7 @@ class NewsletterSubscriptionAPIView(APIView):
             model = model_map.get(territory_type)
             territory = get_object_or_404(model, name=territory_name)
 
-            ...  # TODO POST contact to Brevo
+            sync_newsletter_subscription_to_brevo(email, territory_type, territory_name)
 
             return Response(
                 {"message": "Subscription successful", "email": email, "territory": territory.name},

@@ -9,6 +9,7 @@ env_vars: &shared_env_vars
   OMOGEN_API_CLIENT_ID: xxx
   OMOGEN_API_CLIENT_SECRET: xxx
   OMOGEN_API_HOST: xxx.education.gouv.fr
+  BREVO_API_KEY: xxx
 
 executors:
   for_tests:

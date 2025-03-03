@@ -3,7 +3,7 @@ import base64
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import Accommodation, ExternalSource
+from .models import Accommodation, ExternalSource, Owner
 
 
 class Base64BinaryField(serializers.Field):
@@ -24,6 +24,7 @@ class Base64BinaryField(serializers.Field):
 class AccommodationImportSerializer(serializers.ModelSerializer):
     source_id = serializers.CharField(write_only=True)
     images = serializers.ListField(child=Base64BinaryField(), required=False)
+    owner_id = serializers.CharField(write_only=True)
 
     class Meta:
         model = Accommodation
@@ -46,11 +47,13 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "geom",
             "source_id",
             "images",
+            "owner_id",
         )
 
     def create(self, validated_data):
         source_id = validated_data.pop("source_id")
         images = validated_data.pop("images", [])
+        owner_id = validated_data.pop("owner_id", None)
 
         accommodation, _ = Accommodation.objects.get_or_create(
             name=validated_data["name"],
@@ -81,6 +84,11 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             setattr(accommodation, field_name, field_value)
 
         accommodation.images = images
+
+        if owner_id and (owner_data := self.get_owner_data(owner_id)):
+            owner, _ = Owner.objects.get_or_create(source_id=owner_id, defaults=owner_data)
+            accommodation.owner = owner
+
         accommodation.save()
 
         source, _ = ExternalSource.objects.get_or_create(

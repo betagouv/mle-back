@@ -1,7 +1,97 @@
+import base64
+
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import Accommodation
+from .models import Accommodation, ExternalSource
+
+
+class Base64BinaryField(serializers.Field):
+    def to_representation(self, value):
+        if value:
+            return base64.b64encode(value).decode("utf-8")
+        return
+
+    def to_internal_value(self, data):
+        if data:
+            try:
+                return base64.b64decode(data)
+            except (TypeError, ValueError):
+                raise serializers.ValidationError("Invalid base64 data.")
+        return
+
+
+class AccommodationImportSerializer(serializers.ModelSerializer):
+    source_id = serializers.CharField(write_only=True)
+    images = serializers.ListField(child=Base64BinaryField(), required=False)
+
+    class Meta:
+        model = Accommodation
+        fields = (
+            "name",
+            "address",
+            "city",
+            "postal_code",
+            "residence_type",
+            "owner_name",
+            "owner_url",
+            "nb_total_apartments",
+            "nb_accessible_apartments",
+            "nb_coliving_apartments",
+            "nb_t1",
+            "nb_t1_bis",
+            "nb_t2",
+            "nb_t3",
+            "nb_t4_more",
+            "geom",
+            "source_id",
+            "images",
+        )
+
+    def create(self, validated_data):
+        source_id = validated_data.pop("source_id")
+        images = validated_data.pop("images", [])
+
+        accommodation, _ = Accommodation.objects.get_or_create(
+            name=validated_data["name"],
+            address=validated_data["address"],
+            city=validated_data["city"],
+            postal_code=validated_data["postal_code"],
+        )
+
+        fields = (
+            "residence_type",
+            "owner_name",
+            "owner_url",
+            "nb_total_apartments",
+            "nb_accessible_apartments",
+            "nb_coliving_apartments",
+            "nb_t1",
+            "nb_t1_bis",
+            "nb_t2",
+            "nb_t3",
+            "nb_t4_more",
+            "geom",
+        )
+        accommodation_fields = {}
+        for field_name in fields:
+            accommodation_fields[field_name] = validated_data.pop(field_name, None)
+
+        for field_name, field_value in accommodation_fields.items():
+            setattr(accommodation, field_name, field_value)
+
+        accommodation.images = images
+        accommodation.save()
+
+        source, _ = ExternalSource.objects.get_or_create(
+            accommodation=accommodation,
+            source=ExternalSource.SOURCE_CLEF,
+        )
+
+        source.source_id = source_id
+        source.save()
+
+        return accommodation
 
 
 class AccommodationDetailSerializer(serializers.ModelSerializer):

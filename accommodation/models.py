@@ -1,5 +1,7 @@
 from autoslug import AutoSlugField
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
+
 from .managers import AccommodationManager
 
 
@@ -37,6 +39,7 @@ class Accommodation(models.Model):
     nb_t2 = models.IntegerField(null=True, blank=True)
     nb_t3 = models.IntegerField(null=True, blank=True)
     nb_t4_more = models.IntegerField(null=True, blank=True)
+    images = ArrayField(models.BinaryField(), null=True, blank=True)
     published = models.BooleanField(default=True)
 
     objects = AccommodationManager()

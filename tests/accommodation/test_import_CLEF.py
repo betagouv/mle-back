@@ -1,10 +1,13 @@
 from unittest import mock
 
 import pytest
+import requests_mock
+from django.contrib.auth.models import User
+from django.contrib.gis.geos import Point
 from django.core.management import call_command
 
-from accommodation.models import Accommodation
-from tests.territories.factories import DepartmentFactory, AcademyFactory
+from accommodation.models import Accommodation, ExternalSource, Owner
+from tests.territories.factories import AcademyFactory, DepartmentFactory
 
 
 @pytest.mark.django_db
@@ -66,3 +69,91 @@ abcde,Third planned residence,Résidence sociale Jeunes Actifs,10 Rue de la Rép
     assert accommodation2.published is True
 
     assert accommodation3.published is False
+
+
+@pytest.fixture
+def mock_settings(settings):
+    settings.OMOGEN_API_HOST = "api.example.com"
+    settings.OMOGEN_API_CLIENT_ID = "client_id"
+    settings.OMOGEN_API_CLIENT_SECRET = "client_secret"
+    settings.OMOGEN_API_API_KEY = "api_key"
+    return settings
+
+
+@pytest.mark.django_db
+def test_import_clef_command(mock_settings):
+    with requests_mock.Mocker() as mocker:
+        mocker.post(
+            f"https://{mock_settings.OMOGEN_API_HOST}/auth-test/token",
+            json={"access_token": "test_token"},
+        )
+
+        mocker.get(
+            f"https://{mock_settings.OMOGEN_API_HOST}/v1/external/getResidences",
+            json=[
+                {
+                    "id": 1,
+                    "nom": "Résidence Test",
+                    "adresse": "1 rue de l'Epargne",
+                    "ville": "Lyon",
+                    "codePostal": "69001",
+                    "typeResidence": "universitaire-conventionnee",
+                    "typeGestionnaireId": 10,
+                    "longitude": 2.0,
+                    "latitude": 48.0,
+                    "imageIds": [100, 101],
+                    "nbTotalLogements": 100,
+                    "nbLogementsAccessibles": 10,
+                    "nbLogementsColiving": 5,
+                    "nbT1": 50,
+                    "nbT1Bis": 20,
+                    "nbT2": 15,
+                    "nbT3": 10,
+                    "nbT4EtPlus": 5,
+                }
+            ],
+        )
+
+        mocker.get(
+            f"https://{mock_settings.OMOGEN_API_HOST}/v1/images/100",
+            content=b"image_data_100",
+        )
+        mocker.get(
+            f"https://{mock_settings.OMOGEN_API_HOST}/v1/images/101",
+            content=b"image_data_101",
+        )
+
+        mocker.get(
+            f"https://{mock_settings.OMOGEN_API_HOST}/v1/type-gestionnaires/10",
+            json={"nom": "Bailleur Test", "url": "http://bailleur.test"},
+        )
+
+        call_command("import_CLEF_via_OMOGEN_API")
+
+        accommodation = Accommodation.objects.get(name="Résidence Test")
+        assert accommodation.address == "1 rue de l'Epargne"
+        assert accommodation.city == "Lyon"
+        assert accommodation.postal_code == "69001"
+        assert accommodation.residence_type == "universitaire-conventionnee"
+        assert accommodation.geom == Point(2.0, 48.0)
+        assert accommodation.images == [b"image_data_100", b"image_data_101"]
+        assert accommodation.nb_total_apartments == 100
+        assert accommodation.nb_accessible_apartments == 10
+        assert accommodation.nb_coliving_apartments == 5
+        assert accommodation.nb_t1 == 50
+        assert accommodation.nb_t1_bis == 20
+        assert accommodation.nb_t2 == 15
+        assert accommodation.nb_t3 == 10
+        assert accommodation.nb_t4_more == 5
+
+        owner = Owner.objects.get(name="Bailleur Test")
+        assert owner.url == "http://bailleur.test"
+        assert accommodation.owner == owner
+
+        user = User.objects.get(username=...)
+        assert user.is_active is False
+        assert accommodation.owner.user == user
+
+        external_source = ExternalSource.objects.get(accommodation=accommodation)
+        assert external_source.source_id == "1"
+        assert external_source.source == "clef"

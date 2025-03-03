@@ -1,5 +1,6 @@
 import requests
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.contrib.gis.geos import Point
 
 from accommodation.serializers import AccommodationImportSerializer
@@ -26,6 +27,38 @@ class Command(GeoBaseCommand):
 
         return response_data.get("access_token")
 
+    def _get_owner_data(self, owner_id, access_token):
+        if not owner_id:
+            return
+
+        headers = {"Authorization": f"Bearer {access_token}", "X-omogen-api-key": settings.OMOGEN_API_API_KEY}
+        url = f"https://{settings.OMOGEN_API_HOST}/v1/type-gestionnaires/{owner_id}"
+        response = requests.get(url, headers=headers)
+
+        if response.status_code != 200:
+            return
+
+        owner_data = response.json()
+        return {"name": owner_data.get(...), "url": owner_data.get(...)}
+
+    def _get_images_data(self, image_ids, access_token):
+        if not image_ids:
+            return
+
+        headers = {"Authorization": f"Bearer {access_token}", "X-omogen-api-key": settings.OMOGEN_API_API_KEY}
+        images = []
+
+        for image_id in image_ids:
+            image_url = f"https://{settings.OMOGEN_API_HOST}/v1/images/{image_id}"
+            image_response = requests.get(image_url, headers=headers)
+
+            if image_response.status_code == 200:
+                images.append(image_response.content)
+            else:
+                self.stderr.write(f"Error retrieving image {image_id}: {image_response.status_code}")
+
+        return images
+
     def fetch_data(self, access_token):
         headers = {"Authorization": f"Bearer {access_token}", "X-omogen-api-key": settings.OMOGEN_API_API_KEY}
 
@@ -39,17 +72,8 @@ class Command(GeoBaseCommand):
         residences = response.json()
 
         for residence in residences:
-            images = []
-            image_ids = residence.get("imageIds", [])
-
-            for image_id in image_ids:
-                image_url = f"https://{settings.OMOGEN_API_HOST}/v1/images/{image_id}"
-                image_response = requests.get(image_url, headers=headers)
-
-                if image_response.status_code == 200:
-                    images.append(image_response.content)
-                else:
-                    self.stderr.write(f"Error retrieving image {image_id}: {image_response.status_code}")
+            images = self._get_images_data(image_ids=residence.get("imageIds"), access_token=access_token)
+            owner_data = self._get_owner_data(residence.get("typeGestionnaireId"), access_token=access_token)
 
             serializer = AccommodationImportSerializer(
                 data={
@@ -58,8 +82,6 @@ class Command(GeoBaseCommand):
                     "city": ...,
                     "postal_code": ...,
                     "residence_type": ...,
-                    "owner_name": ...,
-                    "owner_url": ...,
                     "nb_total_apartments": ...,
                     "nb_accessible_apartments": ...,
                     "nb_coliving_apartments": ...,
@@ -72,12 +94,22 @@ class Command(GeoBaseCommand):
                     if "longitude" in residence and "latitude" in residence
                     else None,
                     "source_id": residence.get("id"),
+                    "owner_id": residence.get("typeGestionnaireId"),
                     "images": images,
                 }
             )
 
             if serializer.is_valid():
-                serializer.save()
+                accommodation = serializer.save()
+
+                if owner_data:
+                    owner, created = accommodation.owner_set.get_or_create(...)
+
+                    if created:
+                        username = ...
+                        user = User.objects.create_user(username=username, password=None, is_active=False)
+                        owner.user = user
+                        owner.save()
             else:
                 self.stderr.write(f"Error saving residence: {serializer.errors}")
                 continue

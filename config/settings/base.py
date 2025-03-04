@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "rest_framework_gis",
     "territories",
     "qa",
+    "account",
     "accommodation",
     "django_summernote",
     "drf_spectacular",
@@ -42,6 +43,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "account.middleware.AdminLoginRedirectMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

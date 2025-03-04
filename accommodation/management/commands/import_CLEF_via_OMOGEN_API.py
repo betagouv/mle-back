@@ -1,14 +1,15 @@
 import requests
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.contrib.gis.geos import Point
 
 from accommodation.serializers import AccommodationImportSerializer
 from territories.management.commands.geo_base_command import GeoBaseCommand
+from account.models import Owner
 
 
 class Command(GeoBaseCommand):
     help = "Import CLEF data via OMOGEN API"
+    root_url = f"https://{settings.OMOGEN_API_HOST}"
 
     def get_access_token(self):
         payload = {
@@ -18,13 +19,14 @@ class Command(GeoBaseCommand):
         }
         headers = {"X-omogen-api-key": settings.OMOGEN_API_API_KEY, "Content-type": "application/x-www-form-urlencoded"}
 
-        response = requests.post(f"https://{settings.OMOGEN_API_HOST}/auth-test/token", data=payload, headers=headers)
+        response = requests.post(f"{self.root_url}/auth-test/token", data=payload, headers=headers)
         response_data = response.json()
 
         if response.status_code != 200:
             self.stderr.write(f"Error retrieving token: {response_data}")
             return
 
+        self.stdout.write("Successfully retrieved token")
         return response_data.get("access_token")
 
     def _get_owner_data(self, owner_id, access_token):
@@ -32,7 +34,7 @@ class Command(GeoBaseCommand):
             return
 
         headers = {"Authorization": f"Bearer {access_token}", "X-omogen-api-key": settings.OMOGEN_API_API_KEY}
-        url = f"https://{settings.OMOGEN_API_HOST}/v1/type-gestionnaires/{owner_id}"
+        url = f"{self.root_url}/v1/type-gestionnaires/{owner_id}"
         response = requests.get(url, headers=headers)
 
         if response.status_code != 200:
@@ -49,7 +51,7 @@ class Command(GeoBaseCommand):
         images = []
 
         for image_id in image_ids:
-            image_url = f"https://{settings.OMOGEN_API_HOST}/v1/images/{image_id}"
+            image_url = f"{self.root_url}/v1/images/{image_id}"
             image_response = requests.get(image_url, headers=headers)
 
             if image_response.status_code == 200:
@@ -62,7 +64,7 @@ class Command(GeoBaseCommand):
     def fetch_data(self, access_token):
         headers = {"Authorization": f"Bearer {access_token}", "X-omogen-api-key": settings.OMOGEN_API_API_KEY}
 
-        url = f"https://{settings.OMOGEN_API_HOST}/v1/external/getResidences"
+        url = f"{self.root_url}/v1/external/getResidences"
         response = requests.get(url, headers=headers)
 
         if response.status_code != 200:
@@ -70,6 +72,7 @@ class Command(GeoBaseCommand):
             return
 
         residences = response.json()
+        results = []
 
         for residence in residences:
             images = self._get_images_data(image_ids=residence.get("imageIds"), access_token=access_token)
@@ -101,20 +104,16 @@ class Command(GeoBaseCommand):
 
             if serializer.is_valid():
                 accommodation = serializer.save()
+                results.append(accommodation)
 
-                if owner_data:
-                    owner, created = accommodation.owner_set.get_or_create(...)
-
-                    if created:
-                        username = ...
-                        user = User.objects.create_user(username=username, password=None, is_active=False)
-                        owner.user = user
-                        owner.save()
+                owner = Owner.create(owner_data)
+                accommodation.owner = owner
+                accommodation.save()
             else:
                 self.stderr.write(f"Error saving residence: {serializer.errors}")
                 continue
 
-        return residences
+        return results
 
     def handle(self, *args, **options):
         self.stdout.write("Starting CLEF import via OMOGEN API...")

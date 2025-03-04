@@ -13,11 +13,15 @@ class AccommodationAdmin(OSMGeoAdmin):
         "postal_code",
         "nb_total_apartments",
         "nb_accessible_apartments",
+        "published",
     )
-    list_filter = ("residence_type", "city", "postal_code")
+    list_display_as_owner = ("name", "address", "city", "postal_code", "published")
+    list_filter = ("city", "postal_code")
     search_fields = ("name", "address", "city")
     ordering = ("name",)
-    fields = ("published",)  # only published field by default
+    fields_as_owner = ("published",)
+    list_editable = ("published",)
+    list_display_links_as_owner = None
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -30,18 +34,28 @@ class AccommodationAdmin(OSMGeoAdmin):
         except Owner.DoesNotExist:
             return qs.none()
 
+    def get_list_display_links(self, request, list_display):
+        if request.user.is_superuser:
+            return super().get_list_display_links(request, list_display)
+        return self.list_display_links_as_owner
+
+    def get_list_display(self, request):
+        if request.user.is_superuser:
+            return super().get_list_display(request)
+        return self.list_display_as_owner
+
     def get_fields(self, request, obj=None):
-        if request.user.is_superuser or request.user.is_staff:
+        if request.user.is_superuser:
             return super().get_fields(request, obj)
-        return self.fields
+        return self.fields_as_owner
 
     def has_add_permission(self, request):
-        if request.user.is_superuser or request.user.is_staff:
+        if request.user.is_superuser:
             return True
         return False
 
     def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser or request.user.is_staff:
+        if request.user.is_superuser:
             return True
         return False
 

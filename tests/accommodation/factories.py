@@ -17,8 +17,6 @@ class AccommodationFactory(factory.django.DjangoModelFactory):
     city = factory.Faker("city")
     postal_code = factory.Faker("postcode")
     residence_type = factory.fuzzy.FuzzyChoice([choice[0] for choice in Accommodation.RESIDENCE_TYPE_CHOICES])
-    owner_name = factory.Faker("name")
-    owner_url = factory.Faker("url")
     nb_total_apartments = factory.Faker("random_int", min=10, max=100)
     published = True
 

@@ -4,6 +4,7 @@ from django.contrib.gis.geos import Point
 from django.db.models import Q
 
 from accommodation.models import Accommodation, ExternalSource
+from account.models import Owner
 from territories.management.commands.geo_base_command import GeoBaseCommand
 from territories.models import City, Department
 
@@ -48,8 +49,6 @@ class Command(GeoBaseCommand):
                 for attr_db, attr_clef in [
                     ("city", "Commune"),
                     ("postal_code", "Code postal"),
-                    ("owner_name", "Gestionnaire - Nom"),
-                    ("owner_url", "Gestionnaire - Site"),
                     ("nb_total_apartments", "Nombre total de logements"),
                     ("nb_accessible_apartments", "Nombre de logements PMR"),
                     ("nb_coliving_apartments", "Nombre de logements en collocation"),
@@ -66,6 +65,11 @@ class Command(GeoBaseCommand):
                     setattr(accommodation, attr_db, value)
 
                 accommodation.address = row.get("Adresse administrative") or row.get("Adresse géolocalisée")
+
+                owner = Owner.create(
+                    data={"name": row.get("Gestionnaire - Nom"), "url": row.get("Gestionnaire - Site")},
+                )
+                accommodation.owner = owner
 
                 if (latitude := row.get("Latitude")) and (longitude := row.get("Longitude")):
                     try:

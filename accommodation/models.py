@@ -1,7 +1,8 @@
 from autoslug import AutoSlugField
-from django.contrib.auth.models import User
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
+
+from account.models import Owner
 
 from .managers import AccommodationManager
 
@@ -30,7 +31,7 @@ class Accommodation(models.Model):
     city = models.CharField(max_length=150)
     postal_code = models.CharField(max_length=5)
     residence_type = models.CharField(max_length=100, choices=RESIDENCE_TYPE_CHOICES, null=True, blank=True)
-    owner = models.ForeignKey("Owner", on_delete=models.SET_NULL, null=True, blank=True, related_name="accommodations")
+    owner = models.ForeignKey(Owner, on_delete=models.SET_NULL, null=True, blank=True, related_name="accommodations")
     nb_total_apartments = models.IntegerField(null=True, blank=True)
     nb_accessible_apartments = models.IntegerField(null=True, blank=True)
     nb_coliving_apartments = models.IntegerField(null=True, blank=True)
@@ -43,6 +44,9 @@ class Accommodation(models.Model):
     published = models.BooleanField(default=True)
 
     objects = AccommodationManager()
+
+    def __str__(self):
+        return f"{self.name} - {self.postal_code} {self.city}"
 
 
 class ExternalSource(models.Model):
@@ -60,11 +64,5 @@ class ExternalSource(models.Model):
     class Meta:
         unique_together = ("source", "accommodation")
 
-
-class Owner(models.Model):
-    name = models.CharField(max_length=200)
-    url = models.URLField(max_length=500, blank=True, null=True)
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="owner")
-
     def __str__(self):
-        return self.name
+        return f"Source {self.source} - {self.source_id} - for {self.accommodation}"

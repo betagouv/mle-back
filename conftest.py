@@ -1,11 +1,16 @@
 import os
-from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
 import faker
 import pytest
-import requests
+import requests_mock
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.db import connection
+
+from accommodation.models import Accommodation
+
+fake = faker.Faker()
 
 
 @pytest.fixture(scope="session")
@@ -23,30 +28,52 @@ def django_db_setup(django_db_setup, django_db_blocker):
         )
 
 
-def mock_requests_get(url, *args, **kwargs):
-    parsed_url = urlparse(url)
-    params = parse_qs(parsed_url.query)
+@pytest.fixture(autouse=True)
+def mock_requests():
+    with requests_mock.Mocker() as mocker:
 
-    if parsed_url.netloc == "geo.api.gouv.fr":
-        postal_code = params.get("codePostal", [None])[0]
+        def geo_api_mock(request, context):
+            parsed_url = urlparse(request.url)
+            params = parse_qs(parsed_url.query)
+            postal_code = params.get("codePostal", [None])[0]
 
-        mock_response = mock.Mock()
-        mock_response.json.return_value = [
-            {
-                "nom": faker.Faker().city(),
-                "codesPostaux": [postal_code],
-                "code": f"{postal_code}",
-                "codeDepartement": f"{postal_code[0:2]}",
-                "contour": "POLYGON((2.3522 48.8566, 2.3523 48.8567, 2.3524 48.8568, 2.3525 48.8567, 2.3522 48.8566))",
-                "codeEpci": "123456789",
-            }
-        ]
-        return mock_response
+            return [
+                {
+                    "nom": fake.city(),
+                    "codesPostaux": [postal_code],
+                    "code": f"{postal_code}",
+                    "codeDepartement": f"{postal_code[:2]}",
+                    "contour": "POLYGON((2.3522 48.8566, 2.3523 48.8567, 2.3524 48.8568, 2.3525 48.8567, 2.3522 48.8566))",
+                    "codeEpci": "123456789",
+                }
+            ]
 
-    return requests.get(url, *args, **kwargs)
+        mocker.get("https://geo.api.gouv.fr/communes/", json=geo_api_mock)
+
+        yield mocker
 
 
 @pytest.fixture(autouse=True)
-def mock_get_requests():
-    with mock.patch("requests.get", side_effect=mock_requests_get):
-        yield
+def create_owners_group():
+    """Fixture pour créer le groupe Owners dans les tests."""
+
+    owners_group, created = Group.objects.get_or_create(name="Owners")
+
+    if created:
+        content_type = ContentType.objects.get_for_model(Accommodation)
+
+        can_view_accommodation, _ = Permission.objects.get_or_create(
+            codename="view_accommodation",
+            name="Can view accommodation",
+            content_type=content_type,
+        )
+
+        can_change_accommodation, _ = Permission.objects.get_or_create(
+            codename="change_accommodation",
+            name="Can change accommodation",
+            content_type=content_type,
+        )
+
+        owners_group.permissions.add(can_view_accommodation, can_change_accommodation)
+
+    return owners_group

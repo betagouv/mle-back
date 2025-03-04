@@ -28,6 +28,7 @@ pytest-circleci-parallelized = "*"
 pytest-django = "*"
 pytest-socket = "*"
 pytest-xdist = "*"
+requests-mock = "*"
 ruff = "*"
 
 [requires]

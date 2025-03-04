@@ -34,8 +34,6 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "city",
             "postal_code",
             "residence_type",
-            "owner_name",
-            "owner_url",
             "nb_total_apartments",
             "nb_accessible_apartments",
             "nb_coliving_apartments",
@@ -64,8 +62,6 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
 
         fields = (
             "residence_type",
-            "owner_name",
-            "owner_url",
             "nb_total_apartments",
             "nb_accessible_apartments",
             "nb_coliving_apartments",
@@ -113,8 +109,6 @@ class AccommodationDetailSerializer(serializers.ModelSerializer):
             "city",
             "postal_code",
             "residence_type",
-            "owner_name",
-            "owner_url",
             "nb_total_apartments",
             "nb_accessible_apartments",
             "nb_coliving_apartments",

@@ -40,6 +40,7 @@ class Accommodation(models.Model):
     nb_t2 = models.IntegerField(null=True, blank=True)
     nb_t3 = models.IntegerField(null=True, blank=True)
     nb_t4_more = models.IntegerField(null=True, blank=True)
+    price_min = models.IntegerField(null=True, blank=True)
     images = ArrayField(models.BinaryField(), null=True, blank=True)
     published = models.BooleanField(default=True)
 
@@ -52,9 +53,11 @@ class Accommodation(models.Model):
 class ExternalSource(models.Model):
     SOURCE_ACCESLIBRE = "acceslibre"
     SOURCE_CLEF = "clef"
+    SOURCE_AGEFO = "agefo"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
+        (SOURCE_AGEFO, "Agefo"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

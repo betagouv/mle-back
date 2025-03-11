@@ -1,5 +1,8 @@
+import base64
+
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
+from django.utils.html import format_html
 
 from .models import Accommodation, Owner
 
@@ -22,6 +25,12 @@ class AccommodationAdmin(OSMGeoAdmin):
     fields_as_owner = ("published",)
     list_editable = ("published",)
     list_display_links_as_owner = None
+    readonly_fields = (
+        "display_images",
+        "owner",
+        "residence_type",
+    )
+    exclude = ("images",)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -49,6 +58,15 @@ class AccommodationAdmin(OSMGeoAdmin):
             return super().get_fields(request, obj)
         return self.fields_as_owner
 
+    def display_images(self, obj):
+        if obj.images:
+            images_html = "".join(
+                f'<img src="data:image/jpeg;base64,{base64.b64encode(image).decode()}" width="200" height="150" style="margin:5px;"/>'
+                for image in obj.images
+            )
+            return format_html(images_html)
+        return "No images available"
+
     def has_add_permission(self, request):
         if request.user.is_superuser:
             return True
@@ -61,6 +79,8 @@ class AccommodationAdmin(OSMGeoAdmin):
 
     def has_change_permission(self, request, obj=None):
         return True
+
+    display_images.short_description = "Images"
 
 
 admin.site.register(Accommodation, AccommodationAdmin)

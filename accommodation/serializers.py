@@ -98,7 +98,21 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         return accommodation
 
 
-class AccommodationDetailSerializer(serializers.ModelSerializer):
+class BaseAccommodationSerialiser(serializers.Serializer):
+    images_base64 = serializers.SerializerMethodField()
+
+    def get_images_base64(self, obj):
+        images = obj.images or []
+        images_base64 = []
+
+        for image in images:
+            encoded_image = base64.b64encode(image).decode("utf-8")
+            images_base64.append(f"data:image/jpeg;base64,{encoded_image}")
+
+        return images_base64
+
+
+class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.ModelSerializer):
     class Meta:
         model = Accommodation
         fields = (
@@ -118,10 +132,12 @@ class AccommodationDetailSerializer(serializers.ModelSerializer):
             "nb_t3",
             "nb_t4_more",
             "geom",
+            "price_min",
+            "images_base64",
         )
 
 
-class AccommodationGeoSerializer(GeoFeatureModelSerializer):
+class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSerializer):
     class Meta:
         model = Accommodation
         geo_field = "geom"
@@ -134,4 +150,6 @@ class AccommodationGeoSerializer(GeoFeatureModelSerializer):
             "nb_total_apartments",
             "nb_accessible_apartments",
             "nb_coliving_apartments",
+            "price_min",
+            "images_base64",
         )

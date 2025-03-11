@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+beautifulsoup4 = "*"
 django = "==4.2.20"
 django-autoslug = "*"
 django-cors-headers = "*"
@@ -12,12 +13,13 @@ django-filter = "*"
 django-summernote = "*"
 djangorestframework = "*"
 djangorestframework-gis = "*"
+drf-spectacular = "*"
+geopy = "*"
 gunicorn = "*"
 psycopg2-binary = "*"
 requests = "*"
 Unidecode = "*"
 whitenoise = "*"
-drf-spectacular = "*"
 
 [dev-packages]
 factory-boy = "*"

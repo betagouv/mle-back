@@ -6,7 +6,7 @@ from .models import Owner
 
 
 class OwnerSerializer(serializers.ModelSerializer):
-    image_base64 = Base64BinaryField(required=False, allow_null=True)
+    image_base64 = Base64BinaryField(required=False, allow_null=True, source="image")
 
     class Meta:
         model = Owner

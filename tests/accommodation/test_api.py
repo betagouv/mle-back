@@ -2,12 +2,15 @@ from django.contrib.gis.geos import Point
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
+from tests.account.factories import OwnerFactory
+
 from .factories import AccommodationFactory
 
 
 class AccommodationDetailAPITests(APITestCase):
     def setUp(self):
-        self.accommodation_published = AccommodationFactory(geom=Point(2.35, 48.85), published=True)
+        owner = OwnerFactory(name="Bailleur1", url="http://bailleur1.com")
+        self.accommodation_published = AccommodationFactory(geom=Point(2.35, 48.85), published=True, owner=owner)
         self.accommodation_unpublished = AccommodationFactory(published=False)
 
     def test_accommodation_detail_success(self):
@@ -20,6 +23,7 @@ class AccommodationDetailAPITests(APITestCase):
         assert result["slug"] == self.accommodation_published.slug
         assert result["name"] == self.accommodation_published.name
         assert result["geom"]["coordinates"] == [2.35, 48.85]
+        assert result["owner"]["name"] == "Bailleur1"
 
     def test_accommodation_detail_not_found_if_unpublished(self):
         response = self.client.get(

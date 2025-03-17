@@ -5,11 +5,12 @@ from rest_framework.test import APITestCase
 from tests.account.factories import OwnerFactory
 
 from .factories import AccommodationFactory
+import base64
 
 
 class AccommodationDetailAPITests(APITestCase):
     def setUp(self):
-        owner = OwnerFactory(name="Bailleur1", url="http://bailleur1.com")
+        owner = OwnerFactory(name="Bailleur1", url="http://bailleur1.com", image=b"Bailleur1 logo")
         self.accommodation_published = AccommodationFactory(geom=Point(2.35, 48.85), published=True, owner=owner)
         self.accommodation_unpublished = AccommodationFactory(published=False)
 
@@ -24,6 +25,7 @@ class AccommodationDetailAPITests(APITestCase):
         assert result["name"] == self.accommodation_published.name
         assert result["geom"]["coordinates"] == [2.35, 48.85]
         assert result["owner"]["name"] == "Bailleur1"
+        assert result["owner"]["image_base64"] == base64.b64encode(b"Bailleur1 logo").decode("utf-8")
 
     def test_accommodation_detail_not_found_if_unpublished(self):
         response = self.client.get(

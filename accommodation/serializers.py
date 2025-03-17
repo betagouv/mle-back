@@ -3,22 +3,11 @@ import base64
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import Accommodation, ExternalSource, Owner
+from account.models import Owner
+from account.serializers import OwnerSerializer
+from common.serializers import Base64BinaryField
 
-
-class Base64BinaryField(serializers.Field):
-    def to_representation(self, value):
-        if value:
-            return base64.b64encode(value).decode("utf-8")
-        return
-
-    def to_internal_value(self, data):
-        if data:
-            try:
-                return base64.b64decode(data)
-            except (TypeError, ValueError):
-                raise serializers.ValidationError("Invalid base64 data.")
-        return
+from .models import Accommodation, ExternalSource
 
 
 class AccommodationImportSerializer(serializers.ModelSerializer):
@@ -113,6 +102,8 @@ class BaseAccommodationSerialiser(serializers.Serializer):
 
 
 class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.ModelSerializer):
+    owner = OwnerSerializer(read_only=True)
+
     class Meta:
         model = Accommodation
         fields = (
@@ -134,6 +125,7 @@ class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.Mod
             "geom",
             "price_min",
             "images_base64",
+            "owner",
         )
 
 

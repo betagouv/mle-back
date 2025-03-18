@@ -36,6 +36,11 @@ class Command(GeoBaseCommand):
                     # header is repeated in the file, ignoring the line
                     continue
 
+                residence_type_clef = row.get("Type de résidence", "").strip()
+                if residence_type_clef != "Résidence Universitaire conventionnée":
+                    # import only universitaire-conventionnee ATM, could also be imported as unpublished...
+                    continue
+
                 print(f"~ Processing line {i}")
                 source_id = row["Identifiant fonctionnel"]
 
@@ -79,9 +84,7 @@ class Command(GeoBaseCommand):
                     except ValueError:
                         print("Invalid latitude/longitude values. Ignoring geom...")
 
-                residence_type_clef = row.get("Type de résidence", "").strip()
-                if residence_type_clef:
-                    accommodation.residence_type = RESIDENCE_TYPE_MAPPING.get(residence_type_clef)
+                accommodation.residence_type = RESIDENCE_TYPE_MAPPING.get(residence_type_clef)
 
                 accommodation.published = row.get("Statut de la résidence").lower() == "en service"
 

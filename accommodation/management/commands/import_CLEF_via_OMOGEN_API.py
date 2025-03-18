@@ -75,6 +75,7 @@ class Command(GeoBaseCommand):
         results = []
 
         for residence in residences:
+            # TODO import only "Résidence Universitaire conventionnée"
             images = self._get_images_data(image_ids=residence.get("imageIds"), access_token=access_token)
             owner_data = self._get_owner_data(residence.get("typeGestionnaireId"), access_token=access_token)
 

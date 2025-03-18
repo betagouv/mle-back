@@ -18,8 +18,8 @@ def test_residence_type_mapping():
 
     csv_data = """Identifiant fonctionnel,Nom de la résidence,Type de résidence,Adresse administrative,Commune,Code postal,Latitude,Longitude,Gestionnaire - Nom,Gestionnaire - Site,Nombre total de logements,Nombre de logements PMR,Nombre de logements en collocation,T1,T1 bis,T2,T3,T4 et plus,Statut de la résidence
 12345,First residence,Résidence Universitaire conventionnée,10 Rue de la Paix,Paris,75002,48.8698,2.3311,Example Manager,http://first.com,100,5,10,20,10,30,15,10,En service
-67890,Second residence,Résidence sociale Jeunes Actifs,14 Boulevard de la Libération,Marseille,13001,43.2965,5.3698,Another Manager,http://second.com,150,10,5,25,20,40,10,30,En Service
-abcde,Third planned residence,Résidence sociale Jeunes Actifs,10 Rue de la République,Lyon,69001,45.7570,4.8320,Another Manager,http://second.com,120,8,12,18,15,30,10,25,En projet
+67890,Second residence,Résidence Universitaire conventionnée,14 Boulevard de la Libération,Marseille,13001,43.2965,5.3698,Another Manager,http://second.com,150,10,5,25,20,40,10,30,En Service
+abcde,Third planned residence,Résidence Universitaire conventionnée,10 Rue de la République,Lyon,69001,45.7570,4.8320,Another Manager,http://second.com,120,8,12,18,15,30,10,25,En projet
 """
     with mock.patch("builtins.open", mock.mock_open(read_data=csv_data)):
         call_command("import_CLEF", file="mocked_file", write=True)
@@ -47,7 +47,7 @@ abcde,Third planned residence,Résidence sociale Jeunes Actifs,10 Rue de la Rép
     assert accommodation1.nb_t4_more == 10
     assert accommodation1.published is True
 
-    assert accommodation2.residence_type == "sociale-jeunes-actifs"
+    assert accommodation2.residence_type == "universitaire-conventionnee"
     assert accommodation2.address == "14 Boulevard de la Libération"
     assert accommodation2.city == "Marseille"
     assert accommodation2.postal_code == "13001"

@@ -54,17 +54,17 @@ class Accommodation(models.Model):
     price_max_t3 = models.IntegerField(null=True, blank=True)
     price_min_t4_more = models.IntegerField(null=True, blank=True)
     price_max_t4_more = models.IntegerField(null=True, blank=True)
-    laundry_room = models.BooleanField(default=False)
-    common_areas = models.BooleanField(default=False)
-    bike_storage = models.BooleanField(default=False)
-    parking = models.BooleanField(default=False)
-    secure_access = models.BooleanField(default=False)
-    residence_manager = models.BooleanField(default=False)
+    laundry_room = models.BooleanField(default=False, null=True, blank=True)
+    common_areas = models.BooleanField(default=False, null=True, blank=True)
+    bike_storage = models.BooleanField(default=False, null=True, blank=True)
+    parking = models.BooleanField(default=False, null=True, blank=True)
+    secure_access = models.BooleanField(default=False, null=True, blank=True)
+    residence_manager = models.BooleanField(default=False, null=True, blank=True)
     kitchen_type = models.CharField(max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True)
-    desk = models.BooleanField(default=False)
-    cooking_plates = models.BooleanField(default=False)
-    microwave = models.BooleanField(default=False)
-    refrigerator = models.BooleanField(default=False)
+    desk = models.BooleanField(default=False, null=True, blank=True)
+    cooking_plates = models.BooleanField(default=False, null=True, blank=True)
+    microwave = models.BooleanField(default=False, null=True, blank=True)
+    refrigerator = models.BooleanField(default=False, null=True, blank=True)
     bathroom = models.CharField(max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True)
     external_url = models.URLField(max_length=255, null=True, blank=True)
     images = ArrayField(models.BinaryField(), null=True, blank=True)
@@ -82,11 +82,13 @@ class ExternalSource(models.Model):
     SOURCE_CLEF = "clef"
     SOURCE_AGEFO = "agefo"
     SOURCE_ESPACIL = "espacil"
+    SOURCE_ARPEJ = "arpej"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
         (SOURCE_AGEFO, "Agefo"),
         (SOURCE_ESPACIL, "Espacil"),
+        (SOURCE_ARPEJ, "Arpej"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

@@ -20,9 +20,9 @@ class Owner(models.Model):
             return
 
         with transaction.atomic():
-            owner, created = cls.objects.get_or_create(name=data.get("name"), url=data.get("url"))
+            owner, _ = cls.objects.get_or_create(name=data.get("name"), url=data.get("url"))
 
-            if not created:
+            if owner.user:
                 return owner
 
             user = User.objects.create_user(username=owner.name, password=None, is_active=False, is_staff=True)

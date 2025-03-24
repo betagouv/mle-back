@@ -15,7 +15,7 @@ class Owner(models.Model):
         return self.name
 
     @classmethod
-    def create(cls, data):
+    def get_or_create(cls, data):
         if not data:
             return
 

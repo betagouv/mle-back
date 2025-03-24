@@ -71,7 +71,7 @@ class Command(GeoBaseCommand):
 
                 accommodation.address = row.get("Adresse administrative") or row.get("Adresse géolocalisée")
 
-                owner = Owner.create(
+                owner = Owner.get_or_create(
                     data={"name": row.get("Gestionnaire - Nom"), "url": row.get("Gestionnaire - Site")},
                 )
                 accommodation.owner = owner

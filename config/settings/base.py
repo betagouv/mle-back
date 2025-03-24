@@ -10,6 +10,7 @@ SITE_NAME = "MLE"
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
+DEBUG = False
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
@@ -66,6 +67,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_HSTS_SECONDS = 3600
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

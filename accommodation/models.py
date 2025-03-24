@@ -23,6 +23,10 @@ class Accommodation(models.Model):
         ("internat", "Internat"),
         ("foyer-soleil", "Foyer soleil"),
     )
+    SHARED_OR_PRIVATE = (
+        ("shared", "Shared"),
+        ("private", "Private"),
+    )
 
     name = models.CharField(max_length=200)
     slug = AutoSlugField(max_length=255, default="", unique=True, populate_from="name")
@@ -40,8 +44,31 @@ class Accommodation(models.Model):
     nb_t2 = models.IntegerField(null=True, blank=True)
     nb_t3 = models.IntegerField(null=True, blank=True)
     nb_t4_more = models.IntegerField(null=True, blank=True)
-    price_min = models.IntegerField(null=True, blank=True)
+    price_min_t1 = models.IntegerField(null=True, blank=True)
+    price_max_t1 = models.IntegerField(null=True, blank=True)
+    price_min_t1_bis = models.IntegerField(null=True, blank=True)
+    price_max_t1_bis = models.IntegerField(null=True, blank=True)
+    price_min_t2 = models.IntegerField(null=True, blank=True)
+    price_max_t2 = models.IntegerField(null=True, blank=True)
+    price_min_t3 = models.IntegerField(null=True, blank=True)
+    price_max_t3 = models.IntegerField(null=True, blank=True)
+    price_min_t4_more = models.IntegerField(null=True, blank=True)
+    price_max_t4_more = models.IntegerField(null=True, blank=True)
+    laundry_room = models.BooleanField(default=False)
+    common_areas = models.BooleanField(default=False)
+    bike_storage = models.BooleanField(default=False)
+    parking = models.BooleanField(default=False)
+    secure_access = models.BooleanField(default=False)
+    residence_manager = models.BooleanField(default=False)
+    kitchen_type = models.CharField(max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True)
+    desk = models.BooleanField(default=False)
+    cooking_plates = models.BooleanField(default=False)
+    microwave = models.BooleanField(default=False)
+    refrigerator = models.BooleanField(default=False)
+    bathroom = models.CharField(max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True)
+    external_url = models.URLField(max_length=255, null=True, blank=True)
     images = ArrayField(models.BinaryField(), null=True, blank=True)
+
     published = models.BooleanField(default=True)
 
     objects = AccommodationManager()
@@ -54,10 +81,12 @@ class ExternalSource(models.Model):
     SOURCE_ACCESLIBRE = "acceslibre"
     SOURCE_CLEF = "clef"
     SOURCE_AGEFO = "agefo"
+    SOURCE_ESPACIL = "espacil"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
         (SOURCE_AGEFO, "Agefo"),
+        (SOURCE_ESPACIL, "Espacil"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

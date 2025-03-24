@@ -1,11 +1,11 @@
 import csv
 import os
+from urllib.parse import urlparse
 
 import requests
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
 
-from accommodation.models import ExternalSource
 from accommodation.serializers import AccommodationImportSerializer
 from account.models import Owner
 
@@ -15,9 +15,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--file", type=str, help="Path of the CSV file to process (separator: ,)")
+        parser.add_argument("--source", type=str, help="External source, see accommodation.models.ExternalSource")
 
     def handle(self, *args, **options):
         csv_file_path = options["file"]
+        source = options["source"]
 
         if not os.path.exists(csv_file_path):
             self.stderr.write(self.style.ERROR(f"File not found: {csv_file_path}"))
@@ -48,8 +50,13 @@ class Command(BaseCommand):
                             images.append(image_response.content)
                 return images
 
-            owner = Owner.get_or_create(data={"name": "Espacil", "url": "https://www.espacil-habitat.fr"})
+            owner = None
             for row in reader:
+                if not owner:
+                    parsed_url = urlparse(row["owner_url"])
+                    owner_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                    owner = Owner.get_or_create(data={"name": row["owner_name"], "url": owner_url})
+
                 geom = (
                     Point(float(row["longitude"]), float(row["latitude"]))
                     if row["latitude"] and row["longitude"]
@@ -98,7 +105,7 @@ class Command(BaseCommand):
                         "geom": geom,
                         "owner": owner,
                         "source_id": row["code"],
-                        "source": ExternalSource.SOURCE_ESPACIL,
+                        "source": source,
                     }
                 )
 

@@ -3,16 +3,13 @@ import base64
 from rest_framework import serializers
 
 
-class Base64BinaryField(serializers.Field):
+class BinaryToBase64Field(serializers.Field):
     def to_representation(self, value):
         if value:
-            return base64.b64encode(value).decode("utf-8")
-        return
+            return f"data:image/jpeg;base64,{base64.b64encode(value).decode('utf-8')}"
+        return None
 
     def to_internal_value(self, data):
-        if data:
-            try:
-                return base64.b64decode(data)
-            except (TypeError, ValueError):
-                raise serializers.ValidationError("Invalid base64 data.")
-        return
+        if isinstance(data, bytes):
+            return data
+        raise serializers.ValidationError("This field is expecting binary data.")

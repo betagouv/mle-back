@@ -335,7 +335,7 @@ class NewsletterSubscriptionAPITest(APITestCase):
                 "TERRITORY_NAME": "Lyon",
                 "TERRITORY_TYPE": "city",
             },
-            "listIds": [1],
+            "listIds": [3],
             "updateEnabled": True,
         }
         mock_create.assert_called_once_with(expected_data)

@@ -9,7 +9,6 @@ from common.serializers import Base64BinaryField
 
 from .models import Accommodation, ExternalSource
 
-
 class AccommodationImportSerializer(serializers.ModelSerializer):
     source_id = serializers.CharField(write_only=True)
     source = serializers.CharField(write_only=True)
@@ -125,6 +124,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
 
         accommodation.save()
 
+        # TODO - Handle others external sources than CLEF
         source, _ = ExternalSource.objects.get_or_create(
             accommodation=accommodation,
             source=source,

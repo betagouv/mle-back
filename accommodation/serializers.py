@@ -12,14 +12,16 @@ from .models import Accommodation, ExternalSource
 
 class AccommodationImportSerializer(serializers.ModelSerializer):
     source_id = serializers.CharField(write_only=True)
-    images = serializers.ListField(child=Base64BinaryField(), required=False)
-    owner_id = serializers.CharField(write_only=True)
+    source = serializers.CharField(write_only=True)
+    images = serializers.ListField(child=Base64BinaryField(), required=False, default=None)
+    owner_id = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = Accommodation
         fields = (
             "name",
             "address",
+            "geom",
             "city",
             "postal_code",
             "residence_type",
@@ -31,14 +33,38 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "nb_t2",
             "nb_t3",
             "nb_t4_more",
-            "geom",
+            "price_min_t1",
+            "price_max_t1",
+            "price_min_t1_bis",
+            "price_max_t1_bis",
+            "price_min_t2",
+            "price_max_t2",
+            "price_min_t3",
+            "price_max_t3",
+            "price_min_t4_more",
+            "price_max_t4_more",
+            "laundry_room",
+            "common_areas",
+            "bike_storage",
+            "parking",
+            "secure_access",
+            "residence_manager",
+            "kitchen_type",
+            "desk",
+            "cooking_plates",
+            "microwave",
+            "refrigerator",
+            "bathroom",
+            "external_url",
             "source_id",
+            "source",
             "images",
             "owner_id",
         )
 
     def create(self, validated_data):
         source_id = validated_data.pop("source_id")
+        source = validated_data.pop("source")
         images = validated_data.pop("images", [])
         owner_id = validated_data.pop("owner_id", None)
 
@@ -50,6 +76,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         )
 
         fields = (
+            "geom",
             "residence_type",
             "nb_total_apartments",
             "nb_accessible_apartments",
@@ -59,7 +86,29 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "nb_t2",
             "nb_t3",
             "nb_t4_more",
-            "geom",
+            "price_min_t1",
+            "price_max_t1",
+            "price_min_t1_bis",
+            "price_max_t1_bis",
+            "price_min_t2",
+            "price_max_t2",
+            "price_min_t3",
+            "price_max_t3",
+            "price_min_t4_more",
+            "price_max_t4_more",
+            "laundry_room",
+            "common_areas",
+            "bike_storage",
+            "parking",
+            "secure_access",
+            "residence_manager",
+            "kitchen_type",
+            "desk",
+            "cooking_plates",
+            "microwave",
+            "refrigerator",
+            "bathroom",
+            "external_url",
         )
         accommodation_fields = {}
         for field_name in fields:
@@ -78,7 +127,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
 
         source, _ = ExternalSource.objects.get_or_create(
             accommodation=accommodation,
-            source=ExternalSource.SOURCE_CLEF,
+            source=source,
         )
 
         source.source_id = source_id
@@ -89,8 +138,20 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
 
 class BaseAccommodationSerialiser(serializers.Serializer):
     images_base64 = serializers.SerializerMethodField()
+    price_min = serializers.SerializerMethodField()
+    price_max = serializers.SerializerMethodField()
 
-    def get_images_base64(self, obj):
+    def get_price_min(self, obj) -> int:
+        prices = [obj.price_min_t1, obj.price_min_t1_bis, obj.price_min_t2, obj.price_min_t3, obj.price_min_t4_more]
+        prices = [p for p in prices if p is not None]
+        return min(prices) if prices else None
+
+    def get_price_max(self, obj) -> int:
+        prices = [obj.price_max_t1, obj.price_max_t1_bis, obj.price_max_t2, obj.price_max_t3, obj.price_max_t4_more]
+        prices = [p for p in prices if p is not None]
+        return max(prices) if prices else None
+
+    def get_images_base64(self, obj) -> list[str]:
         images = obj.images or []
         images_base64 = []
 
@@ -122,8 +183,31 @@ class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.Mod
             "nb_t2",
             "nb_t3",
             "nb_t4_more",
-            "geom",
             "price_min",
+            "price_max",
+            "price_min_t1",
+            "price_max_t1",
+            "price_min_t1_bis",
+            "price_max_t1_bis",
+            "price_min_t2",
+            "price_max_t2",
+            "price_min_t3",
+            "price_max_t3",
+            "price_min_t4_more",
+            "price_max_t4_more",
+            "laundry_room",
+            "common_areas",
+            "bike_storage",
+            "parking",
+            "secure_access",
+            "residence_manager",
+            "kitchen_type",
+            "desk",
+            "cooking_plates",
+            "microwave",
+            "refrigerator",
+            "bathroom",
+            "geom",
             "images_base64",
             "owner",
         )

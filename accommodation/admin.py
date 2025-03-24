@@ -4,7 +4,18 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.utils.html import format_html
 
-from .models import Accommodation, Owner
+from accommodation.models import Accommodation, ExternalSource
+from account.models import Owner
+
+
+class ExternalSourceInline(admin.TabularInline):
+    model = ExternalSource
+    extra = 0
+    can_delete = False
+    readonly_fields = ("source", "source_id")
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 class AccommodationAdmin(OSMGeoAdmin):
@@ -18,6 +29,8 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_accessible_apartments",
         "published",
     )
+    inlines = [ExternalSourceInline]
+    inlines_as_owner = []
     list_display_as_owner = ("name", "address", "city", "postal_code", "published")
     list_filter = ("city", "postal_code")
     search_fields = ("name", "address", "city")
@@ -57,6 +70,11 @@ class AccommodationAdmin(OSMGeoAdmin):
         if request.user.is_superuser:
             return super().get_fields(request, obj)
         return self.fields_as_owner
+
+    def get_inlines(self, request, obj=None):
+        if request.user.is_superuser:
+            return super().get_inlines(request, obj)
+        return self.inlines_as_owner
 
     def display_images(self, obj):
         if obj.images:

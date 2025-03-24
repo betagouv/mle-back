@@ -12,7 +12,7 @@ class OwnerSerializer(serializers.ModelSerializer):
         model = Owner
         fields = ("name", "slug", "url", "image_base64")
 
-    def get_image_base64(self, obj):
+    def get_image_base64(self, obj) -> str:
         if obj.image:
             return f"data:image/jpeg;base64,{base64.b64encode(obj.image).decode('utf-8')}"
         return

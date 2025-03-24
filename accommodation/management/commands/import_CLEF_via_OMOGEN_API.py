@@ -3,8 +3,8 @@ from django.conf import settings
 from django.contrib.gis.geos import Point
 
 from accommodation.serializers import AccommodationImportSerializer
-from territories.management.commands.geo_base_command import GeoBaseCommand
 from account.models import Owner
+from territories.management.commands.geo_base_command import GeoBaseCommand
 
 
 class Command(GeoBaseCommand):
@@ -79,6 +79,7 @@ class Command(GeoBaseCommand):
             images = self._get_images_data(image_ids=residence.get("imageIds"), access_token=access_token)
             owner_data = self._get_owner_data(residence.get("typeGestionnaireId"), access_token=access_token)
 
+            # TODO create or update
             serializer = AccommodationImportSerializer(
                 data={
                     "name": ...,
@@ -107,7 +108,7 @@ class Command(GeoBaseCommand):
                 accommodation = serializer.save()
                 results.append(accommodation)
 
-                owner = Owner.create(owner_data)
+                owner = Owner.get_or_create(owner_data)
                 accommodation.owner = owner
                 accommodation.save()
             else:

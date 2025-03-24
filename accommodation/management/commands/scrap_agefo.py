@@ -50,7 +50,7 @@ class Command(BaseCommand):
 
             link = link_tag["href"] if link_tag else None
 
-            owner = Owner.create(data={"name": "Agefo", "url": self.BASE_URL})
+            owner = Owner.get_or_create(data={"name": "Agefo", "url": self.BASE_URL})
             accommodation, created = Accommodation.objects.get_or_create(
                 name=name,
                 defaults={

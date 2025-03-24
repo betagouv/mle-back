@@ -33,9 +33,35 @@ class Command(GeoBaseCommand):
             return
         
         for image in images:
-            image_response = requests.get(image.get("url"), verify=certifi.where())
-            if image_response.status_code == 200:
-                images_results.append(image_response.content)
+            try:
+                # First request to get the redirect URL
+                initial_response = requests.get(
+                    image.get("url"), 
+                    verify=certifi.where(),
+                    allow_redirects=False  # Don't follow redirects yet
+                )
+                
+                if initial_response.status_code == 302:  # Found redirect
+                    final_url = initial_response.headers.get('Location')
+                    if final_url:
+                        # Now get the actual image from the S3 URL
+                        image_response = requests.get(
+                            final_url,
+                            verify=certifi.where(),
+                            allow_redirects=True
+                        )
+                        
+                        if image_response.status_code == 200:
+                            images_results.append(image_response.content)
+                            self.stdout.write(f"Successfully downloaded image from S3: {final_url}")
+                        else:
+                            self.stderr.write(f"Failed to download image from S3. Status code: {image_response.status_code}")
+                else:
+                    self.stderr.write(f"Expected redirect (302) but got status code: {initial_response.status_code}")
+                    
+            except requests.exceptions.RequestException as e:
+                self.stderr.write(f"Error downloading image: {str(e)}")
+                continue
 
         return images_results
 

@@ -9,7 +9,7 @@ api_instance = sib_api_v3_sdk.ContactsApi(sib_api_v3_sdk.ApiClient(configuration
 def sync_newsletter_subscription_to_brevo(email, territory_type, territory_name):
     contact_data = {
         "attributes": {"TERRITORY_NAME": territory_name, "TERRITORY_TYPE": territory_type},
-        "listIds": [1],  # TODO create the list on Brevo and copy the ID here
+        "listIds": [3],
         "updateEnabled": True,
     }
     try:

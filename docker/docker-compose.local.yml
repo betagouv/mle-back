@@ -1,0 +1,11 @@
+services:
+  database:
+    image: postgis/postgis:15-3.4-alpine
+    restart: unless-stopped
+    ports:
+      - '5499:5432'
+    environment:
+      POSTGRES_USER: mle
+      POSTGRES_PASSWORD: mle
+      POSTGRES_DB: mledb
+  

@@ -2,6 +2,7 @@ from unittest import mock
 from unittest.mock import patch
 
 import sib_api_v3_sdk
+from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.urls import reverse
 from rest_framework import status
@@ -341,7 +342,7 @@ class NewsletterSubscriptionAPITest(APITestCase):
                 "TERRITORY_NAME": "Lyon",
                 "TERRITORY_TYPE": "city",
             },
-            "listIds": [3],
+            "listIds": [settings.BREVO_CONTACT_LIST_ID],
             "updateEnabled": True,
         }
         mock_create.assert_called_once_with(expected_data)

@@ -4,7 +4,8 @@ from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
 from geopy.geocoders import BANFrance
 
-from accommodation.models import Accommodation, ExternalSource
+from accommodation.models import ExternalSource
+from accommodation.serializers import AccommodationImportSerializer
 from account.models import Owner
 
 
@@ -51,22 +52,26 @@ class Command(BaseCommand):
             link = link_tag["href"] if link_tag else None
 
             owner = Owner.get_or_create(data={"name": "Agefo", "url": self.BASE_URL})
-            accommodation, created = Accommodation.objects.get_or_create(
-                name=name,
-                defaults={
+
+            details_data = self.get_residence_details(link)
+
+            serializer = AccommodationImportSerializer(
+                data={
+                    "name": name,
+                    "published": True,
                     "residence_type": "universitaire-conventionnee",
+                    "source": ExternalSource.SOURCE_AGEFO,
+                    "source_id": link.split("/")[-2],
                     "owner": owner,
-                },
+                    **details_data,
+                }
             )
 
-            source, _ = ExternalSource.objects.get_or_create(
-                accommodation=accommodation, source=ExternalSource.SOURCE_AGEFO
-            )
-            source.source_id = link.split("/")[-2]
-            source.save()
-
-            self.scrape_residence_details(accommodation, link)
-            accommodation.save()
+            if serializer.is_valid():
+                accommodation = serializer.save()
+                self.stdout.write(f"Details added for {accommodation.name}")
+            else:
+                self.stderr.write(f"Error saving residence: {serializer.errors}")
 
     def _get_images_data(self, image_srcs):
         if not image_srcs:
@@ -85,7 +90,7 @@ class Command(BaseCommand):
 
         return images
 
-    def scrape_residence_details(self, accommodation, url):
+    def get_residence_details(self, url):
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
         response = requests.get(url, headers=headers)
 
@@ -113,13 +118,11 @@ class Command(BaseCommand):
         image_tags = soup.select(".galleryWithThumbnail img")
         image_urls = [main_image] + [img["src"] for img in image_tags if "src" in img.attrs]
 
-        accommodation.city = city
-        accommodation.postal_code = postal_code
-        accommodation.address = address
-        accommodation.geom = geom
-        accommodation.images = self._get_images_data(image_urls)
-        accommodation.price_min = price
-        accommodation.published = True
-        accommodation.save()
-
-        self.stdout.write(f"Details added for {accommodation.name}: Price={price}, Photos={len(image_urls)}")
+        return {
+            "city": city,
+            "postal_code": postal_code,
+            "address": address,
+            "geom": geom,
+            "images": self._get_images_data(image_urls),
+            "price_min_t1": price,
+        }

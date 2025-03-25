@@ -31,6 +31,7 @@ class CityDetailSerializer(BBoxMixin, CityMixin):
         fields = (
             "id",
             "name",
+            "slug",
             "postal_codes",
             "epci_code",
             "insee_codes",
@@ -51,6 +52,7 @@ class CityListSerializer(BBoxMixin, CityMixin):
         fields = (
             "id",
             "name",
+            "slug",
             "postal_codes",
             "bbox",
             "popular",

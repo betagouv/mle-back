@@ -111,7 +111,7 @@ class Command(BaseCommand):
 
         main_image = soup.select_one(".hero .items-end img")["src"]
         image_tags = soup.select(".galleryWithThumbnail img")
-        image_urls = [img["src"] for img in image_tags if "src" in img.attrs] + [main_image]
+        image_urls = [main_image] + [img["src"] for img in image_tags if "src" in img.attrs]
 
         accommodation.city = city
         accommodation.postal_code = postal_code

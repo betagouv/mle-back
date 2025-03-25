@@ -128,10 +128,8 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         source, _ = ExternalSource.objects.get_or_create(
             accommodation=accommodation,
             source=source,
+            defaults={"source_id": source_id},
         )
-
-        source.source_id = source_id
-        source.save()
 
         return accommodation
 

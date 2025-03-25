@@ -1,7 +1,7 @@
 from unittest import mock
 from unittest.mock import patch
-import sib_api_v3_sdk
 
+import sib_api_v3_sdk
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.urls import reverse
 from rest_framework import status
@@ -118,6 +118,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                 {
                     "id": mock.ANY,
                     "name": "Lyon",
+                    "slug": "lyon",
                     "popular": False,
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
@@ -136,6 +137,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "id": mock.ANY,
                     "name": "Lyon",
                     "popular": False,
+                    "slug": "lyon",
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
                     "nb_apartments": 12,
@@ -172,6 +174,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                 {
                     "id": mock.ANY,
                     "name": "Paris",
+                    "slug": "paris",
                     "bbox": None,
                     "postal_codes": ["75001", "75002"],
                     "popular": True,
@@ -189,6 +192,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                 {
                     "id": mock.ANY,
                     "name": "Lyon",
+                    "slug": "lyon",
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
                     "popular": False,
@@ -197,6 +201,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                 {
                     "id": mock.ANY,
                     "name": "Marseille",
+                    "slug": "marseille",
                     "bbox": None,
                     "postal_codes": ["13001", "13002"],
                     "popular": False,
@@ -272,6 +277,7 @@ class CityDetailAPITest(APITestCase):
             {
                 "id": mock.ANY,
                 "name": "Lyon",
+                "slug": "lyon",
                 "postal_codes": ["69001", "69002"],
                 "epci_code": "EPCI123",
                 "insee_codes": [

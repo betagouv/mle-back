@@ -1,0 +1,10 @@
+{
+    "jobs": [
+        {
+            "command": "0 1 * * * python manage.py scrap_agefo"
+        },
+        {
+            "command": "0 2 * * * python manage.py import_iBAIL_arpej_API"
+        }
+    ]
+}

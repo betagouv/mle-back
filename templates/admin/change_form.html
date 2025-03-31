@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    {% if api_url %}
+        <li>
+            <a target="_blank" href="{{ api_url }}" class="viewsitelink">Voir sur l'API</a>
+        </li>
+    {% endif %}
+{% endblock %}

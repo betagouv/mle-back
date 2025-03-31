@@ -9,3 +9,5 @@ SECURE_HSTS_SECONDS = 3600
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+FRONT_SITE_URL = "https://mle-front-staging.osc-secnum-fr1.scalingo.io"

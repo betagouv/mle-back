@@ -38,11 +38,7 @@ class AccommodationAdmin(OSMGeoAdmin):
     fields_as_owner = ("published",)
     list_editable = ("published",)
     list_display_links_as_owner = None
-    readonly_fields = (
-        "display_images",
-        "owner",
-        "residence_type",
-    )
+    readonly_fields = ("display_images", "owner", "residence_type", "slug")
     exclude = ("images",)
 
     def get_queryset(self, request):
@@ -85,6 +81,8 @@ class AccommodationAdmin(OSMGeoAdmin):
             return format_html(images_html)
         return "No images available"
 
+    display_images.short_description = "Images"
+
     def has_add_permission(self, request):
         if request.user.is_superuser:
             return True
@@ -98,7 +96,17 @@ class AccommodationAdmin(OSMGeoAdmin):
     def has_change_permission(self, request, obj=None):
         return True
 
-    display_images.short_description = "Images"
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        if not extra_context:
+            extra_context = {}
+
+        obj = self.get_object(request, object_id)
+        if obj:
+            extra_context["api_url"] = obj.get_absolute_detail_api_url()
+
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
+
+    change_form_template = "admin/change_form.html"
 
 
 admin.site.register(Accommodation, AccommodationAdmin)

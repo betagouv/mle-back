@@ -9,3 +9,5 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 BREVO_CONTACT_LIST_ID = 4
+
+FRONT_SITE_URL = "https://monlogementetudiant.beta.gouv.fr"

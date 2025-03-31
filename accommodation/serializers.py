@@ -125,7 +125,6 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
 
         accommodation.save()
 
-        # TODO - Handle others external sources than CLEF
         source, _ = ExternalSource.objects.get_or_create(
             accommodation=accommodation,
             source=source,

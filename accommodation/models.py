@@ -1,6 +1,8 @@
 from autoslug import AutoSlugField
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.urls import reverse
 
 from account.models import Owner
 
@@ -75,6 +77,12 @@ class Accommodation(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.postal_code} {self.city}"
+
+    def get_absolute_detail_api_url(self):
+        return reverse("accommodation-detail", kwargs={"slug": self.slug})
+
+    def get_absolute_url(self):
+        return f"{settings.FRONT_SITE_URL}/logement/{self.slug}"
 
 
 class ExternalSource(models.Model):

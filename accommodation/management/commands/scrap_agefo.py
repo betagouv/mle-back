@@ -1,3 +1,5 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
 from django.contrib.gis.geos import Point
@@ -63,6 +65,7 @@ class Command(BaseCommand):
                     "source": ExternalSource.SOURCE_AGEFO,
                     "source_id": link.split("/")[-2],
                     "owner": owner,
+                    "external_url": link,
                     **details_data,
                 }
             )
@@ -98,6 +101,8 @@ class Command(BaseCommand):
             self.stderr.write(f"Error {response.status_code} accessing {url}")
             return
 
+        self.stdout.write(f"Start parsing {url}")
+
         soup = BeautifulSoup(response.text, "html.parser")
 
         price_tag = soup.select_one("div.container .onglet-text p:first-of-type strong")
@@ -118,7 +123,7 @@ class Command(BaseCommand):
         image_tags = soup.select(".galleryWithThumbnail img")
         image_urls = [main_image] + [img["src"] for img in image_tags if "src" in img.attrs]
 
-        return {
+        data = {
             "city": city,
             "postal_code": postal_code,
             "address": address,
@@ -126,3 +131,26 @@ class Command(BaseCommand):
             "images": self._get_images_data(image_urls),
             "price_min_t1": price,
         }
+
+        h2 = soup.find("h2", string=re.compile(r"Description du logement", re.I))
+        try:
+            description = h2.parent.parent.parent.select(".onglet-text")[0]
+        except AttributeError:
+            self.stderr.write(f"No description found for {url}")
+            return data
+
+        mapping = {
+            "Douche et toilettes individuelles": {"bathroom": "private"},
+            "Kitchenette avec évier en inox": {"kitchen_type": "private"},
+            "bureau, chaise": {"desk": True},
+            "réfrigérateur": {"refrigerator": True},
+            "plaques induction": {"cooking_plates": True},
+            "local vélos": {"bike_storage": True},
+            "laverie": {"laundry_room": True},
+        }
+
+        for text in mapping:
+            if text in description.text:
+                data |= mapping[text]
+
+        return data

@@ -15,7 +15,7 @@ class OwnerAdmin(admin.ModelAdmin):
     def image_preview(self, obj):
         if obj.image:
             image_base64 = base64.b64encode(obj.image).decode("utf-8")
-            return format_html(f'<img src="data:image/png;base64,{image_base64}" width="200" height="91"/>')
+            return format_html(f'<img src="data:image/png;base64,{image_base64}" width="100" height="45"/>')
         return "No Image"
 
     image_preview.short_description = "Image"

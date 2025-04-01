@@ -32,7 +32,7 @@ class AccommodationAdmin(OSMGeoAdmin):
     inlines = [ExternalSourceInline]
     inlines_as_owner = []
     list_display_as_owner = ("name", "address", "city", "postal_code", "published")
-    list_filter = ("city", "postal_code")
+    list_filter = ("owner__name", "city", "postal_code")
     search_fields = ("name", "address", "city")
     ordering = ("name",)
     fields_as_owner = ("published",)

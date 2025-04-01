@@ -14,7 +14,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
     source_id = serializers.CharField(write_only=True)
     source = serializers.CharField(write_only=True)
     images = serializers.ListField(child=BinaryToBase64Field(), required=False, default=None)
-    owner_id = serializers.CharField(write_only=True, required=False)
+    owner_id = serializers.CharField(write_only=True, required=False, default=None, allow_null=True)
 
     class Meta:
         model = Accommodation
@@ -119,8 +119,8 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
 
         accommodation.images = images
 
-        if owner_id and (owner_data := self.get_owner_data(owner_id)):
-            owner, _ = Owner.objects.get_or_create(source_id=owner_id, defaults=owner_data)
+        if owner_id:
+            owner = Owner.objects.get(pk=owner_id)
             accommodation.owner = owner
 
         accommodation.save()

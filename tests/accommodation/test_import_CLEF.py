@@ -2,9 +2,10 @@ from unittest import mock
 
 import pytest
 import requests_mock
+from account.models import Owner
+from accommodation.models import Accommodation, ExternalSource
 from django.core.management import call_command
 
-from accommodation.models import Accommodation
 from tests.territories.factories import AcademyFactory, DepartmentFactory
 
 
@@ -75,6 +76,7 @@ def mock_settings(settings):
     settings.OMOGEN_API_CLIENT_ID = "client_id"
     settings.OMOGEN_API_CLIENT_SECRET = "client_secret"
     settings.OMOGEN_API_API_KEY = "api_key"
+    settings.OMOGEN_API_CLEF_APP_NAME = "clef-residence-pp"
     return settings
 
 
@@ -87,71 +89,197 @@ def test_import_clef_command(mock_settings):
         )
 
         mocker.get(
-            f"https://{mock_settings.OMOGEN_API_HOST}/v1/external/getResidences",
-            json=[
-                {
-                    "id": 1,
-                    "nom": "Résidence Test",
-                    "adresse": "1 rue de l'Epargne",
-                    "ville": "Lyon",
-                    "codePostal": "69001",
-                    "typeResidence": "universitaire-conventionnee",
-                    "typeGestionnaireId": 10,
-                    "longitude": 2.0,
-                    "latitude": 48.0,
-                    "imageIds": [100, 101],
-                    "nbTotalLogements": 100,
-                    "nbLogementsAccessibles": 10,
-                    "nbLogementsColiving": 5,
-                    "nbT1": 50,
-                    "nbT1Bis": 20,
-                    "nbT2": 15,
-                    "nbT3": 10,
-                    "nbT4EtPlus": 5,
-                }
-            ],
+            f"https://{mock_settings.OMOGEN_API_HOST}/clef-residence-pp/v1/external/getResidences",
+            json={
+                "content": [
+                    {
+                        "id": 6202,
+                        "nom": "Residence AAA",
+                        "adresseAdministrative": "2 rue des platanes 75009 Paris",
+                        "adresseGeolocalisee": "2 Rue des platanes 75009 Paris",
+                        "latitude": "48",
+                        "longitude": "2",
+                        "codePostal": "75005",
+                        "gestionnaireNom": "ABC",
+                        "gestionnaireSite": "https://abc.test",
+                        "nombreTotalLogement": 100,
+                        "nombreLogementPMR": 10,
+                        "nombreT1": 50,
+                        "nombreT1Bis": 20,
+                        "nombreT2": 15,
+                        "nombreT3": 10,
+                        "nombreT4Plus": 5,
+                        "nombreAutre": None,
+                        "nombreTotalPlace": 100,
+                        "nombreTotalPlaceConventionnees": 99,
+                        "nombreTotalPlaceLoyerLibre": None,
+                        "nombreTotalPlaceAutre": None,
+                        "nombreTotalPlacePMR": 10,
+                        "idTypeResidence": 2,
+                        "codeCommune": "75056",
+                        "codeAcademie": "01",
+                        "idStatutResidence": 3,
+                        "images": [100, 101],
+                    },
+                    {
+                        "id": 4,
+                        "nom": "Residence BBB",
+                        "adresseAdministrative": "112 Rue des Chênes, 69120 Vaulx-en-Velin, France",
+                        "adresseGeolocalisee": "112 Rue des Chênes, 69120 Vaulx-en-Velin, France",
+                        "latitude": "45.680049",
+                        "longitude": "5.0055474",
+                        "codePostal": "69120",
+                        "gestionnaireNom": "DEF",
+                        "gestionnaireSite": "https://def.test",
+                        "nombreTotalLogement": 200,
+                        "nombreLogementCollocation": None,
+                        "nombreLogementPMR": 12,
+                        "nombreT1": 125,
+                        "nombreT1Bis": 40,
+                        "nombreT2": None,
+                        "nombreT3": 10,
+                        "nombreT4Plus": 5,
+                        "nombreAutre": None,
+                        "precisionAutre": None,
+                        "nombreTotalPlace": 63,
+                        "idTypeResidence": 2,
+                        "codeCommune": "69256",
+                        "codeAcademie": "10",
+                        "idProprietaireType": None,
+                        "idGestionnaireType": 2,
+                        "idStatutResidence": 3,
+                        "images": [],
+                    },
+                ],
+                "pageable": {"sort": [], "pageNumber": 0, "pageSize": 20, "offset": 0, "paged": True, "unpaged": False},
+                "totalElements": 2,
+                "totalPages": 1,
+                "last": True,
+                "size": 20,
+                "number": 0,
+                "sort": [],
+                "numberOfElements": 2,
+                "first": True,
+                "empty": False,
+            },
         )
 
         mocker.get(
-            f"https://{mock_settings.OMOGEN_API_HOST}/v1/images/100",
+            f"https://{mock_settings.OMOGEN_API_HOST}/clef-residence-pp/v1/images/100",
             content=b"image_data_100",
         )
         mocker.get(
-            f"https://{mock_settings.OMOGEN_API_HOST}/v1/images/101",
+            f"https://{mock_settings.OMOGEN_API_HOST}/clef-residence-pp/v1/images/101",
             content=b"image_data_101",
         )
 
+        # mocker.get(
+        #     f"https://{mock_settings.OMOGEN_API_HOST}/clef-referentiel-clef-pp/v1/type-gestionnaires/10",
+        #     json={"nom": "Bailleur Test", "url": "http://bailleur.test"},
+        # )
+
         mocker.get(
-            f"https://{mock_settings.OMOGEN_API_HOST}/v1/type-gestionnaires/10",
-            json={"nom": "Bailleur Test", "url": "http://bailleur.test"},
+            "https://api-adresse.data.gouv.fr/search?q=2+Rue+des+platanes+75009+Paris",
+            json={
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {"type": "Point", "coordinates": [2, 48]},
+                        "properties": {
+                            "label": "2 Rue des platanes 75009 Paris",
+                            "score": 0.5655894117647059,
+                            "housenumber": "2",
+                            "id": "75109_0509_00002",
+                            "name": "2 Rue des platanes",
+                            "postcode": "75009",
+                            "city": "Paris",
+                            "street": "Rue des platanes",
+                        },
+                    },
+                ],
+            },
+        )
+
+        mocker.get(
+            "https://api-adresse.data.gouv.fr/search?q=112+Rue+des+Ch%C3%AAnes%2C+69120+Vaulx-en-Velin%2C+France",
+            json={
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {"type": "Point", "coordinates": [4.934459, 45.779062]},
+                        "properties": {
+                            "label": "112 Rue des Chênes France 69120 Vaulx-en-Velin",
+                            "score": 0.5401374025974026,
+                            "id": "69256_0824",
+                            "banId": "29361185-8f35-4dde-a5f4-8165377c5de0",
+                            "name": "112 Rue des Chênes France",
+                            "postcode": "69120",
+                            "city": "Vaulx-en-Velin",
+                            "type": "street",
+                            "street": "112 Rue des Chênes France",
+                        },
+                    },
+                ],
+            },
+        )
+        mocker.post(
+            f"https://{mock_settings.OMOGEN_API_HOST}/auth-test/token",
+            json={"access_token": "test_token"},
         )
 
         call_command("import_CLEF_via_OMOGEN_API")
 
-        # accommodation = Accommodation.objects.get(name="Résidence Test")
-        # assert accommodation.address == "1 rue de l'Epargne"
-        # assert accommodation.city == "Lyon"
-        # assert accommodation.postal_code == "69001"
-        # assert accommodation.residence_type == "universitaire-conventionnee"
-        # assert accommodation.geom == Point(2.0, 48.0)
-        # assert accommodation.images == [b"image_data_100", b"image_data_101"]
-        # assert accommodation.nb_total_apartments == 100
-        # assert accommodation.nb_accessible_apartments == 10
-        # assert accommodation.nb_coliving_apartments == 5
-        # assert accommodation.nb_t1 == 50
-        # assert accommodation.nb_t1_bis == 20
-        # assert accommodation.nb_t2 == 15
-        # assert accommodation.nb_t3 == 10
-        # assert accommodation.nb_t4_more == 5
+        accommodation = Accommodation.objects.get(name="Residence AAA")
+        assert accommodation.address == "2 Rue des platanes"
+        assert accommodation.city == "Paris"
+        assert accommodation.postal_code == "75009"
+        assert accommodation.residence_type == "universitaire-conventionnee"
+        assert accommodation.geom.x == 2.0
+        assert accommodation.geom.y == 48.0
+        assert accommodation.images[0].tobytes() == b"image_data_100"
+        assert accommodation.images[1].tobytes() == b"image_data_101"
+        assert accommodation.nb_total_apartments == 100
+        assert accommodation.nb_accessible_apartments == 10
+        assert accommodation.nb_coliving_apartments is None
+        assert accommodation.nb_t1 == 50
+        assert accommodation.nb_t1_bis == 20
+        assert accommodation.nb_t2 == 15
+        assert accommodation.nb_t3 == 10
+        assert accommodation.nb_t4_more == 5
 
-        # owner = Owner.objects.get(name="Bailleur Test")
-        # assert owner.url == "http://bailleur.test"
-        # assert accommodation.owner == owner
+        owner = Owner.objects.get(name="ABC")
+        assert owner.url == "https://abc.test"
+        assert accommodation.owner == owner
+        assert owner.user.is_active is False
 
-        # user = User.objects.get(username=...)
-        # assert user.is_active is False
-        # assert accommodation.owner.user == user
+        external_source = ExternalSource.objects.get(accommodation=accommodation)
+        assert external_source.source_id == "6202"
+        assert external_source.source == "clef"
 
-        # external_source = ExternalSource.objects.get(accommodation=accommodation)
-        # assert external_source.source_id == "1"
-        # assert external_source.source == "clef"
+        accommodation = Accommodation.objects.get(name="Residence BBB")
+        assert accommodation.address == "112 Rue des Chênes France"
+        assert accommodation.city == "Vaulx-en-Velin"
+        assert accommodation.postal_code == "69120"
+        assert accommodation.residence_type == "universitaire-conventionnee"
+        assert accommodation.geom.x == 4.934459
+        assert accommodation.geom.y == 45.779062
+        assert accommodation.images == []
+        assert accommodation.nb_total_apartments == 200
+        assert accommodation.nb_accessible_apartments == 12
+        assert accommodation.nb_coliving_apartments is None
+        assert accommodation.nb_t1 == 125
+        assert accommodation.nb_t1_bis == 40
+        assert accommodation.nb_t2 is None
+        assert accommodation.nb_t3 == 10
+        assert accommodation.nb_t4_more == 5
+
+        owner = Owner.objects.get(name="DEF")
+        assert owner.url == "https://def.test"
+        assert accommodation.owner == owner
+        assert owner.user.is_active is False
+
+        external_source = ExternalSource.objects.get(accommodation=accommodation)
+        assert external_source.source_id == "4"
+        assert external_source.source == "clef"

@@ -20,7 +20,7 @@ class Owner(models.Model):
             return
 
         with transaction.atomic():
-            owner, _ = cls.objects.get_or_create(name=data.get("name"), url=data.get("url"))
+            owner, _ = cls.objects.get_or_create(name=data.get("name"), defaults={"url": data.get("url")})
 
             if owner.user:
                 return owner

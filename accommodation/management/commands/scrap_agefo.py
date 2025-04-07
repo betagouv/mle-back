@@ -64,7 +64,7 @@ class Command(BaseCommand):
                     "residence_type": "universitaire-conventionnee",
                     "source": ExternalSource.SOURCE_AGEFO,
                     "source_id": link.split("/")[-2],
-                    "owner": owner,
+                    "owner_id": owner.pk if owner else None,
                     "external_url": link,
                     **details_data,
                 }

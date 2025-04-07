@@ -88,6 +88,7 @@ class Command(GeoBaseCommand):
 
         for residence in residences:
             images = self._get_images_data(image_ids=residence.get("images"))
+
             residence_id = residence.get("idTypeResidence")
             if residence_id != 2:
                 self.stdout.write(self.style.NOTICE(f"Skipping accommodation with id {residence_id}"))

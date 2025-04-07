@@ -103,7 +103,7 @@ class Command(BaseCommand):
                         "images": row["pictures"].split("|") if row["pictures"] else [],
                         "external_url": row["owner_url"].strip(),
                         "geom": geom,
-                        "owner": owner,
+                        "owner_id": owner.pk if owner else None,
                         "source_id": row["code"],
                         "source": source,
                     }

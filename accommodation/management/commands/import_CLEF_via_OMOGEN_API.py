@@ -34,7 +34,7 @@ class Command(GeoBaseCommand):
             return self.do_request(url)
 
         if response.status_code != 200:
-            self.stderr.write(f"Error retrieving data from url {url}: {response.content}")
+            self.stderr.write(f"Error retrieving data from url {url} (HTTP {response.status_code}): {response.content}")
             return
 
         return response
@@ -75,12 +75,13 @@ class Command(GeoBaseCommand):
         return images
 
     def fetch_data(self, page=1):
+        self.stdout.write(f"Fetching page {page}")
         url = f"{self.root_url}/{settings.OMOGEN_API_CLEF_APP_NAME}/v1/external/getResidences?page={page}"
 
         response = self.do_request(url)
 
         if not response:
-            return
+            return []
 
         response = response.json()
         residences = response.get("content", [])

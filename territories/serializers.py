@@ -41,7 +41,13 @@ class CityDetailSerializer(BBoxMixin, CityMixin):
             "bbox",
             "popular",
             "nearby_cities",
-            "nb_apartments",
+            "nb_total_apartments",
+            "nb_coliving_apartments",
+            "nb_t1",
+            "nb_t1_bis",
+            "nb_t2",
+            "nb_t3",
+            "nb_t4_more",
         )
 
 
@@ -56,7 +62,7 @@ class CityListSerializer(BBoxMixin, CityMixin):
             "postal_codes",
             "bbox",
             "popular",
-            "nb_apartments",
+            "nb_total_apartments",
         )
 
 

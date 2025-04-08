@@ -123,7 +123,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "popular": False,
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
-                    "nb_apartments": 12,
+                    "nb_total_apartments": 12,
                 }
             ],
         )
@@ -141,7 +141,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "slug": "lyon",
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
-                    "nb_apartments": 12,
+                    "nb_total_apartments": 12,
                 }
             ],
         )
@@ -179,7 +179,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "bbox": None,
                     "postal_codes": ["75001", "75002"],
                     "popular": True,
-                    "nb_apartments": 0,
+                    "nb_total_apartments": 0,
                 }
             ],
         )
@@ -197,7 +197,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
                     "popular": False,
-                    "nb_apartments": 12,
+                    "nb_total_apartments": 12,
                 },
                 {
                     "id": mock.ANY,
@@ -206,7 +206,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "bbox": None,
                     "postal_codes": ["13001", "13002"],
                     "popular": False,
-                    "nb_apartments": 0,
+                    "nb_total_apartments": 0,
                 },
             ],
         )
@@ -266,7 +266,17 @@ class CityDetailAPITest(APITestCase):
             boundary=saint_etienne_multipolygon,
         )
 
-        AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=3)
+        AccommodationFactory.create(
+            city=self.city.name,
+            postal_code="69001",
+            nb_total_apartments=15,
+            nb_coliving_apartments=2,
+            nb_t1=12,
+            nb_t1_bis=3,
+            nb_t2=6,
+            nb_t3=3,
+            nb_t4_more=1,
+        )
         AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12)
 
     def test_get_city_details(self):
@@ -306,7 +316,13 @@ class CityDetailAPITest(APITestCase):
                 "popular": True,
                 "bbox": {"xmax": 4.8301, "xmin": 4.7921, "ymax": 45.779, "ymin": 45.764},
                 "nb_students": 60000,
-                "nb_apartments": 15,
+                "nb_total_apartments": 27,
+                "nb_t1": 12,
+                "nb_t1_bis": 3,
+                "nb_t2": 6,
+                "nb_t3": 3,
+                "nb_t4_more": 1,
+                "nb_coliving_apartments": 2,
                 "nearby_cities": [{"name": "Saint-Etienne", "slug": "saint-etienne"}],
             },
         )

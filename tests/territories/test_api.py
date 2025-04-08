@@ -24,7 +24,7 @@ class TerritoryCombinedListAPITests(APITestCase):
         self.city = CityFactory.create(
             name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department, average_income=30000
         )
-        AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12)
+        AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12, price_min_t1=123)
 
     def test_get_territory_combined_list_filtered(self):
         for search_term in ("rh", "rhone", "rhône", "Rhône"):
@@ -124,6 +124,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
                     "nb_total_apartments": 12,
+                    "price_min": 123,
                 }
             ],
         )
@@ -142,6 +143,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "bbox": None,
                     "postal_codes": ["69001", "69002", "69003"],
                     "nb_total_apartments": 12,
+                    "price_min": 123,
                 }
             ],
         )
@@ -179,7 +181,8 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "bbox": None,
                     "postal_codes": ["75001", "75002"],
                     "popular": True,
-                    "nb_total_apartments": 0,
+                    "nb_total_apartments": None,
+                    "price_min": None,
                 }
             ],
         )
@@ -198,6 +201,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "postal_codes": ["69001", "69002", "69003"],
                     "popular": False,
                     "nb_total_apartments": 12,
+                    "price_min": 123,
                 },
                 {
                     "id": mock.ANY,
@@ -206,7 +210,8 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "bbox": None,
                     "postal_codes": ["13001", "13002"],
                     "popular": False,
-                    "nb_total_apartments": 0,
+                    "nb_total_apartments": None,
+                    "price_min": None,
                 },
             ],
         )
@@ -276,8 +281,12 @@ class CityDetailAPITest(APITestCase):
             nb_t2=6,
             nb_t3=3,
             nb_t4_more=1,
+            price_min_t1=235,
+            price_min_t2=236,
+            price_min_t3=237,
+            price_min_t4_more=238,
         )
-        AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12)
+        AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12, price_min_t3=234)
 
     def test_get_city_details(self):
         url = reverse("city-detail", kwargs={"slug": self.city.slug})
@@ -323,6 +332,7 @@ class CityDetailAPITest(APITestCase):
                 "nb_t3": 3,
                 "nb_t4_more": 1,
                 "nb_coliving_apartments": 2,
+                "price_min": 234,
                 "nearby_cities": [{"name": "Saint-Etienne", "slug": "saint-etienne"}],
             },
         )

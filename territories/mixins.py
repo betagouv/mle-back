@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.db.models import Min, Sum
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -25,13 +25,16 @@ class CityMixin(serializers.ModelSerializer):
     nb_t2 = serializers.SerializerMethodField()
     nb_t3 = serializers.SerializerMethodField()
     nb_t4_more = serializers.SerializerMethodField()
+    price_min = serializers.SerializerMethodField()
 
     def _get_city_stats(self, obj):
         if not hasattr(self, "_city_stats_cache"):
             self._city_stats_cache = {}
 
         if obj.id not in self._city_stats_cache:
-            stats = Accommodation.objects.filter(city__iexact=obj.name, postal_code__in=obj.postal_codes).aggregate(
+            qs = Accommodation.objects.filter(city__iexact=obj.name, postal_code__in=obj.postal_codes)
+
+            stats = qs.aggregate(
                 nb_total_apartments=Sum("nb_total_apartments"),
                 nb_coliving_apartments=Sum("nb_coliving_apartments"),
                 nb_t1=Sum("nb_t1"),
@@ -39,8 +42,28 @@ class CityMixin(serializers.ModelSerializer):
                 nb_t2=Sum("nb_t2"),
                 nb_t3=Sum("nb_t3"),
                 nb_t4_more=Sum("nb_t4_more"),
+                price_min_t1=Min("price_min_t1"),
+                price_min_t1_bis=Min("price_min_t1_bis"),
+                price_min_t2=Min("price_min_t2"),
+                price_min_t3=Min("price_min_t3"),
+                price_min_t4_more=Min("price_min_t4_more"),
             )
-            self._city_stats_cache[obj.id] = {k: v or 0 for k, v in stats.items()}
+
+            price_candidates = [
+                p
+                for p in [
+                    stats.get("price_min_t1"),
+                    stats.get("price_min_t1_bis"),
+                    stats.get("price_min_t2"),
+                    stats.get("price_min_t3"),
+                    stats.get("price_min_t4_more"),
+                ]
+                if p is not None
+            ]
+
+            stats["price_min"] = min(price_candidates) if price_candidates else None
+            self._city_stats_cache[obj.id] = stats
+
         return self._city_stats_cache[obj.id]
 
     @extend_schema_field(serializers.IntegerField(help_text="Number of T1 apartments in the city"))
@@ -70,3 +93,7 @@ class CityMixin(serializers.ModelSerializer):
     @extend_schema_field(serializers.IntegerField(help_text="Number of accommodations in the city"))
     def get_nb_total_apartments(self, obj):
         return self._get_city_stats(obj)["nb_total_apartments"]
+
+    @extend_schema_field(serializers.IntegerField(help_text="Minimum price among all accommodations in the city"))
+    def get_price_min(self, obj):
+        return self._get_city_stats(obj)["price_min"]

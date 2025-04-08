@@ -48,6 +48,7 @@ class CityDetailSerializer(BBoxMixin, CityMixin):
             "nb_t2",
             "nb_t3",
             "nb_t4_more",
+            "price_min",
         )
 
 
@@ -63,6 +64,7 @@ class CityListSerializer(BBoxMixin, CityMixin):
             "bbox",
             "popular",
             "nb_total_apartments",
+            "price_min",
         )
 
 

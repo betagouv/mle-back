@@ -8,6 +8,12 @@
         },
         {
             "command": "0 3 * * * python manage.py import_CLEF_via_OMOGEN_API"
+        },
+        {
+            "command": "0 4 1 * * python manage.py sync_city_average_rent"
+        },
+        {
+            "command": "10 4 1 * * python manage.py sync_nb_students"
         }
     ]
 }

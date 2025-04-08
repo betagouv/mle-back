@@ -2,6 +2,7 @@ from autoslug import AutoSlugField
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.urls import reverse
 
 
 class Territory(models.Model):
@@ -66,3 +67,6 @@ class City(Territory):
 
     def __str__(self):
         return f"{self.name} ({', '.join(self.postal_codes)})"
+
+    def get_absolute_detail_api_url(self):
+        return reverse("city-detail", kwargs={"slug": self.slug})

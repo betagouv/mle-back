@@ -50,17 +50,17 @@ class AccommodationListAPITests(APITestCase):
         self.accommodation_unpublished = AccommodationFactory(published=False)
         self.accommodation_no_geom = AccommodationFactory(geom=None)
 
-        self.accommodation_nantes_accessible_w_coliving = AccommodationFactory(
-            geom=Point(-1.5536, 47.2184), nb_accessible_apartments=2, nb_coliving_apartments=5
+        self.accommodation_nantes_accessible_w_coliving_cheap = AccommodationFactory(
+            geom=Point(-1.5536, 47.2184), nb_accessible_apartments=2, nb_coliving_apartments=5, price_min_t1=300
         )
-        self.accommodation_nantes_non_accessible = AccommodationFactory(
-            geom=Point(-1.5530, 47.2150), nb_accessible_apartments=0
+        self.accommodation_nantes_non_accessible_expensive = AccommodationFactory(
+            geom=Point(-1.5530, 47.2150), nb_accessible_apartments=0, price_min_t1=800
         )
-        self.accommodation_marseille_w_coliving = AccommodationFactory(
-            geom=Point(5.3698, 43.2965), nb_coliving_apartments=1, nb_accessible_apartments=0
+        self.accommodation_marseille_w_coliving_expensive = AccommodationFactory(
+            geom=Point(5.3698, 43.2965), nb_coliving_apartments=1, nb_accessible_apartments=0, price_min_t2=700
         )
-        self.accommodation_marseille_wo_coliving = AccommodationFactory(
-            geom=Point(5.3698, 43.2965), nb_coliving_apartments=0, nb_accessible_apartments=0
+        self.accommodation_marseille_wo_coliving_cheap = AccommodationFactory(
+            geom=Point(5.3698, 43.2965), nb_coliving_apartments=0, nb_accessible_apartments=0, price_min_t1=400
         )
 
     def test_accommodation_list_no_filter(self):
@@ -89,8 +89,8 @@ class AccommodationListAPITests(APITestCase):
         assert len(results["results"]["features"]) == 2
 
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
-        assert self.accommodation_nantes_accessible_w_coliving.id in returned_ids
-        assert self.accommodation_nantes_non_accessible.id in returned_ids
+        assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
+        assert self.accommodation_nantes_non_accessible_expensive.id in returned_ids
 
         response = self.client.get(reverse("accommodation-list"), {"bbox": bbox, "is_accessible": True})
         results = response.json()
@@ -98,8 +98,8 @@ class AccommodationListAPITests(APITestCase):
         assert len(results["results"]["features"]) == 1
 
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
-        assert self.accommodation_nantes_accessible_w_coliving.id in returned_ids
-        assert self.accommodation_nantes_non_accessible.id not in returned_ids
+        assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
+        assert self.accommodation_nantes_non_accessible_expensive.id not in returned_ids
 
         bbox = "5.30,43.20,5.45,43.35"  # Marseille
         response = self.client.get(reverse("accommodation-list"), {"bbox": bbox, "has_coliving": True})
@@ -108,8 +108,8 @@ class AccommodationListAPITests(APITestCase):
         assert len(results["results"]["features"]) == 1
 
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
-        assert self.accommodation_marseille_w_coliving.id in returned_ids
-        assert self.accommodation_marseille_wo_coliving.id not in returned_ids
+        assert self.accommodation_marseille_w_coliving_expensive.id in returned_ids
+        assert self.accommodation_marseille_wo_coliving_cheap.id not in returned_ids
 
         bbox = "-1.60,43.20,5.45,47.30"  # Nantes + Marseille
 
@@ -121,7 +121,16 @@ class AccommodationListAPITests(APITestCase):
         assert len(results["results"]["features"]) == 1
 
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
-        assert self.accommodation_nantes_accessible_w_coliving.id in returned_ids
+        assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
+
+        response = self.client.get(reverse("accommodation-list"), {"price_max": 600})
+        results = response.json()
+
+        assert len(results["results"]["features"]) == 2
+
+        returned_ids = [feature["id"] for feature in results["results"]["features"]]
+        assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
+        assert self.accommodation_marseille_wo_coliving_cheap.id in returned_ids
 
     def test_accommodation_list_center_radius(self):
         center = "-1.5536,47.2184"  # Nantes (near the accessible accommodation)
@@ -132,8 +141,8 @@ class AccommodationListAPITests(APITestCase):
         assert len(results["results"]["features"]) == 1
 
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
-        assert self.accommodation_nantes_accessible_w_coliving.id in returned_ids
-        assert self.accommodation_nantes_non_accessible.id not in returned_ids
+        assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
+        assert self.accommodation_nantes_non_accessible_expensive.id not in returned_ids
 
         response = self.client.get(reverse("accommodation-list"), {"center": center, "radius": 2})
         results = response.json()
@@ -141,8 +150,8 @@ class AccommodationListAPITests(APITestCase):
         assert len(results["results"]["features"]) == 2
 
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
-        assert self.accommodation_nantes_accessible_w_coliving.id in returned_ids
-        assert self.accommodation_nantes_non_accessible.id in returned_ids
+        assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
+        assert self.accommodation_nantes_non_accessible_expensive.id in returned_ids
 
         center_paris = "2.35,48.85"  # Paris
 
@@ -154,5 +163,5 @@ class AccommodationListAPITests(APITestCase):
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
         assert self.accommodation_paris.id in returned_ids
         assert self.accommodation_lyon.id not in returned_ids
-        assert self.accommodation_nantes_accessible_w_coliving.id not in returned_ids
-        assert self.accommodation_nantes_non_accessible.id not in returned_ids
+        assert self.accommodation_nantes_accessible_w_coliving_cheap.id not in returned_ids
+        assert self.accommodation_nantes_non_accessible_expensive.id not in returned_ids

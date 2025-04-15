@@ -48,6 +48,12 @@ class AccommodationDetailView(generics.RetrieveAPIView):
             description="Radius in kilometers for filtering accommodations around the center point.",
             required=False,
         ),
+        OpenApiParameter(
+            "price_max",
+            OpenApiTypes.NUMBER,
+            description="Price max in euros for filtering accommodations with a price lower than the given value.",
+            required=False,
+        ),
     ],
     responses=AccommodationGeoSerializer,
 )

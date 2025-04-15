@@ -21,6 +21,7 @@ requests = "*"
 sib-api-v3-sdk = "*"
 Unidecode = "*"
 whitenoise = "*"
+django-admin-logs = "*"
 
 [dev-packages]
 factory-boy = "*"

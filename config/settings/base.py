@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "qa",
     "account",
     "accommodation",
+    "django_admin_logs",
     "django_summernote",
     "drf_spectacular",
 ]
@@ -158,6 +159,8 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+DJANGO_ADMIN_LOGS_IGNORE_UNCHANGED = True
 
 
 # OMOGEN API

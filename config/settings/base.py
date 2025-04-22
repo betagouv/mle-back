@@ -6,6 +6,7 @@ import environ
 env = environ.Env(DEBUG=(bool, False))
 
 SITE_NAME = "MLE"
+ADMIN_TWO_FACTOR_NAME = SITE_NAME
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
@@ -33,6 +34,7 @@ INSTALLED_APPS = [
     "django_admin_logs",
     "django_summernote",
     "drf_spectacular",
+    "admin_two_factor.apps.TwoStepVerificationConfig",
 ]
 
 MIDDLEWARE = [

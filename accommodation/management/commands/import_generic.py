@@ -36,7 +36,7 @@ class Command(BaseCommand):
                 return int(cleaned_value) if cleaned_value.isdigit() else None
 
             def to_bool(value):
-                return value.strip().lower() in ("vrai", "true", "1", "yes")
+                return value.strip().lower() in ("oui", "vrai", "true", "1", "yes")
 
             def to_base64(values):
                 images = []

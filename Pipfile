@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 beautifulsoup4 = "*"
 django = "==4.2.20"
+django-admin-logs = "*"
+django-admin-two-factor = "*"
 django-autoslug = "*"
 django-cors-headers = "*"
 django-environ = "*"
@@ -21,7 +23,6 @@ requests = "*"
 sib-api-v3-sdk = "*"
 Unidecode = "*"
 whitenoise = "*"
-django-admin-logs = "*"
 
 [dev-packages]
 factory-boy = "*"

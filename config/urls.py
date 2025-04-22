@@ -12,4 +12,5 @@ urlpatterns = [
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    path("two_factor/", include(("admin_two_factor.urls", "admin_two_factor"), namespace="two_factor")),
 ]

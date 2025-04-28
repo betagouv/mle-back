@@ -18,6 +18,7 @@ ALLOWED_HOSTS = []
 
 
 INSTALLED_APPS = [
+    "admin_two_factor.apps.TwoStepVerificationConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -34,7 +35,6 @@ INSTALLED_APPS = [
     "django_admin_logs",
     "django_summernote",
     "drf_spectacular",
-    "admin_two_factor.apps.TwoStepVerificationConfig",
 ]
 
 MIDDLEWARE = [

@@ -63,6 +63,8 @@ class Command(BaseCommand):
                     else None
                 )
 
+                pictures = row["pictures"].split("|") if row["pictures"] else []
+
                 serializer = AccommodationImportSerializer(
                     data={
                         "name": row["name"].strip(),
@@ -100,11 +102,11 @@ class Command(BaseCommand):
                         "microwave": to_bool(row["microwave"]),
                         "refrigerator": to_bool(row["refrigerator"]),
                         "bathroom": row["bathroom"].strip(),
-                        "images": row["pictures"].split("|") if row["pictures"] else [],
+                        "images": to_base64(pictures),
                         "external_url": row["owner_url"].strip(),
                         "geom": geom,
                         "owner_id": owner.pk if owner else None,
-                        "source_id": row["code"],
+                        "source_id": row.get("code"),
                         "source": source,
                     }
                 )

@@ -91,17 +91,19 @@ class ExternalSource(models.Model):
     SOURCE_AGEFO = "agefo"
     SOURCE_ESPACIL = "espacil"
     SOURCE_ARPEJ = "arpej"
+    SOURCE_STUDEFI = "studefi"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
         (SOURCE_AGEFO, "Agefo"),
         (SOURCE_ESPACIL, "Espacil"),
         (SOURCE_ARPEJ, "Arpej"),
+        (SOURCE_STUDEFI, "Studefi"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")
     source = models.CharField(max_length=100, verbose_name="Source", default=SOURCE_CLEF, choices=SOURCE_CHOICES)
-    source_id = models.CharField(max_length=100, verbose_name="Source ID")
+    source_id = models.CharField(max_length=100, verbose_name="Source ID", null=True, blank=True)
 
     class Meta:
         unique_together = ("source", "accommodation")

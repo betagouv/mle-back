@@ -1,4 +1,3 @@
-from django.db.models import BooleanField, ExpressionWrapper, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 from rest_framework import generics
@@ -59,13 +58,7 @@ class AccommodationDetailView(generics.RetrieveAPIView):
     responses=AccommodationGeoSerializer,
 )
 class AccommodationListView(generics.ListAPIView):
+    queryset = Accommodation.objects.online_with_images_first()
     serializer_class = AccommodationGeoSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = AccommodationFilter
-
-    def get_queryset(self):
-        queryset = Accommodation.objects.online()
-        queryset = queryset.annotate(
-            has_images=ExpressionWrapper(Q(images__len__gt=0), output_field=BooleanField())
-        ).order_by("-has_images")
-        return queryset

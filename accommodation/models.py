@@ -102,6 +102,7 @@ class ExternalSource(models.Model):
     SOURCE_ESPACIL = "espacil"
     SOURCE_ARPEJ = "arpej"
     SOURCE_STUDEFI = "studefi"
+    SOURCE_SOGIMA = "sogima"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -109,6 +110,7 @@ class ExternalSource(models.Model):
         (SOURCE_ESPACIL, "Espacil"),
         (SOURCE_ARPEJ, "Arpej"),
         (SOURCE_STUDEFI, "Studefi"),
+        (SOURCE_SOGIMA, "Sogima"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

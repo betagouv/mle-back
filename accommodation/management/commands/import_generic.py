@@ -33,6 +33,8 @@ class Command(BaseCommand):
                 if not value:
                     return
                 cleaned_value = value.replace("€", "").strip()
+                cleaned_value = value.replace(",", ".")
+                cleaned_value = value.split(".")[0]
                 return int(cleaned_value) if cleaned_value.isdigit() else None
 
             def to_bool(value):
@@ -114,8 +116,9 @@ class Command(BaseCommand):
                 )
 
                 if serializer.is_valid():
-                    serializer.save()
+                    acc = serializer.save()
                     total_imported += 1
+                    print(f"Successfully inserted {acc.name} - {acc.address}")
                 else:
                     print(serializer.errors)
 

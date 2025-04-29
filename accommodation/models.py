@@ -70,10 +70,16 @@ class Accommodation(models.Model):
     bathroom = models.CharField(max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True)
     external_url = models.URLField(max_length=255, null=True, blank=True)
     images = ArrayField(models.BinaryField(), null=True, blank=True)
+    images_count = models.IntegerField(default=0)
 
     published = models.BooleanField(default=True)
 
     objects = AccommodationManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["-images_count"]),
+        ]
 
     def __str__(self):
         return f"{self.name} - {self.postal_code} {self.city}"
@@ -83,6 +89,10 @@ class Accommodation(models.Model):
 
     def get_absolute_url(self):
         return f"{settings.FRONT_SITE_URL}/logement/{self.slug}"
+
+    def save(self, *args, **kwargs):
+        self.images_count = len(self.images or [])
+        super().save(*args, **kwargs)
 
 
 class ExternalSource(models.Model):

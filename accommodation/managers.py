@@ -1,6 +1,14 @@
-from django.contrib.gis.db import models
+from django.db import models
+
+from .queryset import AccommodationQuerySet
 
 
 class AccommodationManager(models.Manager):
+    def get_queryset(self):
+        return AccommodationQuerySet(self.model, using=self._db)
+
     def online(self):
-        return self.filter(published=True).exclude(geom__isnull=True)
+        return self.get_queryset().filter(published=True)
+
+    def online_with_images_first(self):
+        return self.get_queryset().online_with_images_first()

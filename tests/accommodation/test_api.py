@@ -165,3 +165,25 @@ class AccommodationListAPITests(APITestCase):
         assert self.accommodation_lyon.id not in returned_ids
         assert self.accommodation_nantes_accessible_w_coliving_cheap.id not in returned_ids
         assert self.accommodation_nantes_non_accessible_expensive.id not in returned_ids
+
+    def test_accommodations_with_images_first(self):
+        accommodation_without_images_1 = AccommodationFactory(geom=Point(2.36, 48.87), images=[])
+
+        accommodation_with_images = AccommodationFactory(
+            geom=Point(2.35, 48.85), images=[b"fake-image-data-1", b"fake-image-data-2"]
+        )
+
+        accommodation_without_images_2 = AccommodationFactory(geom=Point(2.36, 48.86), images=[])
+
+        response = self.client.get(reverse("accommodation-list"))
+        assert response.status_code == 200
+
+        features = response.json()["results"]["features"]
+        returned_ids = [feature["id"] for feature in features]
+
+        assert accommodation_with_images.id in returned_ids
+        assert accommodation_without_images_1.id in returned_ids
+        assert accommodation_without_images_2.id in returned_ids
+
+        assert returned_ids.index(accommodation_with_images.id) < returned_ids.index(accommodation_without_images_1.id)
+        assert returned_ids.index(accommodation_with_images.id) < returned_ids.index(accommodation_without_images_2.id)

@@ -3,7 +3,10 @@ from pathlib import Path
 
 import environ
 
-env = environ.Env(DEBUG=(bool, False))
+env = environ.Env()
+
+DEBUG = False
+TEST = False
 
 SITE_NAME = "MLE"
 ADMIN_TWO_FACTOR_NAME = SITE_NAME

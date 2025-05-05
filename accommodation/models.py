@@ -39,13 +39,14 @@ class Accommodation(models.Model):
     residence_type = models.CharField(max_length=100, choices=RESIDENCE_TYPE_CHOICES, null=True, blank=True)
     owner = models.ForeignKey(Owner, on_delete=models.SET_NULL, null=True, blank=True, related_name="accommodations")
     nb_total_apartments = models.IntegerField(null=True, blank=True)
-    nb_accessible_apartments = models.IntegerField(null=True, blank=True)
-    nb_coliving_apartments = models.IntegerField(null=True, blank=True)
+    nb_accessible_apartments = models.IntegerField(null=True, blank=True, db_index=True)
+    nb_coliving_apartments = models.IntegerField(null=True, blank=True, db_index=True)
     nb_t1 = models.IntegerField(null=True, blank=True)
     nb_t1_bis = models.IntegerField(null=True, blank=True)
     nb_t2 = models.IntegerField(null=True, blank=True)
     nb_t3 = models.IntegerField(null=True, blank=True)
     nb_t4_more = models.IntegerField(null=True, blank=True)
+    price_min = models.IntegerField(null=True, blank=True, db_index=True)
     price_min_t1 = models.IntegerField(null=True, blank=True)
     price_max_t1 = models.IntegerField(null=True, blank=True)
     price_min_t1_bis = models.IntegerField(null=True, blank=True)
@@ -93,6 +94,15 @@ class Accommodation(models.Model):
 
     def save(self, *args, **kwargs):
         self.images_count = len(self.images_urls or [])
+        price_min_fields = [
+            self.price_min_t1,
+            self.price_min_t1_bis,
+            self.price_min_t2,
+            self.price_min_t3,
+            self.price_min_t4_more,
+        ]
+        non_null_prices = [p for p in price_min_fields if p is not None]
+        self.price_min = min(non_null_prices) if non_null_prices else None
         super().save(*args, **kwargs)
 
 

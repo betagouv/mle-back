@@ -80,7 +80,7 @@ class Accommodation(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=["-images_count"]),
+            models.Index(fields=["published", "-images_count"]),
         ]
 
     def __str__(self):

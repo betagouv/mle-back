@@ -10,6 +10,8 @@ from accommodation.serializers import AccommodationImportSerializer
 from account.models import Owner
 from territories.management.commands.geo_base_command import GeoBaseCommand
 
+owners_to_ignore = ["studefi", "efidis studefi", "arpej", "agefo"]
+
 
 class Command(GeoBaseCommand):
     help = "Import CLEF data via OMOGEN API"
@@ -121,6 +123,9 @@ class Command(GeoBaseCommand):
 
             owner = None
             if owner_name := residence.get("gestionnaireNom"):
+                if owner_name.lower() in owners_to_ignore:
+                    self.stdout.write(self.style.NOTICE(f"Skipping owner {owner_name}"))
+                    continue
                 owner_data = {"name": owner_name, "url": residence.get("gestionnaireSite")}
                 owner = Owner.get_or_create(owner_data)
 

@@ -1,4 +1,5 @@
 import mimetypes
+import uuid
 
 import boto3
 from botocore.config import Config
@@ -27,6 +28,7 @@ class Command(BaseCommand):
         bucket = settings.AWS_STORAGE_BUCKET_NAME
 
         accommodations = Accommodation.objects.filter(images__isnull=False).exclude(images=[])
+        accommodations.update(images_urls=[])
         self.stdout.write(f"Found {accommodations.count()} accommodations with images to migrate")
 
         for accommodation in tqdm(accommodations, desc="Migrating accommodations"):
@@ -36,7 +38,8 @@ class Command(BaseCommand):
                 mime_type = mimetypes.guess_type(f"file{idx}")[0] or "image/jpeg"
                 extension = mimetypes.guess_extension(mime_type) or ".jpg"
 
-                file_key = f"accommodations{settings.AWS_SUFFIX_DIR}/{accommodation.id}/{idx}{extension}"
+                unique_filename = f"{uuid.uuid4().hex}{extension}"
+                file_key = f"accommodations{settings.AWS_SUFFIX_DIR}/{unique_filename}"
 
                 self.stdout.write(f"Uploading to {bucket} with key {file_key} and content type {mime_type}")
                 self.stdout.write(f"Size of data: {len(binary_data)}")
@@ -47,6 +50,7 @@ class Command(BaseCommand):
                         Key=file_key,
                         Body=bytes(binary_data),
                         ContentType=mime_type,
+                        ACL="public-read",
                     )
 
                     public_url = f"{settings.AWS_S3_PUBLIC_BASE_URL}/{file_key}"

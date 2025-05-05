@@ -2,7 +2,7 @@ from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import Distance
 from django_filters.rest_framework import FilterSet, filters
 from rest_framework.exceptions import ValidationError
-from django.db.models import Q
+
 from .models import Accommodation
 
 
@@ -49,12 +49,7 @@ class AccommodationFilter(FilterSet):
     def filter_price_max(self, queryset, name, value):
         if value is None:
             return queryset
-        return queryset.filter(
-            Q(price_min_t1__lte=value)
-            | Q(price_min_t2__lte=value)
-            | Q(price_min_t3__lte=value)
-            | Q(price_min_t4_more__lte=value)
-        )
+        return queryset.filter(price_min__lte=value)
 
     class Meta:
         model = Accommodation

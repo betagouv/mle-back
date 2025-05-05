@@ -1,5 +1,3 @@
-import base64
-
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.utils.html import format_html
@@ -39,7 +37,7 @@ class AccommodationAdmin(OSMGeoAdmin):
     list_editable = ("published",)
     list_display_links_as_owner = None
     readonly_fields = ("display_images", "owner", "residence_type", "slug")
-    exclude = ("images",)
+    exclude = ("images_urls", "images_count")
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -73,10 +71,10 @@ class AccommodationAdmin(OSMGeoAdmin):
         return self.inlines_as_owner
 
     def display_images(self, obj):
-        if obj.images:
+        if obj.images_urls:
             images_html = "".join(
-                f'<img src="data:image/jpeg;base64,{base64.b64encode(image).decode()}" width="200" height="150" style="margin:5px;"/>'
-                for image in obj.images
+                f'<img src="{image_url}" width="200" height="150" style="margin:5px;"/>'
+                for image_url in obj.images_urls
             )
             return format_html(images_html)
         return "No images available"

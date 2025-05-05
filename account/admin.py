@@ -11,6 +11,7 @@ class OwnerAdmin(admin.ModelAdmin):
     form = OwnerAdminForm
     list_display = ("name", "image_preview")
     readonly_fields = ("image_preview",)
+    search_fields = ("name",)
 
     def image_preview(self, obj):
         if obj.image:

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django_admin_logs",
     "django_summernote",
     "drf_spectacular",
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -138,7 +139,7 @@ STATIC_URL = "static/"
 STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, "staticfiles"))
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -183,3 +184,14 @@ BREVO_CONTACT_LIST_ID = 3
 IBAIL_API_AUTH_KEY = env("IBAIL_API_AUTH_KEY")
 IBAIL_API_AUTH_SECRET = env("IBAIL_API_AUTH_SECRET")
 IBAIL_API_HOST = env("IBAIL_API_HOST")
+
+
+# OVH S3 settings (keeping AWS prefix for compatibility)
+AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL")
+AWS_S3_ADDRESSING_STYLE = env("AWS_S3_ADDRESSING_STYLE", default="path")
+AWS_DEFAULT_ACL = env("AWS_DEFAULT_ACL", default="public-read")
+AWS_SUFFIX_DIR = ""
+AWS_S3_PUBLIC_BASE_URL = env("AWS_S3_PUBLIC_BASE_URL")

@@ -82,7 +82,10 @@ def mock_settings(settings):
 
 @pytest.mark.django_db
 def test_import_clef_command(mock_settings):
-    with requests_mock.Mocker() as mocker:
+    with (
+        requests_mock.Mocker() as mocker,
+        mock.patch("accommodation.serializers.upload_image_to_s3") as mock_upload_image_to_s3,
+    ):
         mocker.post(
             f"https://{mock_settings.OMOGEN_API_HOST}/auth-test/token",
             json={"access_token": "test_token"},
@@ -173,11 +176,6 @@ def test_import_clef_command(mock_settings):
             content=b"image_data_101",
         )
 
-        # mocker.get(
-        #     f"https://{mock_settings.OMOGEN_API_HOST}/clef-referentiel-clef-pp/v1/type-gestionnaires/10",
-        #     json={"nom": "Bailleur Test", "url": "http://bailleur.test"},
-        # )
-
         mocker.get(
             "https://api-adresse.data.gouv.fr/search?q=2+Rue+des+platanes+75009+Paris",
             json={
@@ -229,6 +227,11 @@ def test_import_clef_command(mock_settings):
             json={"access_token": "test_token"},
         )
 
+        mock_upload_image_to_s3.side_effect = [
+            "https://s3.fake/fake_image_100.jpg",
+            "https://s3.fake/fake_image_101.jpg",
+        ]
+
         call_command("import_CLEF_via_OMOGEN_API")
 
         accommodation = Accommodation.objects.get(name="Residence AAA")
@@ -238,8 +241,6 @@ def test_import_clef_command(mock_settings):
         assert accommodation.residence_type == "universitaire-conventionnee"
         assert accommodation.geom.x == 2.0
         assert accommodation.geom.y == 48.0
-        assert accommodation.images[0].tobytes() == b"image_data_100"
-        assert accommodation.images[1].tobytes() == b"image_data_101"
         assert accommodation.nb_total_apartments == 100
         assert accommodation.nb_accessible_apartments == 10
         assert accommodation.nb_coliving_apartments is None
@@ -248,6 +249,12 @@ def test_import_clef_command(mock_settings):
         assert accommodation.nb_t2 == 15
         assert accommodation.nb_t3 == 10
         assert accommodation.nb_t4_more == 5
+
+        assert accommodation.images_urls == [
+            "https://s3.fake/fake_image_100.jpg",
+            "https://s3.fake/fake_image_101.jpg",
+        ]
+        assert accommodation.images_count == 2
 
         owner = Owner.objects.get(name="ABC")
         assert owner.url == "https://abc.test"
@@ -265,7 +272,7 @@ def test_import_clef_command(mock_settings):
         assert accommodation.residence_type == "universitaire-conventionnee"
         assert accommodation.geom.x == 4.934459
         assert accommodation.geom.y == 45.779062
-        assert accommodation.images == []
+        assert accommodation.images_urls == []
         assert accommodation.nb_total_apartments == 200
         assert accommodation.nb_accessible_apartments == 12
         assert accommodation.nb_coliving_apartments is None

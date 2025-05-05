@@ -70,6 +70,7 @@ class Accommodation(models.Model):
     bathroom = models.CharField(max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True)
     external_url = models.URLField(max_length=255, null=True, blank=True)
     images = ArrayField(models.BinaryField(), null=True, blank=True)
+    images_urls = ArrayField(models.URLField(), null=True, blank=True)
     images_count = models.IntegerField(default=0)
 
     published = models.BooleanField(default=True)
@@ -91,7 +92,7 @@ class Accommodation(models.Model):
         return f"{settings.FRONT_SITE_URL}/logement/{self.slug}"
 
     def save(self, *args, **kwargs):
-        self.images_count = len(self.images or [])
+        self.images_count = len(self.images_urls or [])
         super().save(*args, **kwargs)
 
 

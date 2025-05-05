@@ -1,5 +1,9 @@
-import base64
+import mimetypes
+import uuid
 
+import boto3
+from botocore.config import Config
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
@@ -8,6 +12,33 @@ from account.serializers import OwnerSerializer
 from common.serializers import BinaryToBase64Field
 
 from .models import Accommodation, ExternalSource
+
+
+def upload_image_to_s3(binary_data, file_extension=".jpg"):
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        config=Config(request_checksum_calculation="when_required", response_checksum_validation="when_required"),
+    )
+
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+
+    unique_filename = f"{uuid.uuid4().hex}{file_extension}"
+    file_key = f"accommodations{settings.AWS_SUFFIX_DIR}/{unique_filename}"
+
+    mime_type = mimetypes.guess_type(unique_filename)[0] or "image/jpeg"
+
+    s3.put_object(
+        Bucket=bucket_name,
+        Key=file_key,
+        Body=bytes(binary_data),
+        ContentType=mime_type,
+        ACL="public-read",
+    )
+
+    return f"{settings.AWS_S3_PUBLIC_BASE_URL}/{file_key}"
 
 
 class AccommodationImportSerializer(serializers.ModelSerializer):
@@ -117,7 +148,12 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         for field_name, field_value in accommodation_fields.items():
             setattr(accommodation, field_name, field_value)
 
-        accommodation.images = images
+        image_urls = []
+        for img_data in images or []:
+            url = upload_image_to_s3(img_data)
+            image_urls.append(url)
+
+        accommodation.images_urls = image_urls
 
         if owner_id:
             owner = Owner.objects.get(pk=owner_id)
@@ -125,7 +161,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
 
         accommodation.save()
 
-        source, _ = ExternalSource.objects.get_or_create(
+        ExternalSource.objects.get_or_create(
             accommodation=accommodation,
             source=source,
             defaults={"source_id": source_id},
@@ -135,7 +171,6 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
 
 
 class BaseAccommodationSerialiser(serializers.Serializer):
-    images_base64 = serializers.SerializerMethodField()
     price_min = serializers.SerializerMethodField()
     price_max = serializers.SerializerMethodField()
 
@@ -148,16 +183,6 @@ class BaseAccommodationSerialiser(serializers.Serializer):
         prices = [obj.price_max_t1, obj.price_max_t1_bis, obj.price_max_t2, obj.price_max_t3, obj.price_max_t4_more]
         prices = [p for p in prices if p is not None]
         return max(prices) if prices else None
-
-    def get_images_base64(self, obj) -> list[str]:
-        images = obj.images or []
-        images_base64 = []
-
-        for image in images:
-            encoded_image = base64.b64encode(image).decode("utf-8")
-            images_base64.append(f"data:image/jpeg;base64,{encoded_image}")
-
-        return images_base64
 
 
 class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.ModelSerializer):
@@ -206,7 +231,7 @@ class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.Mod
             "refrigerator",
             "bathroom",
             "geom",
-            "images_base64",
+            "images_urls",
             "owner",
         )
 
@@ -225,5 +250,5 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
             "nb_accessible_apartments",
             "nb_coliving_apartments",
             "price_min",
-            "images_base64",
+            "images_urls",
         )

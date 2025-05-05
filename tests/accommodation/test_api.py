@@ -167,13 +167,14 @@ class AccommodationListAPITests(APITestCase):
         assert self.accommodation_nantes_non_accessible_expensive.id not in returned_ids
 
     def test_accommodations_with_images_first(self):
-        accommodation_without_images_1 = AccommodationFactory(geom=Point(2.36, 48.87), images=[])
+        accommodation_without_images_1 = AccommodationFactory(geom=Point(2.36, 48.87), images_urls=[])
 
         accommodation_with_images = AccommodationFactory(
-            geom=Point(2.35, 48.85), images=[b"fake-image-data-1", b"fake-image-data-2"]
+            geom=Point(2.35, 48.85),
+            images_urls=["https://bucket.s3.amazonaws.com/image1.jpg", "https://bucket.s3.amazonaws.com/image2.jpg"],
         )
 
-        accommodation_without_images_2 = AccommodationFactory(geom=Point(2.36, 48.86), images=[])
+        accommodation_without_images_2 = AccommodationFactory(geom=Point(2.36, 48.86), images_urls=[])
 
         response = self.client.get(reverse("accommodation-list"))
         assert response.status_code == 200

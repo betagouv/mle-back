@@ -1,6 +1,9 @@
 {
     "jobs": [
         {
+            "command": "0 7 * * * /app/bin/external_db_backup"
+        },
+        {
             "command": "0 2 * * * python manage.py import_iBAIL_arpej_API"
         },
         {

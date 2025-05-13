@@ -103,12 +103,16 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         images_content = validated_data.pop("images_content") or []
         owner_id = validated_data.pop("owner_id", None)
 
-        accommodation, _ = Accommodation.objects.get_or_create(
-            name=validated_data["name"],
-            address=validated_data["address"],
-            city=validated_data["city"],
-            postal_code=validated_data["postal_code"],
-        )
+        if source_id and source:
+            accommodation = Accommodation.objects.filter(sources__source_id=source_id, sources__source=source).first()
+
+        if not accommodation:
+            accommodation, _ = Accommodation.objects.get_or_create(
+                name=validated_data["name"],
+                address=validated_data["address"],
+                city=validated_data["city"],
+                postal_code=validated_data["postal_code"],
+            )
 
         fields = (
             "geom",
@@ -147,10 +151,14 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         )
         accommodation_fields = {}
         for field_name in fields:
-            accommodation_fields[field_name] = validated_data.pop(field_name, None)
+            if validated_data.get(field_name) is not None:
+                # do not erase values on update
+                accommodation_fields[field_name] = validated_data.pop(field_name, None)
 
         for field_name, field_value in accommodation_fields.items():
-            setattr(accommodation, field_name, field_value)
+            if field_value is not None:
+                # do not erase values on update
+                setattr(accommodation, field_name, field_value)
 
         image_urls = []
         for img_data in images_content + images_urls:

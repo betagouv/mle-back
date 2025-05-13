@@ -158,7 +158,7 @@ class Command(GeoBaseCommand):
                     "geom": geom,
                     "source": ExternalSource.SOURCE_CLEF,
                     "source_id": residence.get("id"),
-                    "images": images or [],
+                    "images_content": images or [],
                     "published": True,
                     "owner_id": owner.pk if owner else None,
                 }

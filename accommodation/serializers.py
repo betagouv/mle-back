@@ -2,6 +2,7 @@ import mimetypes
 import uuid
 
 import boto3
+import requests
 from botocore.config import Config
 from django.conf import settings
 from rest_framework import serializers
@@ -9,7 +10,6 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from account.models import Owner
 from account.serializers import OwnerSerializer
-from common.serializers import BinaryToBase64Field
 
 from .models import Accommodation, ExternalSource
 
@@ -44,7 +44,7 @@ def upload_image_to_s3(binary_data, file_extension=".jpg"):
 class AccommodationImportSerializer(serializers.ModelSerializer):
     source_id = serializers.CharField(write_only=True, required=False, default=None, allow_null=True)
     source = serializers.CharField(write_only=True)
-    images = serializers.ListField(child=BinaryToBase64Field(), required=False, default=None)
+    images = serializers.ListField(child=serializers.CharField(), required=False, default=None)
     owner_id = serializers.CharField(write_only=True, required=False, default=None, allow_null=True)
 
     class Meta:
@@ -150,6 +150,8 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
 
         image_urls = []
         for img_data in images or []:
+            if img_data.startswith("http"):
+                img_data = requests.get(img_data).content
             url = upload_image_to_s3(img_data)
             image_urls.append(url)
 

@@ -70,7 +70,6 @@ class Accommodation(models.Model):
     refrigerator = models.BooleanField(default=False, null=True, blank=True)
     bathroom = models.CharField(max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True)
     external_url = models.URLField(max_length=255, null=True, blank=True)
-    images = ArrayField(models.BinaryField(), null=True, blank=True)
     images_urls = ArrayField(models.URLField(), null=True, blank=True)
     images_count = models.IntegerField(default=0)
 

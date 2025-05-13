@@ -105,7 +105,7 @@ class Command(GeoBaseCommand):
                             "geom": geom,
                             "source": ExternalSource.SOURCE_ARPEJ,
                             "source_id": residence.get("key"),
-                            "images": images,
+                            "images_content": images,
                             "owner_id": owner.pk if owner else None,
                         }
                     )

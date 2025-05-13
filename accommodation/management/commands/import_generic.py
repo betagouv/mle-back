@@ -68,6 +68,13 @@ class Command(BaseCommand):
                 )
 
                 pictures = row["pictures"].split("|") if row["pictures"] else []
+                images_content = []
+                images_urls = []
+                for picture in pictures:
+                    if picture.startswith("data:"):
+                        images_content.append(picture)
+                    elif picture.startswith("http"):
+                        images_urls.append(picture)
 
                 serializer = AccommodationImportSerializer(
                     data={
@@ -106,7 +113,8 @@ class Command(BaseCommand):
                         "microwave": to_bool(row.get("microwave")),
                         "refrigerator": to_bool(row.get("refrigerator")),
                         "bathroom": row["bathroom"].strip(),
-                        "images": pictures,
+                        "images_content": images_content,
+                        "images_urls": images_urls,
                         "external_url": row["owner_url"].strip(),
                         "geom": geom,
                         "owner_id": owner.pk if owner else None,

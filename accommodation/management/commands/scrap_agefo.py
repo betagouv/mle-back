@@ -128,7 +128,7 @@ class Command(BaseCommand):
             "postal_code": postal_code,
             "address": address,
             "geom": geom,
-            "images": self._get_images_data(image_urls),
+            "images_content": self._get_images_data(image_urls),
             "price_min_t1": price,
         }
 

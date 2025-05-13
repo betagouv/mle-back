@@ -10,6 +10,7 @@ from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from account.models import Owner
 from account.serializers import OwnerSerializer
+from common.serializers import BinaryToBase64Field
 
 from .models import Accommodation, ExternalSource
 
@@ -44,7 +45,8 @@ def upload_image_to_s3(binary_data, file_extension=".jpg"):
 class AccommodationImportSerializer(serializers.ModelSerializer):
     source_id = serializers.CharField(write_only=True, required=False, default=None, allow_null=True)
     source = serializers.CharField(write_only=True)
-    images = serializers.ListField(child=serializers.CharField(), required=False, default=None)
+    images_content = serializers.ListField(child=BinaryToBase64Field(), required=False, default=None)
+    images_urls = serializers.ListField(child=serializers.CharField(), required=False, default=None)
     owner_id = serializers.CharField(write_only=True, required=False, default=None, allow_null=True)
 
     class Meta:
@@ -89,14 +91,16 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "external_url",
             "source_id",
             "source",
-            "images",
+            "images_urls",
+            "images_content",
             "owner_id",
         )
 
     def create(self, validated_data):
         source_id = validated_data.pop("source_id")
         source = validated_data.pop("source")
-        images = validated_data.pop("images", [])
+        images_urls = validated_data.pop("images_urls") or []
+        images_content = validated_data.pop("images_content") or []
         owner_id = validated_data.pop("owner_id", None)
 
         accommodation, _ = Accommodation.objects.get_or_create(
@@ -149,8 +153,8 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             setattr(accommodation, field_name, field_value)
 
         image_urls = []
-        for img_data in images or []:
-            if img_data.startswith("http"):
+        for img_data in images_content + images_urls:
+            if isinstance(img_data, str) and img_data.startswith("http"):
                 img_data = requests.get(img_data).content
             url = upload_image_to_s3(img_data)
             image_urls.append(url)

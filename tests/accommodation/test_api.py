@@ -12,7 +12,9 @@ from .factories import AccommodationFactory
 class AccommodationDetailAPITests(APITestCase):
     def setUp(self):
         owner = OwnerFactory(name="Bailleur1", url="http://bailleur1.com", image=b"Bailleur1 logo")
-        self.accommodation_published = AccommodationFactory(geom=Point(2.35, 48.85), published=True, owner=owner)
+        self.accommodation_published = AccommodationFactory(
+            geom=Point(2.35, 48.85), published=True, owner=owner, external_url="https://bailleur1.com/residence"
+        )
         self.accommodation_unpublished = AccommodationFactory(published=False)
 
     def test_accommodation_detail_success(self):
@@ -29,6 +31,7 @@ class AccommodationDetailAPITests(APITestCase):
         assert result["owner"]["image_base64"] == "data:image/jpeg;base64,{}".format(
             base64.b64encode(b"Bailleur1 logo").decode("utf-8")
         )
+        assert result["external_url"] == "https://bailleur1.com/residence"
 
     def test_accommodation_detail_not_found_if_unpublished(self):
         response = self.client.get(

@@ -10,7 +10,18 @@ from accommodation.serializers import AccommodationImportSerializer
 from account.models import Owner
 from territories.management.commands.geo_base_command import GeoBaseCommand
 
-owners_to_ignore = ["studefi", "efidis studefi", "arpej", "agefo"]
+owners_to_ignore = [
+    "studefi",
+    "efidis studefi",
+    "arpej",
+    "agefo",
+    "s.a. espacil habitat",
+    "sa hlm espacil habitat",
+    "esh espacil habitat",
+    "sa hlm espacil habitat",
+    "espacil",
+    "espacil habitat",
+]
 
 
 class Command(GeoBaseCommand):

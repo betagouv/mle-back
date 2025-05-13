@@ -239,6 +239,7 @@ class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.Mod
             "geom",
             "images_urls",
             "owner",
+            "external_url",
         )
 
 

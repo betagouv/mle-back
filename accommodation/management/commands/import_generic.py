@@ -106,7 +106,7 @@ class Command(BaseCommand):
                         "microwave": to_bool(row.get("microwave")),
                         "refrigerator": to_bool(row.get("refrigerator")),
                         "bathroom": row["bathroom"].strip(),
-                        "images": to_base64(pictures),
+                        "images": pictures,
                         "external_url": row["owner_url"].strip(),
                         "geom": geom,
                         "owner_id": owner.pk if owner else None,

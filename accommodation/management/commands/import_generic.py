@@ -2,7 +2,6 @@ import csv
 import os
 from urllib.parse import urlparse
 
-import requests
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
 
@@ -44,18 +43,6 @@ class Command(BaseCommand):
                 if not value:
                     return
                 return value.strip().lower() in ("oui", "vrai", "true", "1", "yes")
-
-            def to_base64(values):
-                images = []
-                for value in values:
-                    if value.startswith("data:"):
-                        images.append(value)
-                    elif value.startswith("http"):
-                        image_response = requests.get(value)
-
-                        if image_response.status_code == 200:
-                            images.append(image_response.content)
-                return images
 
             owner = None
             for row in reader:

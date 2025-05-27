@@ -144,6 +144,21 @@ class AccommodationListAPITests(APITestCase):
 
         assert accommodation_null_price.id not in returned_ids
 
+    def test_accommodation_list_pagination_preserves_query_params(self):
+        for _ in range(40):
+            AccommodationFactory(geom=Point(2.0, 48.0), published=True, price_min_t1=100)
+
+        response = self.client.get(reverse("accommodation-list"), {"price_max": 600, "page_size": 30})
+        assert response.status_code == 200
+
+        data = response.json()
+        next_url = data["next"]
+
+        assert next_url is not None
+        assert "price_max=600" in next_url
+        assert "page=2" in next_url
+        assert "page_size=30" in next_url
+
     def test_accommodation_list_center_radius(self):
         center = "-1.5536,47.2184"  # Nantes (near the accessible accommodation)
 

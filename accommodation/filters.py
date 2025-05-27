@@ -49,7 +49,7 @@ class AccommodationFilter(FilterSet):
     def filter_price_max(self, queryset, name, value):
         if value is None:
             return queryset
-        return queryset.filter(price_min__lte=value)
+        return queryset.filter(price_min__isnull=False, price_min__lte=value)
 
     class Meta:
         model = Accommodation

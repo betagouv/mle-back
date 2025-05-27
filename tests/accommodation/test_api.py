@@ -135,6 +135,15 @@ class AccommodationListAPITests(APITestCase):
         assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
         assert self.accommodation_marseille_wo_coliving_cheap.id in returned_ids
 
+    def test_accommodation_list_excludes_null_price_min_with_price_max_filter(self):
+        accommodation_null_price = AccommodationFactory(price_min=None)
+
+        response = self.client.get(reverse("accommodation-list"), {"price_max": 600})
+        results = response.json()
+        returned_ids = [feature["id"] for feature in results["results"]["features"]]
+
+        assert accommodation_null_price.id not in returned_ids
+
     def test_accommodation_list_center_radius(self):
         center = "-1.5536,47.2184"  # Nantes (near the accessible accommodation)
 

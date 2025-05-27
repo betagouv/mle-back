@@ -16,6 +16,18 @@ class ExternalSourceInline(admin.TabularInline):
         return False
 
 
+@admin.action(description="Unpublish selected accommodations")
+def unpublish_accommodations(modeladmin, request, queryset):
+    updated_count = queryset.update(published=False)
+    modeladmin.message_user(request, f"{updated_count} accommodation(s) have been unpublished.")
+
+
+@admin.action(description="Publish selected accommodations")
+def publish_accommodations(modeladmin, request, queryset):
+    updated_count = queryset.update(published=True)
+    modeladmin.message_user(request, f"{updated_count} accommodation(s) have been published.")
+
+
 class AccommodationAdmin(OSMGeoAdmin):
     list_display = (
         "name",
@@ -38,6 +50,7 @@ class AccommodationAdmin(OSMGeoAdmin):
     list_display_links_as_owner = None
     readonly_fields = ("display_images", "owner", "residence_type", "slug")
     exclude = ("images_urls", "images_count")
+    actions = [unpublish_accommodations, publish_accommodations]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

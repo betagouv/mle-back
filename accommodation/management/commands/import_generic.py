@@ -33,8 +33,8 @@ class Command(BaseCommand):
                 if not value:
                     return
                 cleaned_value = value.replace("€", "").strip()
-                cleaned_value = value.replace(",", ".")
-                cleaned_value = value.split(".")[0]
+                cleaned_value = cleaned_value.replace(",", ".")
+                cleaned_value = cleaned_value.split(".")[0]
                 return int(cleaned_value) if cleaned_value.isdigit() else None
 
             def to_bool(value):

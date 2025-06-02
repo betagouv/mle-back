@@ -3,6 +3,7 @@ import os
 
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
+from geopy.exc import GeocoderQueryError
 from geopy.geocoders import BANFrance
 
 from accommodation.models import ExternalSource
@@ -49,7 +50,11 @@ class Command(BaseCommand):
             owner = Owner.get_or_create({"name": "ARPEJ", "url": "https://www.arpej.fr/fr/"})
             for row in reader:
                 full_address = f"{row.get('post_address')}, {row.get('post_zipcode')} {row.get('post_city')}"
-                location = self.geolocator.geocode(full_address)
+                try:
+                    location = self.geolocator.geocode(full_address)
+                except GeocoderQueryError:
+                    location = None
+
                 if not location:
                     self.stderr.write(f"Could not geocode address: {full_address}")
                     continue

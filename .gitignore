@@ -30,3 +30,5 @@ staticfiles/
 
 # Files for imports
 *.csv
+
+temp/

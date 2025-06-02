@@ -2,6 +2,7 @@ from autoslug import AutoSlugField
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.template.defaultfilters import slugify
 from django.urls import reverse
 
 from account.models import Owner
@@ -89,7 +90,7 @@ class Accommodation(models.Model):
         return reverse("accommodation-detail", kwargs={"slug": self.slug})
 
     def get_absolute_url(self):
-        return f"{settings.FRONT_SITE_URL}/logement/{self.slug}"
+        return f"{settings.FRONT_SITE_URL}/trouver-un-logement-etudiant/ville/{slugify(self.city)}/{self.slug}"
 
     def save(self, *args, **kwargs):
         self.images_count = len(self.images_urls or [])

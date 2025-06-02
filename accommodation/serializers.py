@@ -99,8 +99,8 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         source_id = validated_data.pop("source_id")
         source = validated_data.pop("source")
-        images_urls = validated_data.pop("images_urls") or []
-        images_content = validated_data.pop("images_content") or []
+        images_urls = validated_data.pop("images_urls") or None
+        images_content = validated_data.pop("images_content") or None
         owner_id = validated_data.pop("owner_id", None)
         accommodation = None
 
@@ -162,13 +162,14 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
                 setattr(accommodation, field_name, field_value)
 
         image_urls = []
-        for img_data in images_content + images_urls:
-            if isinstance(img_data, str) and img_data.startswith("http"):
-                img_data = requests.get(img_data).content
-            url = upload_image_to_s3(img_data)
-            image_urls.append(url)
+        if images_content is not None or images_urls is not None:
+            for img_data in (images_content or []) + (images_urls or []):
+                if isinstance(img_data, str) and img_data.startswith("http"):
+                    img_data = requests.get(img_data).content
+                url = upload_image_to_s3(img_data)
+                image_urls.append(url)
 
-        accommodation.images_urls = image_urls
+            accommodation.images_urls = image_urls
 
         if owner_id:
             owner = Owner.objects.get(pk=owner_id)

@@ -25,7 +25,9 @@ class Owner(models.Model):
             if owner.user:
                 return owner
 
-            user = User.objects.create_user(username=owner.name, password=None, is_active=False, is_staff=True)
+            user = User.objects.filter(username=owner.name).first()
+            if not user:
+                user = User.objects.create_user(username=owner.name, password=None, is_active=False, is_staff=True)
             owner.user = user
             owner.save()
 

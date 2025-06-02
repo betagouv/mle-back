@@ -2,10 +2,10 @@ from unittest import mock
 
 import pytest
 import requests_mock
-from account.models import Owner
-from accommodation.models import Accommodation, ExternalSource
 from django.core.management import call_command
 
+from accommodation.models import Accommodation, ExternalSource
+from account.models import Owner
 from tests.territories.factories import AcademyFactory, DepartmentFactory
 
 
@@ -272,7 +272,7 @@ def test_import_clef_command(mock_settings):
         assert accommodation.residence_type == "universitaire-conventionnee"
         assert accommodation.geom.x == 4.934459
         assert accommodation.geom.y == 45.779062
-        assert accommodation.images_urls == []
+        assert accommodation.images_urls is None
         assert accommodation.nb_total_apartments == 200
         assert accommodation.nb_accessible_apartments == 12
         assert accommodation.nb_coliving_apartments is None

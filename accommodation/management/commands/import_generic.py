@@ -29,13 +29,16 @@ class Command(BaseCommand):
             reader = csv.DictReader(csvfile, delimiter=",")
             total_imported = 0
 
-            def to_digit(value):
+            def to_digit(value, can_be_zero=True):
                 if not value:
                     return
                 cleaned_value = value.replace("€", "").strip()
                 cleaned_value = cleaned_value.replace(",", ".")
                 cleaned_value = cleaned_value.split(".")[0]
-                return int(cleaned_value) if cleaned_value.isdigit() else None
+                cleaned_value = int(cleaned_value) if cleaned_value.isdigit() else None
+                if not can_be_zero and cleaned_value == 0:
+                    return None
+                return cleaned_value
 
             def to_bool(value):
                 if not value:
@@ -91,16 +94,16 @@ class Command(BaseCommand):
                         "nb_t2": to_digit(row["nb_t2"]),
                         "nb_t3": to_digit(row.get("nb_t3", 0)),
                         "nb_t4_more": to_digit(row.get("nb_t4_more", 0)),
-                        "price_min_t1": to_digit(row["t1_rent_min"]),
-                        "price_max_t1": to_digit(row["t1_rent_max"]),
-                        "price_min_t1_bis": to_digit(row.get("t1_bis_rent_min")),
-                        "price_max_t1_bis": to_digit(row.get("t1_bis_rent_max")),
-                        "price_min_t2": to_digit(row["t2_rent_min"]),
-                        "price_max_t2": to_digit(row["t2_rent_max"]),
-                        "price_min_t3": to_digit(row.get("t3_rent_min")),
-                        "price_max_t3": to_digit(row.get("t3_rent_max")),
-                        "price_min_t4_more": to_digit(row.get("t4_more_rent_min")),
-                        "price_max_t4_more": to_digit(row.get("t4_more_rent_max")),
+                        "price_min_t1": to_digit(row["t1_rent_min"], can_be_zero=False),
+                        "price_max_t1": to_digit(row["t1_rent_max"], can_be_zero=False),
+                        "price_min_t1_bis": to_digit(row.get("t1_bis_rent_min"), can_be_zero=False),
+                        "price_max_t1_bis": to_digit(row.get("t1_bis_rent_max"), can_be_zero=False),
+                        "price_min_t2": to_digit(row["t2_rent_min"], can_be_zero=False),
+                        "price_max_t2": to_digit(row["t2_rent_max"], can_be_zero=False),
+                        "price_min_t3": to_digit(row.get("t3_rent_min"), can_be_zero=False),
+                        "price_max_t3": to_digit(row.get("t3_rent_max"), can_be_zero=False),
+                        "price_min_t4_more": to_digit(row.get("t4_more_rent_min"), can_be_zero=False),
+                        "price_max_t4_more": to_digit(row.get("t4_more_rent_max"), can_be_zero=False),
                         "laundry_room": to_bool(row["laundry_room"]),
                         "common_areas": to_bool(row["common_areas"]),
                         "bike_storage": to_bool(row["bike_storage"]),

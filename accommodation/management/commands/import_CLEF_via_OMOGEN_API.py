@@ -27,6 +27,7 @@ owners_to_ignore = [
 class Command(GeoBaseCommand):
     help = "Import CLEF data via OMOGEN API"
     root_url = f"https://{settings.OMOGEN_API_HOST}"
+    auth_url = f"{root_url}/{settings.OMOGEN_API_AUTH_PATH}"
     access_token = None
 
     def __init__(self, *args, **kwargs):
@@ -60,7 +61,7 @@ class Command(GeoBaseCommand):
         }
         headers = {"X-omogen-api-key": settings.OMOGEN_API_API_KEY, "Content-type": "application/x-www-form-urlencoded"}
 
-        response = requests.post(f"{self.root_url}/auth-test/token", data=payload, headers=headers)
+        response = requests.post(self.auth_url, data=payload, headers=headers)
         response_data = response.json()
 
         if response.status_code != 200:

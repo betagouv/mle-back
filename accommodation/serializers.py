@@ -102,6 +102,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         images_urls = validated_data.pop("images_urls") or []
         images_content = validated_data.pop("images_content") or []
         owner_id = validated_data.pop("owner_id", None)
+        accommodation = None
 
         if source_id and source:
             accommodation = Accommodation.objects.filter(sources__source_id=source_id, sources__source=source).first()

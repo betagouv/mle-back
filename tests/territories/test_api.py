@@ -252,6 +252,7 @@ class CityDetailAPITest(APITestCase):
             average_income=30000,
             average_rent=17.3,
             popular=True,
+            population=522250,
             nb_students=60000,
             boundary=lyon_multipolygon,
         )
@@ -323,6 +324,7 @@ class CityDetailAPITest(APITestCase):
                 "average_income": 30000,
                 "average_rent": 17.3,
                 "popular": True,
+                "population": 522250,
                 "bbox": {"xmax": 4.8301, "xmin": 4.7921, "ymax": 45.779, "ymin": 45.764},
                 "nb_students": 60000,
                 "nb_total_apartments": 27,

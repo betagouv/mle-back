@@ -40,6 +40,7 @@ class CityDetailSerializer(BBoxMixin, CityMixin):
             "nb_students",
             "bbox",
             "popular",
+            "population",
             "nearby_cities",
             "nb_total_apartments",
             "nb_coliving_apartments",

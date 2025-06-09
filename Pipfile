@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 beautifulsoup4 = "*"
 boto3 = "1.38.9"
-django = "==4.2.21"
+django = "==4.2.22"
 django-admin-logs = "*"
 django-admin-two-factor = "*"
 django-autoslug = "*"

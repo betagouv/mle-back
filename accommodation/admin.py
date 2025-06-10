@@ -28,6 +28,18 @@ def publish_accommodations(modeladmin, request, queryset):
     modeladmin.message_user(request, f"{updated_count} accommodation(s) have been published.")
 
 
+@admin.action(description="Make unavailable selected accommodations")
+def unavailable_accommodations(modeladmin, request, queryset):
+    updated_count = queryset.update(available=False)
+    modeladmin.message_user(request, f"{updated_count} accommodation(s) have been made unavailable.")
+
+
+@admin.action(description="Publish selected accommodations")
+def available_accommodations(modeladmin, request, queryset):
+    updated_count = queryset.update(available=True)
+    modeladmin.message_user(request, f"{updated_count} accommodation(s) have been made available.")
+
+
 class AccommodationAdmin(OSMGeoAdmin):
     list_display = (
         "name",
@@ -38,19 +50,20 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_total_apartments",
         "nb_accessible_apartments",
         "published",
+        "available",
     )
     inlines = [ExternalSourceInline]
     inlines_as_owner = []
-    list_display_as_owner = ("name", "address", "city", "postal_code", "published")
+    list_display_as_owner = ("name", "address", "city", "postal_code", "published", "available")
     list_filter = ("owner__name", "city", "postal_code")
     search_fields = ("name", "address", "city")
     ordering = ("name",)
-    fields_as_owner = ("published",)
-    list_editable = ("published",)
+    fields_as_owner = ("available",)
+    list_editable = ("available",)
     list_display_links_as_owner = None
     readonly_fields = ("display_images", "owner", "residence_type", "slug")
     exclude = ("images_urls", "images_count")
-    actions = [unpublish_accommodations, publish_accommodations]
+    actions = [unpublish_accommodations, publish_accommodations, unavailable_accommodations, available_accommodations]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

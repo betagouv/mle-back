@@ -75,6 +75,7 @@ class Accommodation(models.Model):
     images_count = models.IntegerField(default=0)
 
     published = models.BooleanField(default=True)
+    available = models.BooleanField(default=True)
 
     objects = AccommodationManager()
 

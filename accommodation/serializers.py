@@ -250,6 +250,7 @@ class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.Mod
             "images_urls",
             "owner",
             "external_url",
+            "available",
         )
 
 
@@ -268,4 +269,5 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
             "nb_coliving_apartments",
             "price_min",
             "images_urls",
+            "available",
         )

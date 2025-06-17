@@ -1,5 +1,6 @@
 import requests
 
+from accommodation.models import Accommodation
 from territories.management.commands.geo_base_command import GeoBaseCommand
 from territories.models import City, Department
 
@@ -67,9 +68,14 @@ class Command(GeoBaseCommand):
 
         main_cities = []
         for city_data in cities_data:
+            self.stdout.write(self.style.SUCCESS(f"✅ Creating city {city_data['name']}"))
             department, _ = Department.objects.get_or_create(
                 code=city_data["department_code"], defaults={"name": f"Department {city_data['department_code']}"}
             )
+
+            if City.objects.filter(name=city_data["name"]).exists():
+                self.stdout.write(self.style.SUCCESS(f"✅ City {city_data['name']} already exists"))
+                continue
 
             city, _ = City.objects.get_or_create(
                 name=city_data["name"],
@@ -87,6 +93,30 @@ class Command(GeoBaseCommand):
 
         for city in City.objects.exclude(pk__in=main_cities):
             self._fill_from_api(city)
+
+        # find non created cities
+        distinct_city_postal_codes = Accommodation.objects.values_list("city", "postal_code").distinct()
+        for city, postal_code in distinct_city_postal_codes:
+            if not city or not postal_code:
+                continue
+
+            if City.objects.filter(postal_codes__contains=[postal_code]).exists():
+                self.stdout.write(self.style.SUCCESS(f"✅ City {city} ({postal_code}) already exists"))
+                continue
+            self.stdout.write(self.style.WARNING(f"⚠️ No city found for {city} ({postal_code}). Will create it."))
+
+            department_code = postal_code[:2]
+            if postal_code.startswith("97") or postal_code.startswith("98"):
+                department_code = postal_code[:3]
+            try:
+                new_city = City.objects.create(
+                    name=city, postal_codes=[postal_code], department=Department.objects.get(code=department_code)
+                )
+            except Department.DoesNotExist:
+                self.stdout.write(self.style.ERROR(f"❌ No department found for {department_code}"))
+                continue
+            self.stdout.write(self.style.SUCCESS(f"✅ Created city: {city} ({postal_code})"))
+            self._fill_from_api(new_city)
 
     def _fill_from_api(self, city):
         response = self.fetch_city_from_api(city.postal_codes[0])

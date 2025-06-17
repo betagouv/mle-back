@@ -9,18 +9,21 @@ class GeoBaseCommand(BaseCommand):
     help = "Base class for Geo commands"
 
     @staticmethod
-    def fetch_city_from_api(code):
+    def fetch_city_from_api(code, name=None):
         base_api_url = "https://geo.api.gouv.fr/communes/"
         returned_fields = "&fields=nom,codesPostaux,codeDepartement,contour,codeEpci,population&format=json"
+        filters = ""
+        if name:
+            filters = f"&nom={name}"
 
-        response = requests.get(f"{base_api_url}?codePostal={code}{returned_fields}")
+        response = requests.get(f"{base_api_url}?codePostal={code}{filters}{returned_fields}")
         if response_json := response.json():
             return response_json[0]
 
         # NOTE: this is a dirty workaround, data stored in CLEF is not clean, we can have postal or insee code in same field
         print(f"Cannot found city with postal code {code}, assuming we have an insee code here.")
 
-        response = requests.get(f"{base_api_url}?code={code}{returned_fields}")
+        response = requests.get(f"{base_api_url}?code={code}{filters}{returned_fields}")
         if response_json := response.json():
             return response_json[0]
 

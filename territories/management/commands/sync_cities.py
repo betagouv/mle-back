@@ -119,8 +119,9 @@ class Command(GeoBaseCommand):
             self._fill_from_api(new_city)
 
     def _fill_from_api(self, city):
-        response = self.fetch_city_from_api(city.postal_codes[0])
+        response = self.fetch_city_from_api(city.postal_codes[0], city.name)
         if response:
+            city.name = response["nom"]
             city.boundary = self.geojson_mpoly(response["contour"])
             city.epci_code = response.get("codeEpci")
             city.population = response.get("population", 0)

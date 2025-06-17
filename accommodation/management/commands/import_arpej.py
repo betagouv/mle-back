@@ -1,5 +1,6 @@
 import csv
 import os
+import re
 
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand
@@ -65,7 +66,7 @@ class Command(BaseCommand):
 
                 geom = Point(location.longitude, location.latitude, srid=4326)
 
-                pictures = row["URL"].split(",") if row["URL"] else []
+                pictures = re.split(r",|\n", row["URL"]) if row["URL"] else []
                 images_content = []
                 images_urls = []
                 for picture in pictures:

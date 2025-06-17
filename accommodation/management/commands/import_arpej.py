@@ -67,6 +67,7 @@ class Command(BaseCommand):
                 geom = Point(location.longitude, location.latitude, srid=4326)
 
                 pictures = re.split(r",|\n", row["URL"]) if row["URL"] else []
+                pictures = list(set(pictures))
                 images_content = []
                 images_urls = []
                 for picture in pictures:

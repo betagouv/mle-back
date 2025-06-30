@@ -101,6 +101,7 @@ class Command(GeoBaseCommand):
                             "city": city,
                             "postal_code": postal_code,
                             "price_min_t1": to_digit(residence.get("availability", {}).get("rent_amount_from")),
+                            "nb_t1": residence.get("availability", {}).get("accommodation_quantity"),
                             "nb_total_apartments": residence.get("availability", {}).get("accommodation_quantity"),
                             "geom": geom,
                             "source": ExternalSource.SOURCE_ARPEJ,

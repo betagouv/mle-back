@@ -102,6 +102,7 @@ class Command(GeoBaseCommand):
                             "postal_code": postal_code,
                             "price_min_t1": to_digit(residence.get("availability", {}).get("rent_amount_from")),
                             "nb_t1": residence.get("availability", {}).get("accommodation_quantity"),
+                            "nb_t1_available": residence.get("availability", {}).get("count"),
                             "nb_total_apartments": residence.get("availability", {}).get("accommodation_quantity"),
                             "geom": geom,
                             "source": ExternalSource.SOURCE_ARPEJ,
@@ -116,7 +117,9 @@ class Command(GeoBaseCommand):
                         self.stdout.write(f"Successfully inserted {accommodation.name} - {full_address}")
                         results.append(accommodation)
                     else:
-                        self.stderr.write(f"Error saving residence: {serializer.errors}")
+                        self.stderr.write(
+                            f"Error saving residence  {residence.get('title')} - {full_address}: {serializer.errors}"
+                        )
                         continue
 
                 except GeocoderUnavailable as e:

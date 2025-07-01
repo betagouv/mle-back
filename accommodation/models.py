@@ -121,6 +121,7 @@ class ExternalSource(models.Model):
     SOURCE_STUDEFI = "studefi"
     SOURCE_SOGIMA = "sogima"
     SOURCE_ORNE_HABITAT = "orne-habitat"
+    SOURCE_TARN_HABITAT = "tarn-habitat"
     SOURCE_OH_MON_APPART = "oh-mon-appart"
     SOURCE_EVOLEA = "evolea"
     SOURCE_CHOICES = (
@@ -132,6 +133,7 @@ class ExternalSource(models.Model):
         (SOURCE_STUDEFI, "Studefi"),
         (SOURCE_SOGIMA, "Sogima"),
         (SOURCE_ORNE_HABITAT, "Orne Habitat"),
+        (SOURCE_TARN_HABITAT, "Tarn Habitat"),
         (SOURCE_OH_MON_APPART, "Oh Mon Appart"),
         (SOURCE_EVOLEA, "Evolea"),
     )

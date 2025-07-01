@@ -120,7 +120,7 @@ class Command(BaseCommand):
                 if serializer.is_valid():
                     acc = serializer.save()
                     total_imported += 1
-                    print(f"Successfully inserted {acc.name} - {acc.address}")
+                    print(f"Successfully inserted {acc.name} - {acc.address}, available at {acc.get_absolute_url()}")
                 else:
                     print(serializer.errors)
 

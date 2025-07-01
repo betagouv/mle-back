@@ -22,7 +22,7 @@ class Command(GeoBaseCommand):
     def _get_images_data(self, images):
         images_results = []
         if not images:
-            return
+            return []
 
         for image in images:
             try:
@@ -114,7 +114,9 @@ class Command(GeoBaseCommand):
 
                     if serializer.is_valid():
                         accommodation = serializer.save()
-                        self.stdout.write(f"Successfully inserted {accommodation.name} - {full_address}")
+                        self.stdout.write(
+                            f"Successfully inserted {accommodation.name} - {full_address} - {accommodation.nb_t1_available} T1"
+                        )
                         results.append(accommodation)
                     else:
                         self.stderr.write(

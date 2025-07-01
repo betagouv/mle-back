@@ -1,5 +1,6 @@
 import csv
 import os
+import re
 from urllib.parse import urlparse
 
 from django.contrib.gis.geos import Point
@@ -59,7 +60,8 @@ class Command(BaseCommand):
                     else None
                 )
 
-                pictures = row["pictures"].split("|") if row["pictures"] else []
+                pictures = re.split(r"\||\n", row["pictures"]) if row["pictures"] else []
+                pictures = list(set(pictures))
                 images_content = []
                 images_urls = []
                 for picture in pictures:

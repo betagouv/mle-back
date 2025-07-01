@@ -18,6 +18,11 @@ class AccommodationDetailAPITests(APITestCase):
             owner=owner,
             external_url="https://bailleur1.com/residence",
             available=True,
+            nb_total_apartments=1,
+            nb_accessible_apartments=1,
+            nb_coliving_apartments=1,
+            nb_t1=2,
+            nb_t1_available=1,
         )
         self.accommodation_unpublished = AccommodationFactory(published=False, available=False)
 
@@ -37,6 +42,15 @@ class AccommodationDetailAPITests(APITestCase):
         )
         assert result["external_url"] == "https://bailleur1.com/residence"
         assert result["available"] is True
+        assert result["nb_total_apartments"] == self.accommodation_published.nb_total_apartments
+        assert result["nb_accessible_apartments"] == self.accommodation_published.nb_accessible_apartments
+        assert result["nb_coliving_apartments"] == self.accommodation_published.nb_coliving_apartments
+        assert result["nb_t1"] == self.accommodation_published.nb_t1
+        assert result["nb_t1_available"] == self.accommodation_published.nb_t1_available
+        assert result["nb_t1_bis"] == self.accommodation_published.nb_t1_bis
+        assert result["nb_t2"] == self.accommodation_published.nb_t2
+        assert result["nb_t3"] == self.accommodation_published.nb_t3
+        assert result["nb_t4_more"] == self.accommodation_published.nb_t4_more
 
     def test_accommodation_detail_not_found_if_unpublished(self):
         response = self.client.get(

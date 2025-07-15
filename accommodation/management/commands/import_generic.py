@@ -1,3 +1,4 @@
+import base64
 import csv
 import os
 import re
@@ -66,7 +67,9 @@ class Command(BaseCommand):
                 images_urls = []
                 for picture in pictures:
                     if picture.startswith("data:"):
-                        images_content.append(picture)
+                        base64_data = re.sub("^data:image/[^;]+;base64,", "", picture)
+                        image_bytes = base64.b64decode(base64_data)
+                        images_content.append(image_bytes)
                     elif picture.startswith("http"):
                         images_urls.append(picture)
 

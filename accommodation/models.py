@@ -125,6 +125,8 @@ class ExternalSource(models.Model):
     SOURCE_OH_MON_APPART = "oh-mon-appart"
     SOURCE_EVOLEA = "evolea"
     SOURCE_PARTELIOS = "partelios"
+    SOURCE_SEQENS = "seqens"
+    SOURCE_PARME = "parme"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -138,6 +140,8 @@ class ExternalSource(models.Model):
         (SOURCE_OH_MON_APPART, "Oh Mon Appart"),
         (SOURCE_EVOLEA, "Evolea"),
         (SOURCE_PARTELIOS, "Partelios"),
+        (SOURCE_SEQENS, "Seqens/Adlis"),
+        (SOURCE_PARME, "Parme"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

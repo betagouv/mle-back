@@ -73,7 +73,11 @@ class AccommodationListAPITests(APITestCase):
         self.accommodation_no_geom = AccommodationFactory(geom=None)
 
         self.accommodation_nantes_accessible_w_coliving_cheap = AccommodationFactory(
-            geom=Point(-1.5536, 47.2184), nb_accessible_apartments=2, nb_coliving_apartments=5, price_min_t1=300
+            geom=Point(-1.5536, 47.2184),
+            nb_accessible_apartments=2,
+            nb_coliving_apartments=5,
+            price_min_t1=300,
+            nb_t1_available=2,
         )
         self.accommodation_nantes_non_accessible_expensive = AccommodationFactory(
             geom=Point(-1.5530, 47.2150), nb_accessible_apartments=0, price_min_t1=800
@@ -101,6 +105,8 @@ class AccommodationListAPITests(APITestCase):
         assert self.accommodation_lyon.id in returned_ids
         assert self.accommodation_unpublished.id not in returned_ids
         assert self.accommodation_no_geom.id not in returned_ids
+
+        assert any(feature["properties"]["nb_t1_available"] == 2 for feature in results["results"]["features"])
 
     def test_accommodation_list_view_filters(self):
         bbox = "-1.60,47.20,-1.50,47.30"  # Nantes

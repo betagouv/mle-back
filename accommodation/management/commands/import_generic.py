@@ -20,6 +20,22 @@ class Command(BaseCommand):
         parser.add_argument("--skip-images", type=bool, default=False, help="Skip images import")
 
     def handle(self, *args, **options):
+        def to_digit(value, can_be_zero=True):
+            if not value:
+                return
+            cleaned_value = value.replace("€", "").strip()
+            cleaned_value = cleaned_value.replace(",", ".")
+            cleaned_value = cleaned_value.split(".")[0]
+            cleaned_value = int(cleaned_value) if cleaned_value.isdigit() else None
+            if not can_be_zero and cleaned_value == 0:
+                return None
+            return cleaned_value
+
+        def to_bool(value):
+            if not value:
+                return
+            return value.strip().lower() in ("oui", "vrai", "true", "1", "yes")
+
         csv_file_path = options["file"]
         source = options["source"]
         skip_images = options["skip_images"]
@@ -31,22 +47,6 @@ class Command(BaseCommand):
         with open(csv_file_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile, delimiter=",")
             total_imported = 0
-
-            def to_digit(value, can_be_zero=True):
-                if not value:
-                    return
-                cleaned_value = value.replace("€", "").strip()
-                cleaned_value = cleaned_value.replace(",", ".")
-                cleaned_value = cleaned_value.split(".")[0]
-                cleaned_value = int(cleaned_value) if cleaned_value.isdigit() else None
-                if not can_be_zero and cleaned_value == 0:
-                    return None
-                return cleaned_value
-
-            def to_bool(value):
-                if not value:
-                    return
-                return value.strip().lower() in ("oui", "vrai", "true", "1", "yes")
 
             owner = None
             for row in reader:

@@ -5,10 +5,18 @@ import re
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
+from django.core.management.base import BaseCommand
 
-local_directory = "temp/evolea_images/"
-prefix_on_s3 = "evolea-images"
+local_directory = "temp/BMH_images/"
+prefix_on_s3 = "bmh-images"
 image_regexp = None  # r"^9021.*\.jpg"
+
+
+class Command(BaseCommand):
+    help = "Upload images to S3"
+
+    def handle(self, *args, **options):
+        upload_images_in_directory(local_directory)
 
 
 def upload_image_to_s3(image_path, file_name):
@@ -51,6 +59,7 @@ def upload_images_in_directory(directory_path):
         print(f"Local dir {directory_path} doesnot exist.")
         return
 
+    images_urls = []
     for filename in os.listdir(directory_path):
         if image_regexp is not None and re.match(image_regexp, filename) is None:
             print(f"Ignore file {filename} not matching image_regexp")
@@ -61,7 +70,7 @@ def upload_images_in_directory(directory_path):
             print(f"Uploading {filename}...")
             upload_image_to_s3(file_path, filename)
             print(f"File uploaded to S3 with URL: {settings.AWS_S3_PUBLIC_BASE_URL}/{prefix_on_s3}/{filename}")
+            images_urls.append(f"{settings.AWS_S3_PUBLIC_BASE_URL}/{prefix_on_s3}/{filename}")
 
-
-if __name__ == "__main__":
-    upload_images_in_directory(local_directory)
+    print(f"Images for {directory_path}:")
+    print("|".join(images_urls))

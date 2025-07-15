@@ -127,6 +127,7 @@ class ExternalSource(models.Model):
     SOURCE_PARTELIOS = "partelios"
     SOURCE_SEQENS = "seqens"
     SOURCE_PARME = "parme"
+    SOURCE_BMH = "bmh"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -142,6 +143,7 @@ class ExternalSource(models.Model):
         (SOURCE_PARTELIOS, "Partelios"),
         (SOURCE_SEQENS, "Seqens/Adlis"),
         (SOURCE_PARME, "Parme"),
+        (SOURCE_BMH, "Brest Métropole Habitat"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

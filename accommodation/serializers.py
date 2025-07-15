@@ -285,4 +285,9 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
             "price_min",
             "images_urls",
             "available",
+            "nb_t1_available",
+            "nb_t1_bis_available",
+            "nb_t2_available",
+            "nb_t3_available",
+            "nb_t4_more_available",
         )

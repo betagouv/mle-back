@@ -66,7 +66,7 @@ def upload_images_in_directory(directory_path):
             continue
         file_path = os.path.join(directory_path, filename)
 
-        if os.path.isfile(file_path) and filename.lower().endswith((".png", ".jpg", ".jpeg", ".gif")):
+        if os.path.isfile(file_path) and filename.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")):
             print(f"Uploading {filename}...")
             upload_image_to_s3(file_path, filename)
             print(f"File uploaded to S3 with URL: {settings.AWS_S3_PUBLIC_BASE_URL}/{prefix_on_s3}/{filename}")

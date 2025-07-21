@@ -1,5 +1,3 @@
-import requests
-
 from accommodation.models import Accommodation
 from territories.management.commands.geo_base_command import GeoBaseCommand
 from territories.models import City, Department
@@ -7,23 +5,6 @@ from territories.models import City, Department
 
 class Command(GeoBaseCommand):
     help = "Creates French cities with boroughs (Paris, Marseille, Lyon) including all old and new INSEE codes, and other details from the API."
-
-    def _fetch_city_from_api(self, code):
-        base_api_url = "https://geo.api.gouv.fr/communes/"
-        returned_fields = "&fields=nom,codesPostaux,codeDepartement,contour,codeEpci,population&format=json"
-
-        response = requests.get(f"{base_api_url}?codePostal={code}{returned_fields}")
-        if response_json := response.json():
-            return response_json[0]
-
-        print(f"Cannot found city with postal code {code}, assuming we have an insee code here.")
-
-        response = requests.get(f"{base_api_url}?code={code}{returned_fields}")
-        if response_json := response.json():
-            return response_json[0]
-
-        print(f"Cannot found city with insee code {code}")
-        return
 
     def handle(self, *args, **kwargs):
         cities_data = [
@@ -95,7 +76,9 @@ class Command(GeoBaseCommand):
             self._fill_from_api(city)
 
         # find non created cities
-        distinct_city_postal_codes = Accommodation.objects.values_list("city", "postal_code").distinct()
+        distinct_city_postal_codes = (
+            Accommodation.objects.filter(published=True).values_list("city", "postal_code").distinct()
+        )
         for city, postal_code in distinct_city_postal_codes:
             if not city or not postal_code:
                 continue
@@ -108,6 +91,14 @@ class Command(GeoBaseCommand):
             department_code = postal_code[:2]
             if postal_code.startswith("97") or postal_code.startswith("98"):
                 department_code = postal_code[:3]
+
+            response = self.fetch_city_from_api(postal_code, name=city, strict_mode=True)
+            if not response:
+                self.stdout.write(
+                    self.style.WARNING(f"⚠️ No real city found for {city} ({postal_code}). Will not create it.")
+                )
+                continue
+
             try:
                 new_city = City.objects.create(
                     name=city, postal_codes=[postal_code], department=Department.objects.get(code=department_code)

@@ -70,10 +70,10 @@ class Command(GeoBaseCommand):
 
             main_cities.append(city.pk)
 
-            self._fill_from_api(city)
+            self.fill_city_from_api(city)
 
         for city in City.objects.exclude(pk__in=main_cities):
-            self._fill_from_api(city)
+            self.fill_city_from_api(city)
 
         # find non created cities
         distinct_city_postal_codes = (
@@ -107,21 +107,4 @@ class Command(GeoBaseCommand):
                 self.stdout.write(self.style.ERROR(f"❌ No department found for {department_code}"))
                 continue
             self.stdout.write(self.style.SUCCESS(f"✅ Created city: {city} ({postal_code})"))
-            self._fill_from_api(new_city)
-
-    def _fill_from_api(self, city):
-        response = self.fetch_city_from_api(city.postal_codes[0], city.name)
-        if response:
-            city.name = response["nom"]
-            city.boundary = self.geojson_mpoly(response["contour"])
-            city.epci_code = response.get("codeEpci")
-            city.population = response.get("population", 0)
-            city.insee_codes = list(set(city.insee_codes + [response["code"]]))
-            city.save()
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"✔️ {city.name} created/updated with INSEE {city.insee_codes}, boundary, epci_code and population"
-                )
-            )
-        else:
-            self.stdout.write(self.style.WARNING(f"⚠️ Unable to fetch detailed info for {city.name}"))
+            self.fill_city_from_api(new_city)

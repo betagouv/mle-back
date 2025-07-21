@@ -5,19 +5,36 @@ import re
 from urllib.parse import urlparse
 
 from django.contrib.gis.geos import Point
-from django.core.management.base import BaseCommand
 
 from accommodation.serializers import AccommodationImportSerializer
 from account.models import Owner
+from territories.management.commands.geo_base_command import GeoBaseCommand
+from territories.models import City, Department
 
 
-class Command(BaseCommand):
+class Command(GeoBaseCommand):
     help = "Import accommodations from a CSV file"
 
     def add_arguments(self, parser):
         parser.add_argument("--file", type=str, help="Path of the CSV file to process (separator: ,)")
         parser.add_argument("--source", type=str, help="External source, see accommodation.models.ExternalSource")
         parser.add_argument("--skip-images", type=bool, default=False, help="Skip images import")
+
+    def _get_or_create_city(self, city, postal_code):
+        try:
+            return City.objects.get(name__iexact=city, postal_codes__contains=[postal_code])
+        except City.DoesNotExist:
+            department_code = postal_code[:2]
+            if postal_code.startswith("97") or postal_code.startswith("98"):
+                department_code = postal_code[:3]
+
+            city = City.objects.create(
+                name=city, postal_codes=[postal_code], department=Department.objects.get(code=department_code)
+            )
+            response = self.fetch_city_from_api(postal_code, city, strict_mode=True)
+            if not response:
+                return
+            return self.fill_city_from_api(city)
 
     def handle(self, *args, **options):
         def to_digit(value, can_be_zero=True):
@@ -73,10 +90,12 @@ class Command(BaseCommand):
                     elif picture.startswith("http"):
                         images_urls.append(picture)
 
+                city = self._get_or_create_city(row["city"].strip(), row["postal_code"].strip())
+
                 data = {
                     "name": row["name"].strip(),
                     "address": row["address"].strip(),
-                    "city": row["city"].strip(),
+                    "city": city.name,
                     "postal_code": row["postal_code"].strip(),
                     "residence_type": row["residence_type"].strip(),
                     "nb_total_apartments": to_digit(row["nb_total_apartments"]),

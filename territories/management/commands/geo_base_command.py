@@ -33,6 +33,24 @@ class GeoBaseCommand(BaseCommand):
         print(f"Cannot found city with insee code {code}")
         return
 
+    def fill_city_from_api(self, city):
+        response = self.fetch_city_from_api(city.postal_codes[0], city.name)
+        if response:
+            city.name = response["nom"]
+            city.boundary = self.geojson_mpoly(response["contour"])
+            city.epci_code = response.get("codeEpci")
+            city.population = response.get("population", 0)
+            city.insee_codes = list(set(city.insee_codes + [response["code"]]))
+            city.save()
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"✔️ {city.name} created/updated with INSEE {city.insee_codes}, boundary, epci_code and population"
+                )
+            )
+        else:
+            self.stdout.write(self.style.WARNING(f"⚠️ Unable to fetch detailed info for {city.name}"))
+        return city
+
     @staticmethod
     def geojson_mpoly(geojson):
         mpoly = GEOSGeometry(geojson if isinstance(geojson, str) else json.dumps(geojson))

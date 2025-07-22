@@ -131,6 +131,9 @@ class ExternalSource(models.Model):
     SOURCE_NANTAISE = "nantaise"
     SOURCE_VENDEE = "vendee"
     SOURCE_FRANCE_LOIRE = "france-loire"
+    SOURCE_HABELLIS = "habellis"
+    SOURCE_CROUS = "crous"
+    SOURCE_ESCALE_OUEST = "escale-ouest"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -150,6 +153,9 @@ class ExternalSource(models.Model):
         (SOURCE_NANTAISE, "Nantaise d'habitation"),
         (SOURCE_VENDEE, "Vendée logement"),
         (SOURCE_FRANCE_LOIRE, "France Loire"),
+        (SOURCE_HABELLIS, "Habellis"),
+        (SOURCE_CROUS, "Crous"),
+        (SOURCE_ESCALE_OUEST, "Escale Ouest"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

@@ -21,6 +21,11 @@ class Command(GeoBaseCommand):
         parser.add_argument("--skip-images", type=bool, default=False, help="Skip images import")
 
     def _get_or_create_city(self, city, postal_code):
+        # normalize city name
+        response = self.fetch_city_from_api(postal_code, city, strict_mode=True)
+        if not response:
+            return
+        city = response["nom"] if response else city
         try:
             return City.objects.get(name__iexact=city, postal_codes__contains=[postal_code])
         except City.DoesNotExist:
@@ -31,9 +36,6 @@ class Command(GeoBaseCommand):
             city = City.objects.create(
                 name=city, postal_codes=[postal_code], department=Department.objects.get(code=department_code)
             )
-            response = self.fetch_city_from_api(postal_code, city, strict_mode=True)
-            if not response:
-                return
             return self.fill_city_from_api(city)
 
     def handle(self, *args, **options):
@@ -91,6 +93,11 @@ class Command(GeoBaseCommand):
                         images_urls.append(picture)
 
                 city = self._get_or_create_city(row["city"].strip(), row["postal_code"].strip())
+                if not city:
+                    self.stderr.write(
+                        f"Could not get or create city {row['city']} for postal code {row['postal_code']}"
+                    )
+                    continue
 
                 data = {
                     "name": row["name"].strip(),

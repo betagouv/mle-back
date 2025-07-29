@@ -148,6 +148,7 @@ class NewsletterSubscriptionAPIView(APIView):
             email = serializer.validated_data["email"]
             territory_type = serializer.validated_data["territory_type"]
             territory_name = serializer.validated_data["territory_name"]
+            kind = serializer.validated_data["kind"]
 
             model_map = {
                 "academy": Academy,
@@ -158,7 +159,7 @@ class NewsletterSubscriptionAPIView(APIView):
             model = model_map.get(territory_type)
             territory = get_object_or_404(model, name=territory_name)
 
-            sync_newsletter_subscription_to_brevo(email, territory_type, territory_name)
+            sync_newsletter_subscription_to_brevo(email, territory_type, territory_name, kind)
 
             return Response(
                 {"message": "Subscription successful", "email": email, "territory": territory.name},

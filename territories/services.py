@@ -6,9 +6,9 @@ configuration.api_key["api-key"] = settings.BREVO_API_KEY
 api_instance = sib_api_v3_sdk.ContactsApi(sib_api_v3_sdk.ApiClient(configuration))
 
 
-def sync_newsletter_subscription_to_brevo(email, territory_type, territory_name):
+def sync_newsletter_subscription_to_brevo(email, territory_type, territory_name, kind):
     contact_data = {
-        "attributes": {"TERRITORY_NAME": territory_name, "TERRITORY_TYPE": territory_type},
+        "attributes": {"TERRITORY_NAME": territory_name, "TERRITORY_TYPE": territory_type, "KIND": kind},
         "listIds": [settings.BREVO_CONTACT_LIST_ID],
         "updateEnabled": True,
     }

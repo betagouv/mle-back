@@ -108,3 +108,4 @@ class NewsletterSubscriptionSerializer(serializers.Serializer):
         choices=[("academy", "Academy"), ("department", "Department"), ("city", "City")]
     )
     territory_name = serializers.CharField()
+    kind = serializers.ChoiceField(choices=[("newsletter", "Newsletter"), ("accommodation", "Accommodation")])

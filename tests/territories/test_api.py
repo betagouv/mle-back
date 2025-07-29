@@ -358,7 +358,7 @@ class NewsletterSubscriptionAPITest(APITestCase):
     def test_successful_subscription(self, mock_create, mock_update, mock_get_info):
         error_404 = sib_api_v3_sdk.rest.ApiException(status=404, reason="Contact not found")
         mock_get_info.side_effect = error_404
-        data = {"email": "test@example.com", "territory_type": "city", "territory_name": "Lyon"}
+        data = {"email": "test@example.com", "territory_type": "city", "territory_name": "Lyon", "kind": "newsletter"}
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()["message"], "Subscription successful")
@@ -369,6 +369,7 @@ class NewsletterSubscriptionAPITest(APITestCase):
             "attributes": {
                 "TERRITORY_NAME": "Lyon",
                 "TERRITORY_TYPE": "city",
+                "KIND": "newsletter",
             },
             "listIds": [settings.BREVO_CONTACT_LIST_ID],
             "updateEnabled": True,
@@ -387,9 +388,19 @@ class NewsletterSubscriptionAPITest(APITestCase):
         mock_create.assert_not_called()
 
     def test_subscription_invalid_territory(self):
-        data = {"email": "test@example.com", "territory_type": "city", "territory_name": "Unknown City"}
+        data = {
+            "email": "test@example.com",
+            "territory_type": "city",
+            "territory_name": "Unknown City",
+            "kind": "newsletter",
+        }
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_subscription_invalid_kind(self):
+        data = {"email": "test@example.com", "territory_type": "city", "territory_name": "Lyon", "kind": "unknwon"}
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_subscription_missing_fields(self):
         data = {"email": "test@example.com", "territory_type": "city"}

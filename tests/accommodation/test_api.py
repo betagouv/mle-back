@@ -218,15 +218,12 @@ class AccommodationListAPITests(APITestCase):
         assert self.accommodation_nantes_accessible_w_coliving_cheap.id not in returned_ids
         assert self.accommodation_nantes_non_accessible_expensive.id not in returned_ids
 
-    def test_accommodations_with_images_first(self):
-        accommodation_without_images_1 = AccommodationFactory(geom=Point(2.36, 48.87), images_urls=[])
+    def test_accommodations_with_availibility_first(self):
+        accommodation_without_availibity_1 = AccommodationFactory(geom=Point(2.36, 48.87), nb_t1_available=None)
 
-        accommodation_with_images = AccommodationFactory(
-            geom=Point(2.35, 48.85),
-            images_urls=["https://bucket.s3.amazonaws.com/image1.jpg", "https://bucket.s3.amazonaws.com/image2.jpg"],
-        )
+        accommodation_with_availibility = AccommodationFactory(geom=Point(2.35, 48.85), nb_t1_bis_available=1)
 
-        accommodation_without_images_2 = AccommodationFactory(geom=Point(2.36, 48.86), images_urls=[])
+        accommodation_without_availibity_2 = AccommodationFactory(geom=Point(2.36, 48.86), nb_t1_available=0)
 
         response = self.client.get(reverse("accommodation-list"))
         assert response.status_code == 200
@@ -234,9 +231,13 @@ class AccommodationListAPITests(APITestCase):
         features = response.json()["results"]["features"]
         returned_ids = [feature["id"] for feature in features]
 
-        assert accommodation_with_images.id in returned_ids
-        assert accommodation_without_images_1.id in returned_ids
-        assert accommodation_without_images_2.id in returned_ids
+        assert accommodation_with_availibility.id in returned_ids
+        assert accommodation_without_availibity_1.id in returned_ids
+        assert accommodation_without_availibity_2.id in returned_ids
 
-        assert returned_ids.index(accommodation_with_images.id) < returned_ids.index(accommodation_without_images_1.id)
-        assert returned_ids.index(accommodation_with_images.id) < returned_ids.index(accommodation_without_images_2.id)
+        assert returned_ids.index(accommodation_with_availibility.id) < returned_ids.index(
+            accommodation_without_availibity_1.id
+        )
+        assert returned_ids.index(accommodation_with_availibility.id) < returned_ids.index(
+            accommodation_without_availibity_2.id
+        )

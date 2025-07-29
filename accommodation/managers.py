@@ -10,5 +10,5 @@ class AccommodationManager(models.Manager):
     def online(self):
         return self.get_queryset().filter(published=True)
 
-    def online_with_images_first(self):
-        return self.get_queryset().online_with_images_first()
+    def online_with_availibility_first(self):
+        return self.get_queryset().online_with_availibility_first()

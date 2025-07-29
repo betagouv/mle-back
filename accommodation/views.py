@@ -58,7 +58,7 @@ class AccommodationDetailView(generics.RetrieveAPIView):
     responses=AccommodationGeoSerializer,
 )
 class AccommodationListView(generics.ListAPIView):
-    queryset = Accommodation.objects.online_with_images_first()
+    queryset = Accommodation.objects.online_with_availibility_first()
     serializer_class = AccommodationGeoSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = AccommodationFilter

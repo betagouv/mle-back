@@ -70,3 +70,11 @@ class City(Territory):
 
     def get_absolute_detail_api_url(self):
         return reverse("city-detail", kwargs={"slug": self.slug})
+
+
+class EducationalInstitution(models.Model):
+    name = models.CharField(max_length=255)
+    city = models.ForeignKey(City, on_delete=models.CASCADE)
+    geom = models.PointField(null=True, blank=True, verbose_name="Localisation")
+    address = models.CharField(max_length=255)
+    postal_code = models.CharField(max_length=5)

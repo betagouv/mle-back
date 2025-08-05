@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "territories",
     "qa",
     "account",
+    "institution",
     "accommodation",
     "django_admin_logs",
     "django_summernote",

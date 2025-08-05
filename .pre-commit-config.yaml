@@ -11,3 +11,10 @@ repos:
     rev: v1.37.0
     hooks:
       - id: talisman-commit
+  - repo: https://github.com/devanshshukla99/pre-commit-hook-prohibit-string
+    rev: v1.2
+    hooks:
+      - id: prohibit-string
+        args: [--prohibit-string, "DONOTCOMMIT,DO NOT COMMIT"]
+        files: '.*'
+        message: "🚫 Your code contains DONOTCOMMIT. Please remove it before committing."

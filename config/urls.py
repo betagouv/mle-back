@@ -7,6 +7,7 @@ urlpatterns = [
     path("summernote/", include("django_summernote.urls")),
     path("api/questions-answers/", include("qa.urls")),
     path("api/territories/", include("territories.urls")),
+    path("api/institutions/", include("institution.urls")),
     path("api/accommodations/", include("accommodation.urls")),
     path("api/accounts/", include("account.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

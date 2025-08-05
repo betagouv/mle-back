@@ -1,4 +1,3 @@
-# filters.py
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import Distance
 from django_filters.rest_framework import FilterSet, filters

@@ -1,0 +1,93 @@
+import csv
+import os
+from collections import defaultdict
+
+from django.core.management.base import BaseCommand
+
+from accommodation.models import Accommodation
+from accommodation.serializers import AccommodationImportSerializer
+
+
+class Command(BaseCommand):
+    help = "Import CROUS nb accommodations from a CSV file and aggregate by residence"
+
+    def handle(self, *args, **options):
+        csv_file_path = "crous_nb_and_photos.csv"
+
+        if not os.path.exists(csv_file_path):
+            self.stderr.write(self.style.ERROR(f"File not found: {csv_file_path}"))
+            return
+
+        def normalize_type(t):
+            return t.strip().upper().replace("É", "E").replace("È", "E")
+
+        data_by_residence = defaultdict(
+            lambda: {
+                "nb_total": 0,
+                "nb_accessible": 0,
+                "nb_coliving": 0,
+                "nb_t1": 0,
+                "nb_t1_bis": 0,
+                "nb_t2": 0,
+                "nb_t3": 0,
+            }
+        )
+
+        with open(csv_file_path, newline="", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile, delimiter=",")
+            for row in reader:
+                res_name = row["Résidence"].strip()
+                nb_logements = int(row["Nb Logement"])
+                type_logement = normalize_type(row["Type Logement"])
+
+                entry = data_by_residence[res_name]
+                entry["nb_total"] += nb_logements
+
+                if "PMR" in type_logement:
+                    entry["nb_accessible"] += nb_logements
+
+                if "PARTAG" in type_logement:
+                    entry["nb_coliving"] += nb_logements
+
+                if "T1 BIS" in type_logement:
+                    entry["nb_t1_bis"] += nb_logements
+                elif any(t in type_logement for t in ["T1", "STUDIO", "STUDETTE", "APPART", "CHAMBRE"]):
+                    entry["nb_t1"] += nb_logements
+                elif "T2" in type_logement:
+                    entry["nb_t2"] += nb_logements
+                elif "T3" in type_logement:
+                    entry["nb_t3"] += nb_logements
+                else:
+                    print("non mapped type", type_logement)
+
+        total_imported = 0
+
+        for name, vals in data_by_residence.items():
+            try:
+                print("Managing", name)
+                acc_instance = Accommodation.objects.get(name=name)
+            except Accommodation.DoesNotExist:
+                self.stderr.write(self.style.WARNING(f"Accommodation not found: {name}, skipping"))
+                continue
+
+            serializer = AccommodationImportSerializer(
+                instance=acc_instance,
+                data={
+                    "nb_total_apartments": vals["nb_total"],
+                    "nb_accessible_apartments": vals["nb_accessible"],
+                    "nb_coliving_apartments": vals["nb_coliving"],
+                    "nb_t1": vals["nb_t1"],
+                    "nb_t1_bis": vals["nb_t1_bis"],
+                    "nb_t2": vals["nb_t2"],
+                    "nb_t3": vals["nb_t3"],
+                },
+                partial=True,
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+                total_imported += 1
+                self.stdout.write(self.style.SUCCESS(f"Updated {acc_instance.name} ({vals['nb_total']} logements)"))
+            else:
+                self.stderr.write(self.style.ERROR(f"Error for {name}: {serializer.errors}"))
+        self.stdout.write(self.style.SUCCESS(f"Import finished: {total_imported} residences imported"))

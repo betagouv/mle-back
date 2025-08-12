@@ -3,3 +3,5 @@ fileignoreconfig:
   checksum: 51e977042f39e347bb87eedc4f208ec5e630961e2dbe72ae9745c240fc027238
 - filename: institution/migrations/0001_educational_instit.py
   checksum: de6c7a2c3b79668ef9332f25bdd6c932c106da2d45870bf9e8040b65aeca8e8c
+- filename: accommodation/management/commands/import_crous_accommodations.py
+  checksum: 5738f57f14ffa3ac87cebfd03b41e88638638cc7aa61ffb0ddaba6103b90fb68

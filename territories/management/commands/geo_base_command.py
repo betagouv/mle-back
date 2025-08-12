@@ -3,10 +3,43 @@ import json
 import requests
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
 from django.core.management.base import BaseCommand
+from geopy.exc import GeocoderQueryError
+from geopy.geocoders import BANFrance
+
+from territories.models import City, Department
 
 
 class GeoBaseCommand(BaseCommand):
     help = "Base class for Geo commands"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.geolocator = BANFrance(timeout=10)
+
+    def _geocode(self, address):
+        try:
+            return self.geolocator.geocode(address)
+        except GeocoderQueryError:
+            return None
+
+    def _get_or_create_city(self, city, postal_code):
+        # normalize city name
+        response = self.fetch_city_from_api(postal_code, city, strict_mode=True)
+        if not response:
+            return
+        city = response["nom"] if response else city
+        try:
+            return City.objects.get(name__iexact=city, postal_codes__contains=[postal_code])
+        except City.DoesNotExist:
+            department_code = postal_code[:2]
+            if postal_code.startswith("97") or postal_code.startswith("98"):
+                department_code = postal_code[:3]
+
+            city = City.objects.create(
+                name=city, postal_codes=[postal_code], department=Department.objects.get(code=department_code)
+            )
+            return self.fill_city_from_api(city)
 
     @staticmethod
     def fetch_city_from_api(code, name=None, strict_mode=False):

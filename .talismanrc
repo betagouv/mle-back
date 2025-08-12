@@ -22,3 +22,7 @@ fileignoreconfig:
     checksum: 5dde99db31a5618f10caf05cf63ccb31da36a9b16bee16fdf49a7156071e1b04
   - filename: accommodation/management/commands/import_crous_accommodations.py
     checksum: 5738f57f14ffa3ac87cebfd03b41e88638638cc7aa61ffb0ddaba6103b90fb68
+  - filename: accommodation/management/commands/upload_base_command.py
+    checksum: bc555d59440c872f03e0c8e2b494e21241579fc9cfaf91e3b3fad3f0ef6a064b
+  - filename: accommodation/management/commands/upload_crous_images.py
+    checksum: f3d5981eb8d2f639787ff5af02aee9bafc129346578747f45708aad19a2c5c2f

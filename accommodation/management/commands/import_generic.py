@@ -81,7 +81,9 @@ class Command(GeoBaseCommand):
                 )
 
                 pictures = re.split(r"\||\n", row["pictures"]) if row["pictures"] else []
-                pictures = list(set(pictures))
+                # NOTE: do not use set to keep order
+                pictures = [url for i, url in enumerate(pictures) if url not in pictures[:i]]
+
                 images_content = []
                 images_urls = []
                 for picture in pictures:

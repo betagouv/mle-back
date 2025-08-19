@@ -22,6 +22,19 @@ class UploadS3BaseCommand(BaseCommand):
             ),
         )
 
+    def list_images_from_s3(self, name):
+        images_urls = []
+        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+        for image in self.get_s3_client().list_objects_v2(Bucket=bucket_name, Prefix=name).get("Contents", []):
+            key = image["Key"]
+            if key.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")):
+                image_url = f"{settings.AWS_S3_PUBLIC_BASE_URL}/{key}"
+                images_urls.append(image_url)
+
+                print(f"Image found: {image_url}")
+
+        return images_urls
+
     def s3_key_exists(self, key):
         s3 = self.get_s3_client()
         resp = s3.list_objects_v2(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Prefix=key, MaxKeys=1)

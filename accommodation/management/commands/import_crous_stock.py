@@ -3,6 +3,7 @@ import os
 from collections import defaultdict
 
 from django.core.management.base import BaseCommand
+from django.db.models import Func, Value
 
 from accommodation.models import Accommodation
 from accommodation.serializers import AccommodationImportSerializer
@@ -30,6 +31,7 @@ class Command(BaseCommand):
                 "nb_t1_bis": 0,
                 "nb_t2": 0,
                 "nb_t3": 0,
+                "nb_t4_more": 0,
             }
         )
 
@@ -46,7 +48,7 @@ class Command(BaseCommand):
                 if "PMR" in type_logement:
                     entry["nb_accessible"] += nb_logements
 
-                if "PARTAG" in type_logement:
+                if any(t in type_logement for t in ["PARTAG", "COLOC"]):
                     entry["nb_coliving"] += nb_logements
 
                 if "T1 BIS" in type_logement:
@@ -57,16 +59,21 @@ class Command(BaseCommand):
                     entry["nb_t2"] += nb_logements
                 elif "T3" in type_logement:
                     entry["nb_t3"] += nb_logements
+                elif any(t in type_logement for t in ["T4", "T5", "T6", "T7", "T8", "T9"]):
+                    entry["nb_t4_more"] += nb_logements
                 else:
                     print("non mapped type", type_logement)
 
         total_imported = 0
 
         for name, vals in data_by_residence.items():
-            try:
-                print("Managing", name)
-                acc_instance = Accommodation.objects.get(name=name)
-            except Accommodation.DoesNotExist:
+            print("Managing", name)
+            acc_instance = (
+                Accommodation.objects.annotate(unaccent_name=Func("name", function="unaccent"))
+                .filter(unaccent_name__iexact=Func(Value(name), function="unaccent"))
+                .first()
+            )
+            if not acc_instance:
                 self.stderr.write(self.style.WARNING(f"Accommodation not found: {name}, skipping"))
                 continue
 
@@ -80,6 +87,7 @@ class Command(BaseCommand):
                     "nb_t1_bis": vals["nb_t1_bis"],
                     "nb_t2": vals["nb_t2"],
                     "nb_t3": vals["nb_t3"],
+                    "nb_t4_more": vals["nb_t4_more"],
                 },
                 partial=True,
             )

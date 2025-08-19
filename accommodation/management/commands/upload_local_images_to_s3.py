@@ -56,11 +56,11 @@ def upload_image_to_s3(image_path, file_name):
 
 def upload_images_in_directory(directory_path):
     if not os.path.isdir(directory_path):
-        print(f"Local dir {directory_path} doesnot exist.")
+        print(f"Local dir {directory_path} does not exist.")
         return
 
     images_urls = []
-    for filename in os.listdir(directory_path):
+    for filename in sorted(os.listdir(directory_path)):
         if image_regexp is not None and re.match(image_regexp, filename) is None:
             print(f"Ignore file {filename} not matching image_regexp")
             continue

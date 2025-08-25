@@ -13,6 +13,7 @@ class AccommodationDetailAPITests(APITestCase):
     def setUp(self):
         owner = OwnerFactory(name="Bailleur1", url="http://bailleur1.com", image=b"Bailleur1 logo")
         self.accommodation_published = AccommodationFactory(
+            description="<p>Ceci est un beau texte en <b>gras</b></p>",
             geom=Point(2.35, 48.85),
             published=True,
             owner=owner,
@@ -35,6 +36,7 @@ class AccommodationDetailAPITests(APITestCase):
         assert result["id"] == self.accommodation_published.id
         assert result["slug"] == self.accommodation_published.slug
         assert result["name"] == self.accommodation_published.name
+        assert result["description"] == self.accommodation_published.description
         assert result["geom"]["coordinates"] == [2.35, 48.85]
         assert result["owner"]["name"] == "Bailleur1"
         assert result["owner"]["image_base64"] == "data:image/jpeg;base64,{}".format(

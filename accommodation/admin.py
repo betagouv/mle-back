@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
+from django.db import models
 from django.utils.html import format_html
+from django_summernote.widgets import SummernoteWidget
 
 from accommodation.models import Accommodation, ExternalSource
 from account.models import Owner
@@ -64,6 +66,9 @@ class AccommodationAdmin(OSMGeoAdmin):
     readonly_fields = ("display_images", "owner", "residence_type", "slug")
     exclude = ("images_urls", "images_count")
     actions = [unpublish_accommodations, publish_accommodations, unavailable_accommodations, available_accommodations]
+    formfield_overrides = {
+        models.TextField: {"widget": SummernoteWidget},
+    }
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

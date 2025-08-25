@@ -53,6 +53,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         model = Accommodation
         fields = (
             "name",
+            "description",
             "address",
             "geom",
             "city",
@@ -121,6 +122,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             )
 
         fields = (
+            "description",
             "geom",
             "residence_type",
             "nb_total_apartments",

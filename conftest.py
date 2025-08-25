@@ -1,4 +1,5 @@
 import os
+import re
 from urllib.parse import parse_qs, urlparse
 
 import faker
@@ -49,6 +50,7 @@ def mock_requests():
             ]
 
         mocker.get("https://geo.api.gouv.fr/communes/", json=geo_api_mock)
+        mocker.get(re.compile(r"https://image\.com/.*"), content=b"fake image", status_code=200)
 
         yield mocker
 

@@ -33,6 +33,7 @@ class Accommodation(models.Model):
 
     name = models.CharField(max_length=200)
     slug = AutoSlugField(max_length=255, default="", unique=True, populate_from="name")
+    description = models.TextField(null=True, blank=True)
     geom = models.PointField(null=True, blank=True, verbose_name="Localisation")
     address = models.CharField(max_length=255)
     city = models.CharField(max_length=150)

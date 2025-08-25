@@ -103,6 +103,7 @@ class Command(GeoBaseCommand):
 
                 data = {
                     "name": row["name"].strip(),
+                    "description": row.get("description", "").strip() or None,
                     "address": row["address"].strip(),
                     "city": city.name,
                     "postal_code": row["postal_code"].strip(),

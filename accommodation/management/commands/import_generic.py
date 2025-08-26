@@ -82,7 +82,7 @@ class Command(GeoBaseCommand):
 
                 pictures = re.split(r"\||\n", row["pictures"]) if row["pictures"] else []
                 # NOTE: do not use set to keep order
-                pictures = [url for i, url in enumerate(pictures) if url not in pictures[:i]]
+                pictures = [url.strip() for i, url in enumerate(pictures) if url.split() not in pictures[:i]]
 
                 images_content = []
                 images_urls = []

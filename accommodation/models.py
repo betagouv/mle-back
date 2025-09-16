@@ -83,6 +83,9 @@ class Accommodation(models.Model):
     published = models.BooleanField(default=True)
     available = models.BooleanField(default=True)
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     objects = AccommodationManager()
 
     class Meta:

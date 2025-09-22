@@ -79,6 +79,7 @@ class Accommodation(models.Model):
     external_url = models.URLField(max_length=255, null=True, blank=True)
     images_urls = ArrayField(models.URLField(), null=True, blank=True)
     images_count = models.PositiveIntegerField(default=0)
+    accept_waiting_list = models.BooleanField(default=False, null=True, blank=True)
 
     published = models.BooleanField(default=True)
     available = models.BooleanField(default=True)

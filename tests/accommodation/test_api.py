@@ -228,12 +228,22 @@ class AccommodationListAPITests(APITestCase):
         assert self.accommodation_nantes_accessible_w_coliving_cheap.id not in returned_ids
         assert self.accommodation_nantes_non_accessible_expensive.id not in returned_ids
 
-    def test_accommodations_with_availibility_first(self):
-        accommodation_without_availibity_1 = AccommodationFactory(geom=Point(2.36, 48.87), nb_t1_available=None)
-
+    def test_accommodations_sorting_nominal(self):
         accommodation_with_availibility = AccommodationFactory(geom=Point(2.35, 48.85), nb_t1_bis_available=1)
 
-        accommodation_without_availibity_2 = AccommodationFactory(geom=Point(2.36, 48.86), nb_t1_available=0)
+        accommodation_with_unknown_availibity_waiting_list = AccommodationFactory(
+            geom=Point(2.36, 48.87), nb_t1_available=None, accept_waiting_list=True
+        )
+        accommodation_with_unknown_availibity_no_waiting_list = AccommodationFactory(
+            geom=Point(2.36, 48.87), nb_t1_available=None, accept_waiting_list=False
+        )
+
+        accommodation_without_availibity_waiting_list = AccommodationFactory(
+            geom=Point(2.36, 48.86), nb_t1_available=0, accept_waiting_list=True
+        )
+        accommodation_without_availibity_no_waiting_list = AccommodationFactory(
+            geom=Point(2.36, 48.86), nb_t1_available=0, accept_waiting_list=False
+        )
 
         response = self.client.get(reverse("accommodation-list"))
         assert response.status_code == 200
@@ -242,12 +252,22 @@ class AccommodationListAPITests(APITestCase):
         returned_ids = [feature["id"] for feature in features]
 
         assert accommodation_with_availibility.id in returned_ids
-        assert accommodation_without_availibity_1.id in returned_ids
-        assert accommodation_without_availibity_2.id in returned_ids
+        assert accommodation_with_unknown_availibity_waiting_list.id in returned_ids
+        assert accommodation_with_unknown_availibity_no_waiting_list.id in returned_ids
+        assert accommodation_without_availibity_waiting_list.id in returned_ids
+        assert accommodation_without_availibity_no_waiting_list.id in returned_ids
 
         assert returned_ids.index(accommodation_with_availibility.id) < returned_ids.index(
-            accommodation_without_availibity_1.id
+            accommodation_with_unknown_availibity_waiting_list.id
         )
-        assert returned_ids.index(accommodation_with_availibility.id) < returned_ids.index(
-            accommodation_without_availibity_2.id
+
+        assert returned_ids.index(accommodation_with_unknown_availibity_waiting_list.id) < returned_ids.index(
+            accommodation_without_availibity_waiting_list.id
+        )
+
+        assert returned_ids.index(accommodation_with_unknown_availibity_waiting_list.id) < returned_ids.index(
+            accommodation_with_unknown_availibity_no_waiting_list.id
+        )
+        assert returned_ids.index(accommodation_with_unknown_availibity_no_waiting_list.id) < returned_ids.index(
+            accommodation_without_availibity_no_waiting_list.id
         )

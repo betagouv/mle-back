@@ -162,7 +162,7 @@ class AccommodationListAPITests(APITestCase):
         assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
         assert self.accommodation_marseille_wo_coliving_cheap.id in returned_ids
 
-        response = self.client.get(reverse("accommodation-list"), {"bbox": bbox, "is_available": True})
+        response = self.client.get(reverse("accommodation-list"), {"bbox": bbox, "only_with_availibility": True})
         results = response.json()
 
         assert len(results["results"]["features"]) == 1

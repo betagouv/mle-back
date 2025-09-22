@@ -7,7 +7,9 @@ from common.filters import BaseFilter
 
 class AccommodationFilter(BaseFilter):
     is_accessible = filters.BooleanFilter(method="filter_is_accessible", label="Only accessible accommodations")
-    is_available = filters.BooleanFilter(method="filter_is_available", label="Only available accommodations")
+    only_with_availibility = filters.BooleanFilter(
+        method="filter_only_with_availibility", label="Only available accommodations"
+    )
     has_coliving = filters.BooleanFilter(
         method="filter_has_coliving", label="Only accommodations with coliving apartments"
     )
@@ -18,7 +20,7 @@ class AccommodationFilter(BaseFilter):
             return queryset.filter(nb_accessible_apartments__gt=0)
         return queryset
 
-    def filter_is_available(self, queryset, name, value):
+    def filter_only_with_availibility(self, queryset, name, value):
         if value is True:
             return queryset.filter(
                 Q(nb_t1_available__gt=0)

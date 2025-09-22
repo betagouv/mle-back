@@ -53,16 +53,87 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_accessible_apartments",
         "published",
         "available",
+        "nb_t1_available",
+        "nb_t1_bis_available",
+        "nb_t2_available",
+        "nb_t3_available",
+        "nb_t4_more_available",
+        "price_min_t1",
+        "price_min_t1_bis",
+        "price_min_t2",
+        "price_min_t3",
+        "price_min_t4_more",
+        "price_max_t1",
+        "price_max_t1_bis",
+        "price_max_t2",
+        "price_max_t3",
+        "price_max_t4_more",
     )
     inlines = [ExternalSourceInline]
     inlines_as_owner = []
-    list_display_as_owner = ("name", "address", "city", "postal_code", "published", "available")
+    list_display_as_owner = (
+        "name",
+        "address",
+        "city",
+        "postal_code",
+        "published",
+        "available",
+        "nb_t1_available",
+        "nb_t1_bis_available",
+        "nb_t2_available",
+        "nb_t3_available",
+        "nb_t4_more_available",
+        "price_min_t1",
+        "price_min_t1_bis",
+        "price_min_t2",
+        "price_min_t3",
+        "price_min_t4_more",
+        "price_max_t1",
+        "price_max_t1_bis",
+        "price_max_t2",
+        "price_max_t3",
+        "price_max_t4_more",
+    )
     list_filter = ("owner__name", "city", "postal_code")
+    list_filter_as_owner = ("city", "postal_code")
     search_fields = ("name", "address", "city")
     ordering = ("name",)
-    fields_as_owner = ("available",)
-    list_editable = ("available",)
-    list_display_links_as_owner = None
+    fields_as_owner = (
+        "available",
+        "nb_t1_available",
+        "nb_t1_bis_available",
+        "nb_t2_available",
+        "nb_t3_available",
+        "nb_t4_more_available",
+        "price_min_t1",
+        "price_min_t1_bis",
+        "price_min_t2",
+        "price_min_t3",
+        "price_min_t4_more",
+        "price_max_t1",
+        "price_max_t1_bis",
+        "price_max_t2",
+        "price_max_t3",
+        "price_max_t4_more",
+    )
+    list_editable = (
+        "available",
+        "nb_t1_available",
+        "nb_t1_bis_available",
+        "nb_t2_available",
+        "nb_t3_available",
+        "nb_t4_more_available",
+        "price_min_t1",
+        "price_min_t1_bis",
+        "price_min_t2",
+        "price_min_t3",
+        "price_min_t4_more",
+        "price_max_t1",
+        "price_max_t1_bis",
+        "price_max_t2",
+        "price_max_t3",
+        "price_max_t4_more",
+    )
     readonly_fields = ("display_images", "owner", "residence_type", "slug")
     exclude = ("images_urls", "images_count")
     actions = [unpublish_accommodations, publish_accommodations, unavailable_accommodations, available_accommodations]
@@ -81,10 +152,10 @@ class AccommodationAdmin(OSMGeoAdmin):
         except Owner.DoesNotExist:
             return qs.none()
 
-    def get_list_display_links(self, request, list_display):
+    def get_list_filter(self, request):
         if request.user.is_superuser:
-            return super().get_list_display_links(request, list_display)
-        return self.list_display_links_as_owner
+            return super().get_list_filter(request)
+        return self.list_filter_as_owner
 
     def get_list_display(self, request):
         if request.user.is_superuser:

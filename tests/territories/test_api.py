@@ -125,6 +125,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "postal_codes": ["69001", "69002", "69003"],
                     "nb_total_apartments": 12,
                     "price_min": 123,
+                    "department_code": "69",
                 }
             ],
         )
@@ -144,6 +145,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "postal_codes": ["69001", "69002", "69003"],
                     "nb_total_apartments": 12,
                     "price_min": 123,
+                    "department_code": "69",
                 }
             ],
         )
@@ -153,17 +155,20 @@ class TerritoryCombinedListAPITests(APITestCase):
 
         self.assertEqual(response.json(), [])
 
+        department_75 = DepartmentFactory.create(name="Ile-de-France", code="75", academy=self.academy)
+        department_13 = DepartmentFactory.create(name="Bouches-du-Rhône", code="13", academy=self.academy)
+
         CityFactory.create(
             name="Paris",
             postal_codes=["75001", "75002"],
-            department=self.department,
+            department=department_75,
             popular=True,
             average_income=40000,
         )
         CityFactory.create(
             name="Marseille",
             postal_codes=["13001", "13002"],
-            department=self.department,
+            department=department_13,
             popular=False,
             average_income=25000,
         )
@@ -183,6 +188,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "popular": True,
                     "nb_total_apartments": None,
                     "price_min": None,
+                    "department_code": "75",
                 }
             ],
         )
@@ -202,6 +208,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "popular": False,
                     "nb_total_apartments": 12,
                     "price_min": 123,
+                    "department_code": "69",
                 },
                 {
                     "id": mock.ANY,
@@ -212,6 +219,7 @@ class TerritoryCombinedListAPITests(APITestCase):
                     "popular": False,
                     "nb_total_apartments": None,
                     "price_min": None,
+                    "department_code": "13",
                 },
             ],
         )

@@ -31,7 +31,7 @@ class AccommodationDetailView(generics.RetrieveAPIView):
             required=False,
         ),
         OpenApiParameter(
-            "is_available",
+            "only_with_availibility",
             OpenApiTypes.BOOL,
             description="Filter to return only accommodations with available apartments (nb_t1_available > 0 or nb_t1_bis_available > 0 or nb_t2_available > 0 or nb_t3_available > 0 or nb_t4_more_available > 0).",
             required=False,

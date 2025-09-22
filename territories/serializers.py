@@ -54,6 +54,8 @@ class CityDetailSerializer(BBoxMixin, CityMixin):
 
 
 class CityListSerializer(BBoxMixin, CityMixin):
+    department_code = serializers.SerializerMethodField()
+
     class Meta:
         model = City
 
@@ -66,7 +68,11 @@ class CityListSerializer(BBoxMixin, CityMixin):
             "popular",
             "nb_total_apartments",
             "price_min",
+            "department_code",
         )
+
+    def get_department_code(self, obj):
+        return obj.department.code
 
 
 class DepartmentSerializer(BBoxMixin):

@@ -24,6 +24,7 @@ class AccommodationDetailAPITests(APITestCase):
             nb_coliving_apartments=1,
             nb_t1=2,
             nb_t1_available=1,
+            accept_waiting_list=False,
         )
         self.accommodation_unpublished = AccommodationFactory(published=False, available=False)
 
@@ -53,6 +54,7 @@ class AccommodationDetailAPITests(APITestCase):
         assert result["nb_t2"] == self.accommodation_published.nb_t2
         assert result["nb_t3"] == self.accommodation_published.nb_t3
         assert result["nb_t4_more"] == self.accommodation_published.nb_t4_more
+        assert result["accept_waiting_list"] is False
 
     def test_accommodation_detail_not_found_if_unpublished(self):
         response = self.client.get(

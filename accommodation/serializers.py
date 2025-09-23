@@ -269,6 +269,7 @@ class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.Mod
             "owner",
             "external_url",
             "available",
+            "accept_waiting_list",
         )
 
 

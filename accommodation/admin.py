@@ -43,6 +43,8 @@ def available_accommodations(modeladmin, request, queryset):
 
 
 class AccommodationAdmin(OSMGeoAdmin):
+    inlines = [ExternalSourceInline]
+    inlines_as_owner = []
     list_display = (
         "name",
         "residence_type",
@@ -53,24 +55,7 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_accessible_apartments",
         "published",
         "available",
-        "nb_t1_available",
-        "nb_t1_bis_available",
-        "nb_t2_available",
-        "nb_t3_available",
-        "nb_t4_more_available",
-        "price_min_t1",
-        "price_min_t1_bis",
-        "price_min_t2",
-        "price_min_t3",
-        "price_min_t4_more",
-        "price_max_t1",
-        "price_max_t1_bis",
-        "price_max_t2",
-        "price_max_t3",
-        "price_max_t4_more",
     )
-    inlines = [ExternalSourceInline]
-    inlines_as_owner = []
     list_display_as_owner = (
         "name",
         "address",
@@ -116,7 +101,8 @@ class AccommodationAdmin(OSMGeoAdmin):
         "price_max_t3",
         "price_max_t4_more",
     )
-    list_editable = (
+    list_editable = ("available",)
+    list_editable_as_owner = (
         "available",
         "nb_t1_available",
         "nb_t1_bis_available",
@@ -160,6 +146,7 @@ class AccommodationAdmin(OSMGeoAdmin):
     def get_list_display(self, request):
         if request.user.is_superuser:
             return super().get_list_display(request)
+        self.list_editable = self.list_editable_as_owner
         return self.list_display_as_owner
 
     def get_fields(self, request, obj=None):

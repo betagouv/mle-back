@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Case, F, IntegerField, Value, When
+from django.db.models import BooleanField, Case, F, IntegerField, Q, Value, When
 from django.db.models.functions import Coalesce
 
 
@@ -15,15 +15,27 @@ class AccommodationQuerySet(models.QuerySet):
                     + Coalesce(F("nb_t2_available"), 0)
                     + Coalesce(F("nb_t3_available"), 0)
                     + Coalesce(F("nb_t4_more_available"), 0)
-                )
+                ),
+                unknown_availibility=Case(
+                    When(
+                        Q(nb_t1_available__isnull=True)
+                        & Q(nb_t1_bis_available__isnull=True)
+                        & Q(nb_t2_available__isnull=True)
+                        & Q(nb_t3_available__isnull=True)
+                        & Q(nb_t4_more_available__isnull=True),
+                        then=Value(True),
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                ),
             )
             .annotate(
                 priority=Case(
                     When(total_available__gt=0, then=Value(1)),
-                    When(total_available=0, accept_waiting_list=True, then=Value(2)),
-                    When(total_available__isnull=True, accept_waiting_list=True, then=Value(3)),
-                    When(total_available__isnull=True, accept_waiting_list=False, then=Value(4)),
-                    When(total_available=0, accept_waiting_list=False, then=Value(5)),
+                    When(total_available=0, accept_waiting_list=True, unknown_availibility=False, then=Value(2)),
+                    When(unknown_availibility=True, accept_waiting_list=True, then=Value(3)),
+                    When(unknown_availibility=True, accept_waiting_list=False, then=Value(4)),
+                    When(total_available=0, accept_waiting_list=False, unknown_availibility=False, then=Value(5)),
                     default=Value(6),
                     output_field=IntegerField(),
                 )

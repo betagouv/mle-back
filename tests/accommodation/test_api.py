@@ -273,6 +273,26 @@ class AccommodationListAPITests(APITestCase):
             geom=Point(2.36, 48.86), nb_t1_available=0, accept_waiting_list=False
         )
 
+        accommodation_with_multiple_availibilities = AccommodationFactory(
+            geom=Point(2.37, 48.88),
+            nb_t1_available=1,
+            nb_t2_available=2,
+            nb_t3_available=0,
+            nb_t1_bis_available=0,
+            nb_t4_more_available=0,
+            accept_waiting_list=True,
+        )
+
+        accommodation_mixed_null_and_zero = AccommodationFactory(
+            geom=Point(2.38, 48.89),
+            nb_t1_available=None,
+            nb_t2_available=0,
+            nb_t3_available=None,
+            nb_t1_bis_available=None,
+            nb_t4_more_available=None,
+            accept_waiting_list=True,
+        )
+
         response = self.client.get(reverse("accommodation-list"))
         assert response.status_code == 200
 
@@ -289,8 +309,8 @@ class AccommodationListAPITests(APITestCase):
             accommodation_with_unknown_availibity_waiting_list.id
         )
 
-        assert returned_ids.index(accommodation_with_unknown_availibity_waiting_list.id) < returned_ids.index(
-            accommodation_without_availibity_waiting_list.id
+        assert returned_ids.index(accommodation_without_availibity_waiting_list.id) < returned_ids.index(
+            accommodation_with_unknown_availibity_waiting_list.id
         )
 
         assert returned_ids.index(accommodation_with_unknown_availibity_waiting_list.id) < returned_ids.index(
@@ -298,4 +318,12 @@ class AccommodationListAPITests(APITestCase):
         )
         assert returned_ids.index(accommodation_with_unknown_availibity_no_waiting_list.id) < returned_ids.index(
             accommodation_without_availibity_no_waiting_list.id
+        )
+
+        assert returned_ids.index(accommodation_with_multiple_availibilities.id) < returned_ids.index(
+            accommodation_with_availibility.id
+        )
+
+        assert returned_ids.index(accommodation_mixed_null_and_zero.id) < returned_ids.index(
+            accommodation_with_unknown_availibity_waiting_list.id
         )

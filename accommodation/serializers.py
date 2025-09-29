@@ -294,4 +294,5 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
             "nb_t2_available",
             "nb_t3_available",
             "nb_t4_more_available",
+            "accept_waiting_list",
         )

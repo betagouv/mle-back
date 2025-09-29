@@ -1,4 +1,5 @@
 import base64
+from unittest.mock import ANY
 
 from django.contrib.gis.geos import Point
 from django.urls import reverse
@@ -82,6 +83,7 @@ class AccommodationListAPITests(APITestCase):
             nb_coliving_apartments=5,
             price_min_t1=300,
             nb_t1_available=2,
+            accept_waiting_list=True,
         )
         self.accommodation_nantes_non_accessible_expensive = AccommodationFactory(
             geom=Point(-1.5530, 47.2150), nb_accessible_apartments=0, price_min_t1=800
@@ -123,6 +125,30 @@ class AccommodationListAPITests(APITestCase):
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
         assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
         assert self.accommodation_nantes_non_accessible_expensive.id in returned_ids
+
+        assert {
+            "id": ANY,
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [-1.5536, 47.2184]},
+            "properties": {
+                "name": self.accommodation_nantes_accessible_w_coliving_cheap.name,
+                "slug": self.accommodation_nantes_accessible_w_coliving_cheap.slug,
+                "city": self.accommodation_nantes_accessible_w_coliving_cheap.city,
+                "postal_code": self.accommodation_nantes_accessible_w_coliving_cheap.postal_code,
+                "nb_total_apartments": ANY,
+                "nb_accessible_apartments": 2,
+                "nb_coliving_apartments": 5,
+                "price_min": 300,
+                "images_urls": None,
+                "available": True,
+                "nb_t1_available": 2,
+                "nb_t1_bis_available": None,
+                "nb_t2_available": None,
+                "nb_t3_available": None,
+                "nb_t4_more_available": None,
+                "accept_waiting_list": True,
+            },
+        } in results["results"]["features"]
 
         response = self.client.get(reverse("accommodation-list"), {"bbox": bbox, "is_accessible": True})
         results = response.json()

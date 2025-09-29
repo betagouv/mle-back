@@ -7,8 +7,8 @@ from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-local_directory = "temp/BMH_images/"
-prefix_on_s3 = "bmh-images"
+local_directory = "temp/evolea_images/"
+prefix_on_s3 = "evolea-images"
 image_regexp = None  # r"^9021.*\.jpg"
 
 

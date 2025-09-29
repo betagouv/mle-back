@@ -72,6 +72,11 @@ TEMPLATES = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "sesame.backends.ModelBackend",
+]
+
 WSGI_APPLICATION = "config.wsgi.application"
 
 SECURE_SSL_REDIRECT = True
@@ -80,6 +85,10 @@ SECURE_HSTS_PRELOAD = True
 SECURE_HSTS_SECONDS = 3600
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+SESAME_MAX_AGE = 300
+SESAME_ONE_TIME = True
+SECURE_SSL_REDIRECT = True
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -177,10 +186,15 @@ OMOGEN_API_CLIENT_SECRET = env("OMOGEN_API_CLIENT_SECRET")
 OMOGEN_API_HOST = env("OMOGEN_API_HOST")
 OMOGEN_API_AUTH_PATH = env("OMOGEN_API_AUTH_PATH")
 OMOGEN_API_CLEF_APP_NAME = env("OMOGEN_API_CLEF_APP_NAME")
+OMOGEN_API_RAMSESE_APP_NAME = env("OMOGEN_API_RAMSESE_APP_NAME")
 
 # BREVO API
 BREVO_API_KEY = env("BREVO_API_KEY")
 BREVO_CONTACT_LIST_ID = 3
+
+BREVO_TEMPLATES_ID = {
+    "magic-link": 1,
+}
 
 # IBAIL API
 IBAIL_API_AUTH_KEY = env("IBAIL_API_AUTH_KEY")

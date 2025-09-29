@@ -3,6 +3,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
+    path("admin-auth/", include("auth.urls")),
     path("admin/", admin.site.urls),
     path("summernote/", include("django_summernote.urls")),
     path("api/questions-answers/", include("qa.urls")),

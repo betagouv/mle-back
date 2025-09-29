@@ -1,0 +1,27 @@
+{% extends "admin/login.html" %}
+{% load i18n static %}
+
+{% block content %}
+{{ block.super }}
+<div>
+    <form method="post" action="{% url 'request_magic_link' %}">
+        {% csrf_token %}
+        <div class="form-row">
+            <p>
+                {% blocktranslate %}
+                If you don't have a login/password but you have an active account attached to your email, you can request a magic link to login.
+                {% endblocktranslate %}
+            </p>
+        </div>
+        <div class="form-row">
+            <label for="id_email" class="required">
+                <span>{% trans 'Email' %}</span>
+            </label>
+            <input type="text" name="email" required>
+        </div>
+        <div class="submit-row">
+            <input type="submit" value="{% trans "📧 Receive a login link" %}">
+        </div>
+    </form>
+</div>
+{% endblock content %}

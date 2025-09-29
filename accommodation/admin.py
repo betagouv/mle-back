@@ -127,9 +127,12 @@ class AccommodationAdmin(OSMGeoAdmin):
         models.TextField: {"widget": SummernoteWidget},
     }
 
+    def _is_superuser_or_content_writer(self, request):
+        return request.user.is_superuser or request.user.groups.filter(name="content-writer").exists()
+
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if self._is_superuser_or_content_writer(request):
             return qs
 
         try:
@@ -139,23 +142,23 @@ class AccommodationAdmin(OSMGeoAdmin):
             return qs.none()
 
     def get_list_filter(self, request):
-        if request.user.is_superuser:
+        if self._is_superuser_or_content_writer(request):
             return super().get_list_filter(request)
         return self.list_filter_as_owner
 
     def get_list_display(self, request):
-        if request.user.is_superuser:
+        if self._is_superuser_or_content_writer(request):
             return super().get_list_display(request)
         self.list_editable = self.list_editable_as_owner
         return self.list_display_as_owner
 
     def get_fields(self, request, obj=None):
-        if request.user.is_superuser:
+        if self._is_superuser_or_content_writer(request):
             return super().get_fields(request, obj)
         return self.fields_as_owner
 
     def get_inlines(self, request, obj=None):
-        if request.user.is_superuser:
+        if self._is_superuser_or_content_writer(request):
             return super().get_inlines(request, obj)
         return self.inlines_as_owner
 

@@ -36,7 +36,7 @@ def unavailable_accommodations(modeladmin, request, queryset):
     modeladmin.message_user(request, f"{updated_count} accommodation(s) have been made unavailable.")
 
 
-@admin.action(description="Publish selected accommodations")
+@admin.action(description="Make available selected accommodations")
 def available_accommodations(modeladmin, request, queryset):
     updated_count = queryset.update(available=True)
     modeladmin.message_user(request, f"{updated_count} accommodation(s) have been made available.")

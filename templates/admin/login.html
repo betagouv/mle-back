@@ -1,5 +1,5 @@
 {% extends "admin/login.html" %}
-{% load i18n static %}
+{% load i18n %}
 
 {% block content %}
 {{ block.super }}
@@ -20,7 +20,7 @@
             <input type="text" name="email" required>
         </div>
         <div class="submit-row">
-            <input type="submit" value="{% trans "📧 Receive a login link" %}">
+            <input type="submit" value="📧 {% trans "Receive a login link" %}">
         </div>
     </form>
 </div>

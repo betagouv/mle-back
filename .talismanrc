@@ -1,6 +1,7 @@
 fileignoreconfig:
   - filename: Pipfile.lock
     ignore_detectors: [filecontent]
+  - filename: locale/fr/LC_MESSAGES/django.mo
   - filename: institution/models.py
     checksum: 51e977042f39e347bb87eedc4f208ec5e630961e2dbe72ae9745c240fc027238
   - filename: institution/migrations/0001_educational_instit.py

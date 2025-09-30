@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-30 07:47+0000\n"
+"POT-Creation-Date: 2025-09-30 14:35+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -218,13 +218,21 @@ msgstr "Source externe"
 msgid "External sources"
 msgstr "Sources externes"
 
-#: account/models.py:15
+#: account/models.py:16
 msgid "Owner"
 msgstr "Bailleur"
 
-#: account/models.py:16
+#: account/models.py:17
 msgid "Owners"
 msgstr "Bailleurs"
+
+#: auth/views.py:36
+msgid "User not found or not authorized"
+msgstr "Utilisateur non trouvé ou non autorisé"
+
+#: auth/views.py:55
+msgid "An error occured while sending the link"
+msgstr "Une erreur est survenue lors de l'envoi du lien"
 
 #: templates/admin/login.html:11
 msgid ""

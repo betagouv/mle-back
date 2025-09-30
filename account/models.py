@@ -2,6 +2,7 @@ from autoslug import AutoSlugField
 from django.contrib.auth.models import Group, User
 from django.contrib.gis.db import models
 from django.db import transaction
+from django.utils.translation import gettext_lazy
 
 
 class Owner(models.Model):
@@ -10,6 +11,10 @@ class Owner(models.Model):
     url = models.URLField(max_length=500, blank=True, null=True)
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="owner")
     image = models.BinaryField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = gettext_lazy("Owner")
+        verbose_name_plural = gettext_lazy("Owners")
 
     def __str__(self):
         return self.name

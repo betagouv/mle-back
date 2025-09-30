@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.urls import reverse
+from django.utils.translation import gettext_lazy
 
 
 class Territory(models.Model):
@@ -11,6 +12,8 @@ class Territory(models.Model):
 
     class Meta:
         abstract = True
+        verbose_name = gettext_lazy("Territory")
+        verbose_name_plural = gettext_lazy("Territories")
 
     def __str__(self):
         return self.name
@@ -36,10 +39,18 @@ class Country(Territory):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = gettext_lazy("Country")
+        verbose_name_plural = gettext_lazy("Countries")
+
 
 class Academy(Territory):
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = gettext_lazy("Academy")
+        verbose_name_plural = gettext_lazy("Academies")
 
 
 class Department(Territory):
@@ -48,6 +59,10 @@ class Department(Territory):
 
     def __str__(self):
         return f"{self.name} ({self.code})"
+
+    class Meta:
+        verbose_name = gettext_lazy("Department")
+        verbose_name_plural = gettext_lazy("Departments")
 
 
 class City(Territory):
@@ -70,3 +85,7 @@ class City(Territory):
 
     def get_absolute_detail_api_url(self):
         return reverse("city-detail", kwargs={"slug": self.slug})
+
+    class Meta:
+        verbose_name = gettext_lazy("City")
+        verbose_name_plural = gettext_lazy("Cities")

@@ -4,6 +4,7 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.template.defaultfilters import slugify
 from django.urls import reverse
+from django.utils.translation import gettext_lazy
 
 from account.models import Owner
 
@@ -31,58 +32,102 @@ class Accommodation(models.Model):
         ("private", "Private"),
     )
 
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, verbose_name=gettext_lazy("Name"))
     slug = AutoSlugField(max_length=255, default="", unique=True, populate_from="name")
-    description = models.TextField(null=True, blank=True)
-    geom = models.PointField(null=True, blank=True, verbose_name="Localisation")
-    address = models.CharField(max_length=255)
-    city = models.CharField(max_length=150)
-    postal_code = models.CharField(max_length=5)
-    residence_type = models.CharField(max_length=100, choices=RESIDENCE_TYPE_CHOICES, null=True, blank=True)
+    description = models.TextField(null=True, blank=True, verbose_name=gettext_lazy("Description"))
+    geom = models.PointField(null=True, blank=True, verbose_name=gettext_lazy("Location"))
+    address = models.CharField(max_length=255, verbose_name=gettext_lazy("Address"))
+    city = models.CharField(max_length=150, verbose_name=gettext_lazy("City"))
+    postal_code = models.CharField(max_length=5, verbose_name=gettext_lazy("Postal code"))
+    residence_type = models.CharField(
+        max_length=100,
+        choices=RESIDENCE_TYPE_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name=gettext_lazy("Residence type"),
+    )
     owner = models.ForeignKey(Owner, on_delete=models.SET_NULL, null=True, blank=True, related_name="accommodations")
-    nb_total_apartments = models.PositiveIntegerField(null=True, blank=True)
-    nb_accessible_apartments = models.PositiveIntegerField(null=True, blank=True, db_index=True)
-    nb_coliving_apartments = models.PositiveIntegerField(null=True, blank=True, db_index=True)
-    nb_t1 = models.PositiveIntegerField(null=True, blank=True)
-    nb_t1_available = models.PositiveIntegerField(null=True, blank=True)
-    nb_t1_bis = models.PositiveIntegerField(null=True, blank=True)
-    nb_t1_bis_available = models.PositiveIntegerField(null=True, blank=True)
-    nb_t2 = models.PositiveIntegerField(null=True, blank=True)
-    nb_t2_available = models.PositiveIntegerField(null=True, blank=True)
-    nb_t3 = models.PositiveIntegerField(null=True, blank=True)
-    nb_t3_available = models.PositiveIntegerField(null=True, blank=True)
-    nb_t4_more = models.PositiveIntegerField(null=True, blank=True)
-    nb_t4_more_available = models.PositiveIntegerField(null=True, blank=True)
-    price_min = models.PositiveIntegerField(null=True, blank=True, db_index=True)
-    price_min_t1 = models.PositiveIntegerField(null=True, blank=True)
-    price_max_t1 = models.PositiveIntegerField(null=True, blank=True)
-    price_min_t1_bis = models.PositiveIntegerField(null=True, blank=True)
-    price_max_t1_bis = models.PositiveIntegerField(null=True, blank=True)
-    price_min_t2 = models.PositiveIntegerField(null=True, blank=True)
-    price_max_t2 = models.PositiveIntegerField(null=True, blank=True)
-    price_min_t3 = models.PositiveIntegerField(null=True, blank=True)
-    price_max_t3 = models.PositiveIntegerField(null=True, blank=True)
-    price_min_t4_more = models.PositiveIntegerField(null=True, blank=True)
-    price_max_t4_more = models.PositiveIntegerField(null=True, blank=True)
-    laundry_room = models.BooleanField(default=False, null=True, blank=True)
-    common_areas = models.BooleanField(default=False, null=True, blank=True)
-    bike_storage = models.BooleanField(default=False, null=True, blank=True)
-    parking = models.BooleanField(default=False, null=True, blank=True)
-    secure_access = models.BooleanField(default=False, null=True, blank=True)
-    residence_manager = models.BooleanField(default=False, null=True, blank=True)
-    kitchen_type = models.CharField(max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True)
-    desk = models.BooleanField(default=False, null=True, blank=True)
-    cooking_plates = models.BooleanField(default=False, null=True, blank=True)
-    microwave = models.BooleanField(default=False, null=True, blank=True)
-    refrigerator = models.BooleanField(default=False, null=True, blank=True)
-    bathroom = models.CharField(max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True)
+    nb_total_apartments = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Total number of apartments")
+    )
+    nb_accessible_apartments = models.PositiveIntegerField(
+        null=True, blank=True, db_index=True, verbose_name=gettext_lazy("Number of accessible apartments")
+    )
+    nb_coliving_apartments = models.PositiveIntegerField(
+        null=True, blank=True, db_index=True, verbose_name=gettext_lazy("Number of coliving apartments")
+    )
+    nb_t1 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T1"))
+    nb_t1_available = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Number of available T1")
+    )
+    nb_t1_bis = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T1 bis"))
+    nb_t1_bis_available = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Number of available T1 bis")
+    )
+    nb_t2 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T2"))
+    nb_t2_available = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Number of available T2")
+    )
+    nb_t3 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T3"))
+    nb_t3_available = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Number of available T3")
+    )
+    nb_t4_more = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T4"))
+    nb_t4_more_available = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Number of available T4")
+    )
+    price_min = models.PositiveIntegerField(
+        null=True, blank=True, db_index=True, verbose_name=gettext_lazy("Minimum price")
+    )
+    price_min_t1 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T1"))
+    price_max_t1 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T1"))
+    price_min_t1_bis = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T1 bis")
+    )
+    price_max_t1_bis = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T1 bis")
+    )
+    price_min_t2 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T2"))
+    price_max_t2 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T2"))
+    price_min_t3 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T3"))
+    price_max_t3 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T3"))
+    price_min_t4_more = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T4")
+    )
+    price_max_t4_more = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T4")
+    )
+    laundry_room = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Laundry room"))
+    common_areas = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Common areas"))
+    bike_storage = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Bike storage"))
+    parking = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Parking"))
+    secure_access = models.BooleanField(
+        default=False, null=True, blank=True, verbose_name=gettext_lazy("Secure access")
+    )
+    residence_manager = models.BooleanField(
+        default=False, null=True, blank=True, verbose_name=gettext_lazy("Residence manager")
+    )
+    kitchen_type = models.CharField(
+        max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True, verbose_name=gettext_lazy("Kitchen type")
+    )
+    desk = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Desk"))
+    cooking_plates = models.BooleanField(
+        default=False, null=True, blank=True, verbose_name=gettext_lazy("Cooking plates")
+    )
+    microwave = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Microwave"))
+    refrigerator = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Refrigerator"))
+    bathroom = models.CharField(
+        max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True, verbose_name=gettext_lazy("Bathroom")
+    )
+    accept_waiting_list = models.BooleanField(
+        default=False, null=True, blank=True, verbose_name=gettext_lazy("Accept waiting list")
+    )
     external_url = models.URLField(max_length=255, null=True, blank=True)
     images_urls = ArrayField(models.URLField(), null=True, blank=True)
     images_count = models.PositiveIntegerField(default=0)
-    accept_waiting_list = models.BooleanField(default=False, null=True, blank=True)
 
-    published = models.BooleanField(default=True)
-    available = models.BooleanField(default=True)
+    published = models.BooleanField(default=True, verbose_name=gettext_lazy("Published"))
+    available = models.BooleanField(default=True, verbose_name=gettext_lazy("Available"))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -93,6 +138,8 @@ class Accommodation(models.Model):
         indexes = [
             models.Index(fields=["published", "-images_count"]),
         ]
+        verbose_name = gettext_lazy("Accommodation")
+        verbose_name_plural = gettext_lazy("Accommodations")
 
     def __str__(self):
         return f"{self.name} - {self.postal_code} {self.city}"
@@ -175,6 +222,8 @@ class ExternalSource(models.Model):
 
     class Meta:
         unique_together = ("source", "accommodation")
+        verbose_name = gettext_lazy("External source")
+        verbose_name_plural = gettext_lazy("External sources")
 
     def __str__(self):
         return f"Source {self.source} - {self.source_id} - for {self.accommodation}"

@@ -14,6 +14,12 @@
         },
         {
             "command": "10 4 1 * * python manage.py sync_nb_students"
+        },
+        {
+            "command": "0 8 * * 1 python manage.py collect_weekly_stats"
+        },
+        {
+            "command": "0 9 1 * * python manage.py collect_monthly_stats"
         }
     ]
 }

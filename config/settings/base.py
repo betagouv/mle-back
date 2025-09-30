@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "account",
     "institution",
     "accommodation",
+    "stats",
     "django_admin_logs",
     "django_summernote",
     "drf_spectacular",
@@ -226,6 +227,11 @@ BREVO_TEMPLATES_ID = {
 IBAIL_API_AUTH_KEY = env("IBAIL_API_AUTH_KEY")
 IBAIL_API_AUTH_SECRET = env("IBAIL_API_AUTH_SECRET")
 IBAIL_API_HOST = env("IBAIL_API_HOST")
+
+# MATOMO API
+MATOMO_URL = env("MATOMO_URL")
+MATOMO_TOKEN = env("MATOMO_TOKEN")
+MATOMO_ID_SITE = env("MATOMO_ID_SITE")
 
 
 # OVH S3 settings (keeping AWS prefix for compatibility)

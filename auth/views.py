@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
+from django.utils.translation import gettext_lazy
 from sesame.utils import get_token
 from sib_api_v3_sdk.rest import ApiException
 
@@ -32,7 +33,7 @@ def request_magic_link(request):
             magic_link = f"{request.build_absolute_uri('/admin-auth/magic-login/')}?sesame={token}"
 
         except User.DoesNotExist:
-            messages.error(request, "User not found or not authorized")
+            messages.error(request, gettext_lazy("User not found or not authorized"))
             return redirect("/admin/login/")
 
         configuration = sib_api_v3_sdk.Configuration()
@@ -49,8 +50,8 @@ def request_magic_link(request):
 
         try:
             api_instance.send_transac_email(send_smtp_email)
-            messages.success(request, f"A link has been sent to {user.email}")
+            messages.success(request, gettext_lazy(f"A link has been sent to {user.email}"))
         except ApiException:
-            messages.error(request, "An error occured while sending the link")
+            messages.error(request, gettext_lazy("An error occured while sending the link"))
 
     return redirect("/admin/login/")

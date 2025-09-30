@@ -138,6 +138,7 @@ class Command(GeoBaseCommand):
                     "microwave": to_bool(row.get("microwave")),
                     "refrigerator": to_bool(row.get("refrigerator")),
                     "bathroom": row["bathroom"].lower().strip(),
+                    "accept_waiting_list": to_bool(row.get("accept_waiting_list")),
                     "external_url": row["owner_url"].strip(),
                     "geom": geom,
                     "owner_id": owner.pk if owner else None,

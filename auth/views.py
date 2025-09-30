@@ -50,7 +50,7 @@ def request_magic_link(request):
 
         try:
             api_instance.send_transac_email(send_smtp_email)
-            messages.success(request, gettext_lazy(f"A link has been sent to {user.email}"))
+            messages.success(request, message=gettext_lazy("A link has been sent to %(email)s") % {"email": user.email})
         except ApiException:
             messages.error(request, gettext_lazy("An error occured while sending the link"))
 

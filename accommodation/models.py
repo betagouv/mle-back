@@ -161,6 +161,19 @@ class Accommodation(models.Model):
         ]
         non_null_prices = [p for p in price_min_fields if p is not None]
         self.price_min = min(non_null_prices) if non_null_prices else None
+
+        for attr_available in [
+            "nb_t1_available",
+            "nb_t1_bis_available",
+            "nb_t2_available",
+            "nb_t3_available",
+            "nb_t4_more_available",
+        ]:
+            field_available = getattr(self, attr_available)
+            field = getattr(self, attr_available.replace("_available", ""))
+            if field_available is not None and field is not None:
+                field_available = max(field_available, field)
+                setattr(self, attr_available, field_available)
         super().save(*args, **kwargs)
 
 

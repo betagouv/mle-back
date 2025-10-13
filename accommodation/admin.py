@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.db import models
@@ -235,5 +236,10 @@ class AccommodationAdmin(OSMGeoAdmin):
 
     change_form_template = "admin/change_form.html"
 
+
+admin.site.site_title = f"Administration de {settings.SITE_NAME}"
+admin.site.site_header = f"Administration de {settings.SITE_NAME}"
+admin.site.index_title = f"Bienvenue sur l'administration de {settings.SITE_NAME}"
+admin.site.site_url = settings.FRONT_SITE_URL
 
 admin.site.register(Accommodation, AccommodationAdmin)

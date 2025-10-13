@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 09:52+0000\n"
+"POT-Creation-Date: 2025-10-13 13:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -220,17 +220,17 @@ msgstr "Publié"
 
 #: accommodation/models.py:130
 msgid "Available"
-msgstr "Disponible"
+msgstr "Lien de redirection"
 
 #: accommodation/models.py:142
 msgid "Accommodations"
 msgstr "Résidences"
 
-#: accommodation/models.py:225
+#: accommodation/models.py:227
 msgid "External source"
 msgstr "Source externe"
 
-#: accommodation/models.py:226
+#: accommodation/models.py:228
 msgid "External sources"
 msgstr "Sources externes"
 

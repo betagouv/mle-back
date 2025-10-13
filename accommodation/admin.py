@@ -131,7 +131,7 @@ class AccommodationAdmin(OSMGeoAdmin):
         "price_min_t4_more",
         "price_max_t4_more",
     )
-    readonly_fields = ("display_images", "owner", "residence_type", "slug")
+    readonly_fields = ("display_images", "owner", "residence_type", "slug", "updated_at")
     readonly_fields_as_owner = (
         "display_images",
         "owner",

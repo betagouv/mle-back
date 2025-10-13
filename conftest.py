@@ -57,25 +57,19 @@ def mock_requests():
 
 @pytest.fixture(autouse=True)
 def create_owners_group():
-    """Fixture pour créer le groupe Owners dans les tests."""
+    owners_group, _ = Group.objects.get_or_create(name="Owners")
 
-    owners_group, created = Group.objects.get_or_create(name="Owners")
+    content_type = ContentType.objects.get_for_model(Accommodation)
 
-    if created:
-        content_type = ContentType.objects.get_for_model(Accommodation)
+    can_view_accommodation = Permission.objects.get(
+        codename="view_accommodation",
+        content_type=content_type,
+    )
+    can_change_accommodation = Permission.objects.get(
+        codename="change_accommodation",
+        content_type=content_type,
+    )
 
-        can_view_accommodation, _ = Permission.objects.get_or_create(
-            codename="view_accommodation",
-            name="Can view accommodation",
-            content_type=content_type,
-        )
-
-        can_change_accommodation, _ = Permission.objects.get_or_create(
-            codename="change_accommodation",
-            name="Can change accommodation",
-            content_type=content_type,
-        )
-
-        owners_group.permissions.add(can_view_accommodation, can_change_accommodation)
+    owners_group.permissions.set([can_view_accommodation, can_change_accommodation])
 
     return owners_group

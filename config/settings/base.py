@@ -195,7 +195,7 @@ BREVO_API_KEY = env("BREVO_API_KEY")
 BREVO_CONTACT_LIST_ID = 3
 
 BREVO_TEMPLATES_ID = {
-    "magic-link": 1,
+    "magic-link": 2,
 }
 
 # IBAIL API

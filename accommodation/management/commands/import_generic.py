@@ -75,7 +75,7 @@ class Command(GeoBaseCommand):
                     owner = Owner.get_or_create(data={"name": row["owner_name"], "url": owner_url})
 
                 geom = (
-                    Point(float(row["longitude"]), float(row["latitude"]))
+                    Point(float(row["longitude"].replace(",", ".")), float(row["latitude"].replace(",", ".")))
                     if row["latitude"] and row["longitude"]
                     else None
                 )

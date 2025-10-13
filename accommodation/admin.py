@@ -123,6 +123,7 @@ class AccommodationAdmin(OSMGeoAdmin):
     )
     readonly_fields = ("display_images", "owner", "residence_type", "slug")
     exclude = ("images_urls", "images_count")
+    actions_as_owner = [unavailable_accommodations, available_accommodations]
     actions = [unpublish_accommodations, publish_accommodations, unavailable_accommodations, available_accommodations]
     formfield_overrides = {
         models.TextField: {"widget": SummernoteWidget},
@@ -162,6 +163,14 @@ class AccommodationAdmin(OSMGeoAdmin):
         if self._is_superuser_or_content_writer(request):
             return super().get_inlines(request, obj)
         return self.inlines_as_owner
+
+    def get_actions(self, request):
+        actions_list = super().get_actions(request)
+        if self._is_superuser_or_content_writer(request):
+            return actions_list
+        return {
+            name: action for name, action in actions_list.items() if name in [a.__name__ for a in self.actions_as_owner]
+        }
 
     def display_images(self, obj):
         if obj.images_urls:

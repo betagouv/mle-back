@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.db import models
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy
 from django_summernote.widgets import SummernoteWidget
 
 from accommodation.models import Accommodation, ExternalSource
@@ -18,25 +19,25 @@ class ExternalSourceInline(admin.TabularInline):
         return False
 
 
-@admin.action(description="Unpublish selected accommodations")
+@admin.action(description=gettext_lazy("Unpublish selected accommodations"))
 def unpublish_accommodations(modeladmin, request, queryset):
     updated_count = queryset.update(published=False)
     modeladmin.message_user(request, f"{updated_count} accommodation(s) have been unpublished.")
 
 
-@admin.action(description="Publish selected accommodations")
+@admin.action(description=gettext_lazy("Publish selected accommodations"))
 def publish_accommodations(modeladmin, request, queryset):
     updated_count = queryset.update(published=True)
     modeladmin.message_user(request, f"{updated_count} accommodation(s) have been published.")
 
 
-@admin.action(description="Make unavailable selected accommodations")
+@admin.action(description=gettext_lazy("Make unavailable selected accommodations"))
 def unavailable_accommodations(modeladmin, request, queryset):
     updated_count = queryset.update(available=False)
     modeladmin.message_user(request, f"{updated_count} accommodation(s) have been made unavailable.")
 
 
-@admin.action(description="Make available selected accommodations")
+@admin.action(description=gettext_lazy("Make available selected accommodations"))
 def available_accommodations(modeladmin, request, queryset):
     updated_count = queryset.update(available=True)
     modeladmin.message_user(request, f"{updated_count} accommodation(s) have been made available.")

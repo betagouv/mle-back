@@ -64,10 +64,15 @@ class AccommodationAdmin(OSMGeoAdmin):
         "postal_code",
         "published",
         "available",
+        "nb_t1",
         "nb_t1_available",
+        "nb_t1_bis",
         "nb_t1_bis_available",
+        "nb_t2",
         "nb_t2_available",
+        "nb_t3",
         "nb_t3_available",
+        "nb_t4_more",
         "nb_t4_more_available",
         "price_min_t1",
         "price_max_t1",
@@ -86,10 +91,15 @@ class AccommodationAdmin(OSMGeoAdmin):
     ordering = ("name",)
     fields_as_owner = (
         "available",
+        "nb_t1",
         "nb_t1_available",
+        "nb_t1_bis",
         "nb_t1_bis_available",
+        "nb_t2",
         "nb_t2_available",
+        "nb_t3",
         "nb_t3_available",
+        "nb_t4_more",
         "nb_t4_more_available",
         "price_min_t1",
         "price_max_t1",
@@ -122,6 +132,17 @@ class AccommodationAdmin(OSMGeoAdmin):
         "price_max_t4_more",
     )
     readonly_fields = ("display_images", "owner", "residence_type", "slug")
+    readonly_fields_as_owner = (
+        "display_images",
+        "owner",
+        "residence_type",
+        "slug",
+        "nb_t1",
+        "nb_t1_bis",
+        "nb_t2",
+        "nb_t3",
+        "nb_t4_more",
+    )
     exclude = ("images_urls", "images_count")
     actions_as_owner = [unavailable_accommodations, available_accommodations]
     actions = [unpublish_accommodations, publish_accommodations, unavailable_accommodations, available_accommodations]
@@ -131,6 +152,11 @@ class AccommodationAdmin(OSMGeoAdmin):
 
     def _is_superuser_or_content_writer(self, request):
         return request.user.is_superuser or request.user.groups.filter(name="content-writer").exists()
+
+    def get_readonly_fields(self, request, obj=None):
+        if self._is_superuser_or_content_writer(request):
+            return self.readonly_fields
+        return self.readonly_fields_as_owner
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

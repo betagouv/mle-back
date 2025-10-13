@@ -229,6 +229,7 @@ class AccommodationAdmin(OSMGeoAdmin):
         obj = self.get_object(request, object_id)
         if obj:
             extra_context["api_url"] = obj.get_absolute_detail_api_url()
+            extra_context["superuser_or_contentwriter"] = self._is_superuser_or_content_writer(request)
 
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 

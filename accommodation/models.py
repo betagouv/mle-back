@@ -170,9 +170,9 @@ class Accommodation(models.Model):
             "nb_t4_more_available",
         ]:
             field_available = getattr(self, attr_available)
-            field = getattr(self, attr_available.replace("_available", ""))
-            if field_available is not None and field is not None:
-                field_available = max(field_available, field)
+            field_stock = getattr(self, attr_available.replace("_available", ""))
+            if field_available is not None and field_stock is not None and field_available > field_stock:
+                field_available = field_stock
                 setattr(self, attr_available, field_available)
         super().save(*args, **kwargs)
 

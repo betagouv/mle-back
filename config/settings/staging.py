@@ -1,3 +1,5 @@
+import sentry_sdk
+
 from .base import *  # noqa: F403
 
 DEBUG = False
@@ -18,3 +20,13 @@ CSRF_COOKIE_SECURE = True
 
 FRONT_SITE_URL = "https://test.monlogementetudiant.beta.gouv.fr/"
 AWS_SUFFIX_DIR = "-staging"
+
+if SENTRY_DSN is not None:  # noqa: F405
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,  # noqa: F405
+        integrations=[DjangoIntegration()],
+        send_default_pii=True,
+        environment="staging",
+    )

@@ -1,3 +1,5 @@
+import sentry_sdk
+
 from .base import *  # noqa: F403
 
 DEBUG = False
@@ -11,3 +13,13 @@ CSRF_COOKIE_SECURE = True
 BREVO_CONTACT_LIST_ID = 4
 
 FRONT_SITE_URL = "https://monlogementetudiant.beta.gouv.fr"
+
+if SENTRY_DSN is not None:  # noqa: F405
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,  # noqa: F405
+        integrations=[DjangoIntegration()],
+        send_default_pii=True,
+        environment="production",
+    )

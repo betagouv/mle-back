@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "74a8162d1bffb92dcf5731edd07550ca1673eeaa10e4fc5134e6933c7b5c075e"
+            "sha256": "a9ceb8ecc0250399528da5f0e929aedf8f05da11fbb012d2c1887f1f5482b7be"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -842,6 +842,15 @@
             "markers": "python_version >= '3.9'",
             "version": "==0.12.0"
         },
+        "sentry-sdk": {
+            "hashes": [
+                "sha256:343cde6540574113d13d178d1b2093e011ac21dd55abd3a1ec7e540f0d18a5bd",
+                "sha256:e7af3f4d7f8bac4c56fbaf95adb0d111f061cce58d5df91cfcd4e69782759b10"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.6'",
+            "version": "==2.41.0"
+        },
         "sib-api-v3-sdk": {
             "hashes": [
                 "sha256:8975108c4a66ca2280532017190150f98ac826eacdda6c2f859ff104d2828266"
@@ -1403,6 +1412,7 @@
                 "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6",
                 "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf"
             ],
+            "index": "pypi",
             "markers": "python_version >= '3.9'",
             "version": "==2.32.5"
         },

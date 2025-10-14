@@ -22,7 +22,6 @@ env_vars: &shared_env_vars
   AWS_S3_ENDPOINT_URL: https://s3.gra.io.cloud.ovh.net
   AWS_S3_PUBLIC_BASE_URL: xxx
 
-
 executors:
   for_tests:
     docker:

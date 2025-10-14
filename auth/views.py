@@ -32,7 +32,7 @@ def request_magic_link(request):
             token = get_token(user)
             magic_link = f"{request.build_absolute_uri('/admin-auth/magic-login/')}?sesame={token}"
 
-        except User.DoesNotExist:
+        except (User.DoesNotExist, User.MultipleObjectsReturned):
             messages.error(request, gettext_lazy("User not found or not authorized"))
             return redirect("/admin/login/")
 

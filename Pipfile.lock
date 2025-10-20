@@ -844,12 +844,12 @@
         },
         "sentry-sdk": {
             "hashes": [
-                "sha256:343cde6540574113d13d178d1b2093e011ac21dd55abd3a1ec7e540f0d18a5bd",
-                "sha256:e7af3f4d7f8bac4c56fbaf95adb0d111f061cce58d5df91cfcd4e69782759b10"
+                "sha256:8598cc6edcfe74cb8074ba6a7c15338cdee93d63d3eb9b9943b4b568354ad5b6",
+                "sha256:f8716b50c927d3beb41bc88439dc6bcd872237b596df5b14613e2ade104aee02"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.6'",
-            "version": "==2.41.0"
+            "version": "==2.42.1"
         },
         "sib-api-v3-sdk": {
             "hashes": [

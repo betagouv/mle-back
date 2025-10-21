@@ -41,6 +41,7 @@ GROUPS_PERMISSIONS = {
             "change_owner",
             "view_owner",
             # auth app
+            "add_user",
             "change_user",
             # django_summernote
             "add_attachment",

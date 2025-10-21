@@ -6,9 +6,9 @@ fileignoreconfig:
     checksum: 51e977042f39e347bb87eedc4f208ec5e630961e2dbe72ae9745c240fc027238
   - filename: institution/migrations/0001_educational_instit.py
     checksum: de6c7a2c3b79668ef9332f25bdd6c932c106da2d45870bf9e8040b65aeca8e8c
-  - filename: auth/views.py
-    checksum: 8c7e41a1bc45e91345b7195bcb69d3e140f1cc968a81dbd6067f026afb41fcf8
   - filename: templates/admin/login.html
     checksum: d9db13058c4c7dab9c56128687a54ed4184f5d9659c84f9e44064da1ef4ba723
   - filename: .env.sample
     checksum: 729c4b96b53676271f19011670743c51726bb58ce1afc8f9cdc65ef354c712d3
+  - filename: auth/views.py
+    checksum: 69b87fda651f45d35766d8de855ea0ad5f85aef135e7ee544973cbdddda1db45

@@ -5,6 +5,10 @@ from django.contrib.auth import authenticate, get_user_model, login
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext_lazy as _
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from sesame.utils import get_token
 from sib_api_v3_sdk.rest import ApiException
 
@@ -12,6 +16,7 @@ User = get_user_model()
 
 
 def magic_login_view(request):
+    # NOTE: this is used by BO v0, will be deprecated in BO v1
     token = request.GET.get("sesame")
     if not token:
         return HttpResponseBadRequest("Missing token")
@@ -25,14 +30,15 @@ def magic_login_view(request):
 
 
 def request_magic_link(request):
+    # NOTE: this is used by BO v0, will be deprecated in BO v1
     if request.method == "POST":
         email = request.POST.get("email")
-        message = gettext_lazy(
+        generic_message = gettext_lazy(
             "If an account exists with the email %(email)s, you will receive a link to log in. "
             "Please contact %(bizdev)s in case of problem."
         ) % {"email": email, "bizdev": settings.BIZDEV_EMAIL}
 
-        messages.success(request, message)
+        messages.success(request, generic_message)
         try:
             user = User.objects.get(email=email, is_staff=True, is_active=True)
             token = get_token(user)
@@ -58,3 +64,44 @@ def request_magic_link(request):
         except ApiException:
             pass
     return redirect("/admin/login/")
+
+
+class RequestMagicLinkAPIView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get("email")
+        if not email:
+            return Response({"detail": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        generic_message = _(
+            "If an account exists with this email, you will receive a link to log in. "
+            "Please contact %(bizdev)s in case of problem."
+        ) % {"bizdev": settings.BIZDEV_EMAIL}
+
+        try:
+            user = User.objects.get(email=email, is_staff=True, is_active=True)
+        except (User.DoesNotExist, User.MultipleObjectsReturned):
+            return Response({"detail": generic_message}, status=status.HTTP_200_OK)
+
+        token = get_token(user)
+        magic_link = f"{settings.FRONT_SITE_URL}/verification?sesame={token}"
+
+        configuration = sib_api_v3_sdk.Configuration()
+        configuration.api_key["api-key"] = settings.BREVO_API_KEY
+        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+
+        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": user.email, "name": user.get_full_name() or user.username}],
+            template_id=settings.BREVO_TEMPLATES_ID.get("magic-link"),
+            params={"MAGIC_LINK": magic_link},
+            tags=["magic-link"],
+        )
+
+        try:
+            api_instance.send_transac_email(send_smtp_email)
+        except ApiException:
+            pass
+
+        return Response({"detail": generic_message}, status=status.HTTP_200_OK)

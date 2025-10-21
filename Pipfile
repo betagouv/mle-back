@@ -27,6 +27,7 @@ sentry-sdk = "*"
 sib-api-v3-sdk = "*"
 Unidecode = "*"
 whitenoise = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 factory-boy = "*"

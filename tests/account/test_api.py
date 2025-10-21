@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 from sesame.utils import get_token
 
 from .factories import OwnerFactory, UserFactory
@@ -59,3 +60,22 @@ class VerifyMagicLinkAPITests(APITestCase):
         response = self.client.post(url, {})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["detail"], "Token is required.")
+
+
+class TokenRefreshAPITests(APITestCase):
+    def test_token_refresh_success(self):
+        user = UserFactory(is_active=True, is_staff=True)
+        refresh = RefreshToken.for_user(user)
+
+        url = reverse("refresh-token")
+        response = self.client.post(url, {"refresh": str(refresh)})
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+        self.assertIn("access", data)
+        self.assertNotEqual(str(refresh.access_token), data["access"])
+
+    def test_token_refresh_invalid(self):
+        url = reverse("refresh-token")
+        response = self.client.post(url, {"refresh": "invalid_token"})
+        self.assertEqual(response.status_code, 401)

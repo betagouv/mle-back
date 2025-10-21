@@ -259,7 +259,8 @@ def test_import_clef_command(mock_settings):
         owner = Owner.objects.get(name="ABC")
         assert owner.url == "https://abc.test"
         assert accommodation.owner == owner
-        assert owner.user.is_active is False
+        assert owner.users.count() == 1
+        assert owner.users.first().is_active is False
 
         external_source = ExternalSource.objects.get(accommodation=accommodation)
         assert external_source.source_id == "6202"
@@ -285,7 +286,8 @@ def test_import_clef_command(mock_settings):
         owner = Owner.objects.get(name="DEF")
         assert owner.url == "https://def.test"
         assert accommodation.owner == owner
-        assert owner.user.is_active is False
+        assert owner.users.count() == 1
+        assert owner.users.first().is_active is False
 
         external_source = ExternalSource.objects.get(accommodation=accommodation)
         assert external_source.source_id == "4"

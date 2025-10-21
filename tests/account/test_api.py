@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 from rest_framework.test import APITestCase
+from sesame.utils import get_token
 
 from .factories import OwnerFactory, UserFactory
 
@@ -32,3 +33,29 @@ class AccountAPITests(APITestCase):
             "detail": "If an account exists with this email, you will receive a link to log in. Please contact xxx in case of problem."
         }
         assert mock_send_email.call_count == 1
+
+
+class VerifyMagicLinkAPITests(APITestCase):
+    def test_verify_magic_link_success(self):
+        user = UserFactory(is_active=True, is_staff=True)
+        token = get_token(user)
+
+        url = reverse("check-magic-link")
+        response = self.client.post(url, {"sesame": token})
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("access", data)
+        self.assertIn("refresh", data)
+
+    def test_verify_magic_link_invalid(self):
+        url = reverse("check-magic-link")
+        response = self.client.post(url, {"sesame": "invalidtoken"})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "Invalid or expired token.")
+
+    def test_verify_magic_link_missing_token(self):
+        url = reverse("check-magic-link")
+        response = self.client.post(url, {})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "Token is required.")

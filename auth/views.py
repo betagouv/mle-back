@@ -9,7 +9,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from sesame.utils import get_token
+from rest_framework_simplejwt.tokens import RefreshToken
+from sesame.utils import get_token, get_user
 from sib_api_v3_sdk.rest import ApiException
 
 User = get_user_model()
@@ -105,3 +106,30 @@ class RequestMagicLinkAPIView(APIView):
             pass
 
         return Response({"detail": generic_message}, status=status.HTTP_200_OK)
+
+
+class CheckMagicLinkAPIView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        token = request.data.get("sesame")
+
+        if not token:
+            return Response({"detail": "Token is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = get_user(token)
+
+        if not user or not user.is_active:
+            return Response({"detail": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        return Response(
+            {
+                "access": access_token,
+                "refresh": str(refresh),
+            },
+            status=status.HTTP_200_OK,
+        )

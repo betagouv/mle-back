@@ -29,8 +29,9 @@ def request_magic_link(request):
         email = request.POST.get("email")
         message = gettext_lazy(
             "If an account exists with the email %(email)s, you will receive a link to log in. "
-            "Please contact %(bizdev)s in case of problem." % {"email": email, "bizdev": settings.BIZDEV_EMAIL}
-        )
+            "Please contact %(bizdev)s in case of problem."
+        ) % {"email": email, "bizdev": settings.BIZDEV_EMAIL}
+
         messages.success(request, message)
         try:
             user = User.objects.get(email=email, is_staff=True, is_active=True)

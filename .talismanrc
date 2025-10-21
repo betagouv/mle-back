@@ -11,4 +11,4 @@ fileignoreconfig:
   - filename: templates/admin/login.html
     checksum: d9db13058c4c7dab9c56128687a54ed4184f5d9659c84f9e44064da1ef4ba723
   - filename: .env.sample
-    checksum: e38fd929c1bc0970eb0aa314b5cceac887668b49447807352aca4ee994c15e1a
+    checksum: 729c4b96b53676271f19011670743c51726bb58ce1afc8f9cdc65ef354c712d3

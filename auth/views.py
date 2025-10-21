@@ -27,13 +27,17 @@ def magic_login_view(request):
 def request_magic_link(request):
     if request.method == "POST":
         email = request.POST.get("email")
+        message = gettext_lazy(
+            "If an account exists with the email %(email)s, you will receive a link to log in. "
+            "Please contact %(bizdev)s in case of problem." % {"email": email, "bizdev": settings.BIZDEV_EMAIL}
+        )
+        messages.success(request, message)
         try:
             user = User.objects.get(email=email, is_staff=True, is_active=True)
             token = get_token(user)
             magic_link = f"{request.build_absolute_uri('/admin-auth/magic-login/')}?sesame={token}"
 
         except (User.DoesNotExist, User.MultipleObjectsReturned):
-            messages.error(request, gettext_lazy("User not found or not authorized"))
             return redirect("/admin/login/")
 
         configuration = sib_api_v3_sdk.Configuration()
@@ -50,8 +54,6 @@ def request_magic_link(request):
 
         try:
             api_instance.send_transac_email(send_smtp_email)
-            messages.success(request, message=gettext_lazy("A link has been sent to %(email)s") % {"email": user.email})
         except ApiException:
-            messages.error(request, gettext_lazy("An error occured while sending the link"))
-
+            pass
     return redirect("/admin/login/")

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-20 14:49+0000\n"
+"POT-Creation-Date: 2025-10-21 09:29+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -238,7 +238,7 @@ msgstr "Sources externes"
 msgid "Linked user"
 msgstr "Utilisateurs associé"
 
-#: account/admin.py:15 account/admin.py:37
+#: account/admin.py:15 account/admin.py:39
 msgid "Linked users"
 msgstr "Utilisateurs associés"
 
@@ -250,18 +250,14 @@ msgstr "Bailleur"
 msgid "Owners"
 msgstr "Bailleurs"
 
-#: auth/views.py:36
-msgid "User not found or not authorized"
-msgstr "Utilisateur non trouvé ou non autorisé"
-
-#: auth/views.py:53
+#: auth/views.py:31
 #, python-format
-msgid "A link has been sent to %(email)s"
-msgstr "Un lien a été envoyé à %(email)s"
-
-#: auth/views.py:55
-msgid "An error occured while sending the link"
-msgstr "Une erreur est survenue lors de l'envoi du lien"
+msgid ""
+"If an account exists with the email %(email)s, you will receive a link to "
+"log in. Please contact %(bizdev)s in case of problem."
+msgstr ""
+"Si un compte existe avec l'email %(email)s, vous recevrez un lien pour "
+"vous connecter. Veuillez contacter %(bizdev)s en cas de problème."
 
 #: templates/admin/login.html:11
 msgid ""

@@ -7,7 +7,6 @@ from django.utils.translation import gettext_lazy
 from django_summernote.widgets import SummernoteWidget
 
 from accommodation.models import Accommodation, ExternalSource
-from account.models import Owner
 
 
 class ExternalSourceInline(admin.TabularInline):
@@ -161,14 +160,15 @@ class AccommodationAdmin(OSMGeoAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
+
         if self._is_superuser_or_bizdev(request):
             return qs
 
-        try:
-            owner = request.user.owner
-            return qs.filter(owner=owner)
-        except Owner.DoesNotExist:
-            return qs.none()
+        owners = getattr(request.user, "owners", None)
+        if owners and owners.exists():
+            return qs.filter(owner__in=owners.all())
+
+        return qs.none()
 
     def get_list_filter(self, request):
         if self._is_superuser_or_bizdev(request):

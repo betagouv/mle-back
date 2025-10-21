@@ -9,7 +9,7 @@ class Owner(models.Model):
     name = models.CharField(max_length=200)
     slug = AutoSlugField(max_length=255, default="", unique=True, populate_from="name")
     url = models.URLField(max_length=500, blank=True, null=True)
-    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="owner")
+    users = models.ManyToManyField(User, blank=True, related_name="owners")
     image = models.BinaryField(null=True, blank=True)
 
     class Meta:
@@ -22,21 +22,20 @@ class Owner(models.Model):
     @classmethod
     def get_or_create(cls, data):
         if not data:
-            return
+            return None
 
         with transaction.atomic():
             owner, _ = cls.objects.get_or_create(name=data.get("name"), defaults={"url": data.get("url")})
 
-            if owner.user:
-                return owner
+            username = data.get("username") or owner.name
 
-            user = User.objects.filter(username=owner.name).first()
-            if not user:
-                user = User.objects.create_user(username=owner.name, password=None, is_active=False, is_staff=True)
-            owner.user = user
-            owner.save()
+            user, created = User.objects.get_or_create(
+                username=username, defaults={"is_active": False, "is_staff": True}
+            )
 
-            owners_group = Group.objects.get(name="Owners")
+            owner.users.add(user)
+
+            owners_group, _ = Group.objects.get_or_create(name="Owners")
             user.groups.add(owners_group)
             user.save()
 

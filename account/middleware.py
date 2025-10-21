@@ -8,11 +8,14 @@ class AdminLoginRedirectMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if (
-            request.user.is_authenticated
-            and request.path == reverse("admin:index")
-            and hasattr(request.user, "owner")
-            and request.user.is_staff
-        ):
+
+        if not request.user.is_authenticated:
+            return response
+
+        if request.path != reverse("admin:index"):
+            return response
+
+        if request.user.owners.exists() and request.user.is_staff:
             return redirect("admin:accommodation_accommodation_changelist")
+
         return response

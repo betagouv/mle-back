@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 13:43+0000\n"
+"POT-Creation-Date: 2025-10-20 14:49+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,19 +18,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: accommodation/admin.py:22
+#: accommodation/admin.py:24
 msgid "Unpublish selected accommodations"
 msgstr "Dépublier les résidences sélectionnées"
 
-#: accommodation/admin.py:28
+#: accommodation/admin.py:30
 msgid "Publish selected accommodations"
 msgstr "Publier les résidences sélectionnées"
 
-#: accommodation/admin.py:34
+#: accommodation/admin.py:36
 msgid "Make unavailable selected accommodations"
 msgstr "Supprimer le lien de redirection vers les résidences sélectionnées"
 
-#: accommodation/admin.py:40
+#: accommodation/admin.py:42
 msgid "Make available selected accommodations"
 msgstr "Activer le lien de redirection vers les résidences sélectionnées"
 
@@ -226,13 +226,21 @@ msgstr "Lien de redirection"
 msgid "Accommodations"
 msgstr "Résidences"
 
-#: accommodation/models.py:227
+#: accommodation/models.py:240
 msgid "External source"
 msgstr "Source externe"
 
-#: accommodation/models.py:228
+#: accommodation/models.py:241
 msgid "External sources"
 msgstr "Sources externes"
+
+#: account/admin.py:14
+msgid "Linked user"
+msgstr "Utilisateurs associé"
+
+#: account/admin.py:15 account/admin.py:37
+msgid "Linked users"
+msgstr "Utilisateurs associés"
 
 #: account/models.py:16
 msgid "Owner"

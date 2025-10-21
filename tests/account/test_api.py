@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 from sesame.utils import get_token
@@ -79,3 +80,39 @@ class TokenRefreshAPITests(APITestCase):
         url = reverse("refresh-token")
         response = self.client.post(url, {"refresh": "invalid_token"})
         self.assertEqual(response.status_code, 401)
+
+
+class LogoutAPITests(APITestCase):
+    def setUp(self):
+        self.user = UserFactory(is_active=True, is_staff=True)
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        self.refresh_token = str(refresh)
+
+        self.logout_url = reverse("logout")
+
+    def test_logout_success(self):
+        response = self.client.post(
+            self.logout_url,
+            {"refresh": self.refresh_token},
+            HTTP_AUTHORIZATION=f"Bearer {self.access_token}",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["detail"], "Logout successful.")
+
+        response2 = self.client.post(reverse("refresh-token"), {"refresh": self.refresh_token})
+        self.assertEqual(response2.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn("token_not_valid", response2.json().get("code", ""))
+
+    def test_logout_invalid_token(self):
+        response = self.client.post(
+            self.logout_url, {"refresh": "invalidtoken"}, HTTP_AUTHORIZATION=f"Bearer {self.access_token}"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["detail"], "Invalid token.")
+
+    def test_logout_without_auth(self):
+        response = self.client.post(self.logout_url, {"refresh": self.refresh_token})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

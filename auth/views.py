@@ -6,9 +6,10 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy
 from django.utils.translation import gettext_lazy as _
-from rest_framework import status
+from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from sesame.utils import get_token, get_user
 from sib_api_v3_sdk.rest import ApiException
@@ -133,3 +134,17 @@ class CheckMagicLinkAPIView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except TokenError:
+            return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"detail": "Logout successful."}, status=status.HTTP_200_OK)

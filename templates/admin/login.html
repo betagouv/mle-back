@@ -4,7 +4,7 @@
 {% block content %}
 {{ block.super }}
 <div>
-    <form method="post" action="{% url 'request_magic_link' %}">
+    <form method="post" action="{% url 'request_magic_link_v0' %}">
         {% csrf_token %}
         <div class="form-row">
             <p>

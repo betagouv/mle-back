@@ -79,6 +79,22 @@ class AccommodationListView(generics.ListAPIView):
 @extend_schema(
     description="List accommodations belonging to the authenticated user.",
     responses=AccommodationGeoSerializer,
+    parameters=[
+        OpenApiParameter(
+            name="has_availability",
+            type=OpenApiTypes.BOOL,
+            description=(
+                "Filter accommodations to return only those that have available apartments. Use true (falsy not managed)"
+            ),
+            required=False,
+        ),
+        OpenApiParameter(
+            "search",
+            type=OpenApiTypes.STR,
+            description="Search accommodations by name.",
+            required=False,
+        ),
+    ],
 )
 class MyAccommodationListView(generics.ListCreateAPIView):
     serializer_class = AccommodationGeoSerializer

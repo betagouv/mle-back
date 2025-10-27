@@ -1,10 +1,19 @@
 import factory
 import factory.fuzzy
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 
 from account.models import Owner
 
 User = get_user_model()
+
+
+class GroupFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Group
+        django_get_or_create = ("name",)
+
+    name = factory.Sequence(lambda n: f"group_{n}")
 
 
 class UserFactory(factory.django.DjangoModelFactory):

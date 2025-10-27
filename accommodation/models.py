@@ -2,6 +2,7 @@ from autoslug import AutoSlugField
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils.translation import gettext_lazy
@@ -151,6 +152,7 @@ class Accommodation(models.Model):
         return f"{settings.FRONT_SITE_URL}/trouver-un-logement-etudiant/ville/{slugify(self.city)}/{self.slug}"
 
     def save(self, *args, **kwargs):
+        self.clean()
         self.images_count = len(self.images_urls or [])
         price_min_fields = [
             self.price_min_t1,
@@ -162,6 +164,9 @@ class Accommodation(models.Model):
         non_null_prices = [p for p in price_min_fields if p is not None]
         self.price_min = min(non_null_prices) if non_null_prices else None
 
+        super().save(*args, **kwargs)
+
+    def clean(self):
         for attr_available in [
             "nb_t1_available",
             "nb_t1_bis_available",
@@ -174,7 +179,10 @@ class Accommodation(models.Model):
             if field_available is not None and field_stock is not None and field_available > field_stock:
                 field_available = field_stock
                 setattr(self, attr_available, field_available)
-        super().save(*args, **kwargs)
+
+        reserved_slugs = {"my"}
+        if self.slug in reserved_slugs:
+            raise ValidationError({"slug": f"Reserved slug '{self.slug}'."})
 
 
 class ExternalSource(models.Model):

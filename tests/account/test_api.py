@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 from sesame.utils import get_token
 
-from .factories import OwnerFactory, UserFactory
+from .factories import GroupFactory, OwnerFactory, UserFactory
 
 
 class AccountAPITests(APITestCase):
@@ -38,8 +38,8 @@ class AccountAPITests(APITestCase):
 
 
 class VerifyMagicLinkAPITests(APITestCase):
-    def test_verify_magic_link_success(self):
-        user = UserFactory(is_active=True, is_staff=True)
+    def test_verify_magic_link_success_staff(self):
+        user = UserFactory(is_active=True, is_staff=True, is_superuser=True)
         token = get_token(user)
 
         url = reverse("check-magic-link")
@@ -49,6 +49,37 @@ class VerifyMagicLinkAPITests(APITestCase):
         data = response.json()
         self.assertIn("access", data)
         self.assertIn("refresh", data)
+        self.assertEqual(data["user"]["role"], "admin")
+
+    def test_verify_magic_link_success_owner(self):
+        user = UserFactory(is_active=True, is_staff=False)
+        owner_group = GroupFactory(name="Owners")
+        user.groups.add(owner_group)
+        OwnerFactory(users=[user])
+
+        token = get_token(user)
+
+        url = reverse("check-magic-link")
+        response = self.client.post(url, {"sesame": token})
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["user"]["role"], "owner")
+        self.assertEqual(data["user"]["email"], user.email)
+        self.assertEqual(data["user"]["first_name"], user.first_name)
+        self.assertEqual(data["user"]["last_name"], user.last_name)
+        self.assertNotIn("password", data["user"])
+
+    def test_verify_magic_link_success_user(self):
+        user = UserFactory(is_active=True, is_staff=False)
+        token = get_token(user)
+
+        url = reverse("check-magic-link")
+        response = self.client.post(url, {"sesame": token})
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["user"]["role"], "user")
 
     def test_verify_magic_link_invalid(self):
         url = reverse("check-magic-link")

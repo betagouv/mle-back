@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy
 from django_summernote.widgets import SummernoteWidget
 
 from accommodation.models import Accommodation, ExternalSource
+from account.helpers import is_superuser_or_bizdev
 
 
 class ExternalSourceInline(admin.TabularInline):
@@ -150,18 +151,15 @@ class AccommodationAdmin(OSMGeoAdmin):
         models.TextField: {"widget": SummernoteWidget},
     }
 
-    def _is_superuser_or_bizdev(self, request):
-        return request.user.is_superuser or request.user.groups.filter(name="bizdev").exists()
-
     def get_readonly_fields(self, request, obj=None):
-        if self._is_superuser_or_bizdev(request):
+        if is_superuser_or_bizdev(request.user):
             return self.readonly_fields
         return self.readonly_fields_as_owner
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
 
-        if self._is_superuser_or_bizdev(request):
+        if is_superuser_or_bizdev(request.user):
             return qs
 
         owners = getattr(request.user, "owners", None)
@@ -171,29 +169,29 @@ class AccommodationAdmin(OSMGeoAdmin):
         return qs.none()
 
     def get_list_filter(self, request):
-        if self._is_superuser_or_bizdev(request):
+        if is_superuser_or_bizdev(request.user):
             return super().get_list_filter(request)
         return self.list_filter_as_owner
 
     def get_list_display(self, request):
-        if self._is_superuser_or_bizdev(request):
+        if is_superuser_or_bizdev(request.user):
             return super().get_list_display(request)
         self.list_editable = self.list_editable_as_owner
         return self.list_display_as_owner
 
     def get_fields(self, request, obj=None):
-        if self._is_superuser_or_bizdev(request):
+        if is_superuser_or_bizdev(request.user):
             return super().get_fields(request, obj)
         return self.fields_as_owner
 
     def get_inlines(self, request, obj=None):
-        if self._is_superuser_or_bizdev(request):
+        if is_superuser_or_bizdev(request.user):
             return super().get_inlines(request, obj)
         return self.inlines_as_owner
 
     def get_actions(self, request):
         actions_list = super().get_actions(request)
-        if self._is_superuser_or_bizdev(request):
+        if is_superuser_or_bizdev(request.user):
             return actions_list
         return {
             name: action for name, action in actions_list.items() if name in [a.__name__ for a in self.actions_as_owner]
@@ -230,7 +228,7 @@ class AccommodationAdmin(OSMGeoAdmin):
         obj = self.get_object(request, object_id)
         if obj:
             extra_context["api_url"] = obj.get_absolute_detail_api_url()
-            extra_context["superuser_or_contentwriter"] = self._is_superuser_or_bizdev(request)
+            extra_context["superuser_or_bizdev"] = is_superuser_or_bizdev(request.user)
 
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 

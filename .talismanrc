@@ -12,3 +12,5 @@ fileignoreconfig:
     checksum: 729c4b96b53676271f19011670743c51726bb58ce1afc8f9cdc65ef354c712d3
   - filename: auth/views.py
     checksum: 69b87fda651f45d35766d8de855ea0ad5f85aef135e7ee544973cbdddda1db45
+  - filename: tests/account/test_api.py
+    checksum: b856d245795bd960945b4b3a7056f8f2bea0e5435b50cfef1c89581d1673fba8

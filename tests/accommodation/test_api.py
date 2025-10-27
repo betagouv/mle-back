@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from accommodation.models import Accommodation
 from tests.account.factories import OwnerFactory, UserFactory
 
 from .factories import AccommodationFactory
@@ -374,3 +375,105 @@ class MyAccommodationListAPITests(APITestCase):
         data = response.json()
         assert data["count"] == 0
         assert len(data["results"]["features"]) == 0
+
+
+class MyAccommodationDetailAPITests(APITestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.owner = OwnerFactory(users=[self.user])
+        self.client.force_authenticate(user=self.user)
+
+        self.other_owner = OwnerFactory()
+
+        self.my_accommodation = AccommodationFactory(
+            owner=self.owner,
+            slug="my-accommodation",
+            geom=Point(2.35, 48.85),
+            published=True,
+            name="My First Accommodation",
+        )
+
+        self.other_accommodation = AccommodationFactory(
+            owner=self.other_owner,
+            slug="not-mine",
+            geom=Point(2.35, 48.85),
+            published=True,
+            name="Someone Else's Accommodation",
+        )
+
+    def test_create_new_accommodation(self):
+        url = reverse("my-accommodation-list")
+        payload = {
+            "name": "New Accommodation",
+            "address": "123 Rue de Paris",
+            "city": "Paris",
+            "postal_code": "75001",
+            "geom": {"type": "Point", "coordinates": [2.35, 48.85]},
+            "published": True,
+        }
+
+        response = self.client.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED, response.content
+
+        data = response.json()["properties"]
+        assert data["name"] == "New Accommodation"
+        assert "slug" in data
+
+        acc = Accommodation.objects.get(name="New Accommodation")
+        assert acc.owner == self.owner
+
+    def test_post_requires_authentication(self):
+        self.client.force_authenticate(user=None)
+        url = reverse("my-accommodation-list")
+        response = self.client.post(url, {}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_patch_update_own_accommodation(self):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+
+        payload = {"name": "Updated Accommodation Name"}
+
+        response = self.client.patch(url, payload, format="json")
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()["properties"]
+        assert data["name"] == "Updated Accommodation Name"
+
+        self.my_accommodation.refresh_from_db()
+        assert self.my_accommodation.name == "Updated Accommodation Name"
+
+    def test_patch_cannot_update_others_accommodation(self):
+        url = reverse("my-accommodation-detail", args=[self.other_accommodation.slug])
+
+        payload = {"name": "Hack attempt!"}
+
+        response = self.client.patch(url, payload, format="json")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_patch_requires_authentication(self):
+        self.client.force_authenticate(user=None)
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+        response = self.client.patch(url, {"name": "Should Fail"}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_patch_cannot_change_id_or_slug(self):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+
+        original_id = self.my_accommodation.id
+        original_slug = self.my_accommodation.slug
+
+        payload = {"id": 9999, "slug": "hacked-slug", "name": "Updated Name With Read-Only Fields"}
+
+        response = self.client.patch(url, payload, format="json")
+        assert response.status_code == 200
+
+        self.my_accommodation.refresh_from_db()
+
+        assert self.my_accommodation.id == original_id
+        assert self.my_accommodation.slug == original_slug
+
+        assert self.my_accommodation.name == "Updated Name With Read-Only Fields"
+
+        data = response.json()["properties"]
+        assert data["slug"] == original_slug
+        assert data["name"] == "Updated Name With Read-Only Fields"

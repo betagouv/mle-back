@@ -1,9 +1,10 @@
 from django.urls import path
 
-from .views import AccommodationDetailView, AccommodationListView, MyAccommodationListView
+from .views import AccommodationDetailView, AccommodationListView, MyAccommodationListView, MyAccommodationDetailView
 
 urlpatterns = [
     path("my/", MyAccommodationListView.as_view(), name="my-accommodation-list"),
+    path("my/<slug:slug>/", MyAccommodationDetailView.as_view(), name="my-accommodation-detail"),
     path("<slug:slug>/", AccommodationDetailView.as_view(), name="accommodation-detail"),
     path("", AccommodationListView.as_view(), name="accommodation-list"),
 ]

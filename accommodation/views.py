@@ -1,6 +1,9 @@
+from django.contrib.gis.geos import Point
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
 
 from .filters import AccommodationFilter
 from .models import Accommodation
@@ -74,7 +77,7 @@ class AccommodationListView(generics.ListAPIView):
     description="List accommodations belonging to the authenticated user.",
     responses=AccommodationGeoSerializer,
 )
-class MyAccommodationListView(generics.ListAPIView):
+class MyAccommodationListView(generics.ListCreateAPIView):
     serializer_class = AccommodationGeoSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -84,3 +87,42 @@ class MyAccommodationListView(generics.ListAPIView):
             return Accommodation.objects.filter(owner__in=owners.all())
 
         return Accommodation.objects.none()
+
+    def perform_create(self, serializer):
+        data = self.request.data.copy()
+        geom = data.get("geom")
+        if geom and isinstance(geom, dict) and geom.get("type") == "Point":
+            coordinates = geom.get("coordinates")
+            if coordinates:
+                data["geom"] = Point(*coordinates)
+
+        # TODO: assuming user can have only one owner, which is the case ATM, except for bizdev
+        serializer.save(owner=self.request.user.owners.first(), **data)
+
+
+@extend_schema(
+    description="Retrieve, create or update accommodations belonging to the authenticated owner.",
+    request=AccommodationGeoSerializer,
+    responses=AccommodationGeoSerializer,
+)
+class MyAccommodationDetailView(generics.GenericAPIView):
+    serializer_class = AccommodationGeoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = "slug"
+
+    def get_queryset(self):
+        owners = getattr(self.request.user, "owners", None)
+        if owners and owners.exists():
+            return Accommodation.objects.filter(owner__in=owners.all())
+
+        return Accommodation.objects.none()
+
+    def get_object(self):
+        return get_object_or_404(self.get_queryset(), slug=self.kwargs[self.lookup_field])
+
+    def patch(self, request, *args, **kwargs):
+        accommodation = self.get_object()
+        serializer = self.get_serializer(accommodation, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)

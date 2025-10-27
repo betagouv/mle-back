@@ -3,9 +3,10 @@ from unittest.mock import ANY
 
 from django.contrib.gis.geos import Point
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.account.factories import OwnerFactory
+from tests.account.factories import OwnerFactory, UserFactory
 
 from .factories import AccommodationFactory
 
@@ -327,3 +328,49 @@ class AccommodationListAPITests(APITestCase):
         assert returned_ids.index(accommodation_mixed_null_and_zero.id) < returned_ids.index(
             accommodation_with_unknown_availibity_waiting_list.id
         )
+
+
+class MyAccommodationListAPITests(APITestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.owner = OwnerFactory(users=[self.user])
+        self.client.force_authenticate(user=self.user)
+
+        self.other_owner = OwnerFactory()
+
+        self.my_accommodation_1 = AccommodationFactory(owner=self.owner, geom=Point(2.35, 48.85), published=True)
+        self.my_accommodation_2 = AccommodationFactory(owner=self.owner, geom=Point(4.85, 45.75), published=True)
+
+        self.other_accommodation = AccommodationFactory(
+            owner=self.other_owner, geom=Point(-1.55, 47.21), published=True
+        )
+
+    def test_my_accommodation_list_requires_authentication(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.get(reverse("my-accommodation-list"))
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_my_accommodation_list_returns_only_user_accommodations(self):
+        response = self.client.get(reverse("my-accommodation-list"))
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()
+        results = data["results"]["features"]
+
+        returned_ids = [feature["id"] for feature in results]
+
+        assert len(results) == 2
+        assert self.my_accommodation_1.id in returned_ids
+        assert self.my_accommodation_2.id in returned_ids
+        assert self.other_accommodation.id not in returned_ids
+
+    def test_my_accommodation_list_empty_if_no_owned(self):
+        other_user = UserFactory()
+        self.client.force_authenticate(user=other_user)
+
+        response = self.client.get(reverse("my-accommodation-list"))
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()
+        assert data["count"] == 0
+        assert len(data["results"]["features"]) == 0

@@ -1,6 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
-from rest_framework import generics
+from rest_framework import generics, permissions
 
 from .filters import AccommodationFilter
 from .models import Accommodation
@@ -68,3 +68,19 @@ class AccommodationListView(generics.ListAPIView):
     serializer_class = AccommodationGeoSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = AccommodationFilter
+
+
+@extend_schema(
+    description="List accommodations belonging to the authenticated user.",
+    responses=AccommodationGeoSerializer,
+)
+class MyAccommodationListView(generics.ListAPIView):
+    serializer_class = AccommodationGeoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        owners = getattr(self.request.user, "owners", None)
+        if owners and owners.exists():
+            return Accommodation.objects.filter(owner__in=owners.all())
+
+        return Accommodation.objects.none()

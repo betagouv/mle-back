@@ -339,11 +339,29 @@ class MyAccommodationListAPITests(APITestCase):
 
         self.other_owner = OwnerFactory()
 
-        self.my_accommodation_1 = AccommodationFactory(owner=self.owner, geom=Point(2.35, 48.85), published=True)
-        self.my_accommodation_2 = AccommodationFactory(owner=self.owner, geom=Point(4.85, 45.75), published=True)
+        self.my_accommodation_1 = AccommodationFactory(
+            owner=self.owner,
+            geom=Point(2.35, 48.85),
+            published=True,
+            name="Paris Residence",
+            nb_t2_available=2,
+        )
+        self.my_accommodation_2 = AccommodationFactory(
+            owner=self.owner,
+            geom=Point(4.85, 45.75),
+            published=True,
+            name="Lyon Coliving",
+            nb_t1_available=0,
+            nb_t2_available=0,
+            nb_t3_available=0,
+            nb_t4_more_available=0,
+        )
 
         self.other_accommodation = AccommodationFactory(
-            owner=self.other_owner, geom=Point(-1.55, 47.21), published=True
+            owner=self.other_owner,
+            geom=Point(-1.55, 47.21),
+            published=True,
+            name="Nantes Loft",
         )
 
     def test_my_accommodation_list_requires_authentication(self):
@@ -375,6 +393,30 @@ class MyAccommodationListAPITests(APITestCase):
         data = response.json()
         assert data["count"] == 0
         assert len(data["results"]["features"]) == 0
+
+    def test_my_accommodation_list_search_by_name(self):
+        url = reverse("my-accommodation-list") + "?search=paris"
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()
+        results = data["results"]["features"]
+        names = [r["properties"]["name"].lower() for r in results]
+
+        assert len(results) == 1
+        assert "paris" in names[0]
+
+    def test_my_accommodation_list_filter_has_availability_true(self):
+        url = reverse("my-accommodation-list") + "?has_availability=true"
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()
+        results = data["results"]["features"]
+        slugs = [r["properties"]["slug"] for r in results]
+
+        assert self.my_accommodation_1.slug in slugs
+        assert self.my_accommodation_2.slug not in slugs
 
 
 class MyAccommodationDetailAPITests(APITestCase):

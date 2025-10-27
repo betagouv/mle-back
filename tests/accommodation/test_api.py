@@ -1,7 +1,8 @@
 import base64
-from unittest.mock import ANY
+from unittest.mock import ANY, patch
 
 from django.contrib.gis.geos import Point
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -519,3 +520,53 @@ class MyAccommodationDetailAPITests(APITestCase):
         data = response.json()["properties"]
         assert data["slug"] == original_slug
         assert data["name"] == "Updated Name With Read-Only Fields"
+
+
+class MyAccommodationImageUploadTests(APITestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.owner = OwnerFactory(users=[self.user])
+        self.client.force_authenticate(user=self.user)
+
+        self.accommodation = AccommodationFactory(
+            owner=self.owner,
+            slug="my-place",
+            images_urls=[],
+        )
+
+        self.url = reverse("my-accommodation-upload", args=[self.accommodation.slug])
+
+    @patch("accommodation.views.upload_image_to_s3")
+    def test_upload_multiple_images_success(self, mock_upload):
+        mock_upload.side_effect = lambda data: f"https://s3.fake/{len(data)}.jpg"
+
+        file1 = SimpleUploadedFile("photo1.jpg", b"dummydata1", content_type="image/jpeg")
+        file2 = SimpleUploadedFile("photo2.png", b"dummydata2", content_type="image/png")
+
+        response = self.client.post(self.url, {"images": [file1, file2]}, format="multipart")
+
+        assert response.status_code == status.HTTP_201_CREATED
+        urls = response.data["images_urls"]
+        assert len(urls) == 2
+        assert urls[0].startswith("https://s3.fake/")
+
+        self.accommodation.refresh_from_db()
+        assert len(self.accommodation.images_urls) == 2
+
+        assert mock_upload.call_count == 2
+
+    @patch("accommodation.views.upload_image_to_s3")
+    def test_upload_requires_ownership(self, mock_upload):
+        other_user = UserFactory()
+        self.client.force_authenticate(user=other_user)
+
+        file1 = SimpleUploadedFile("photo1.jpg", b"dummydata1", content_type="image/jpeg")
+        response = self.client.post(self.url, {"images": [file1]}, format="multipart")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        mock_upload.assert_not_called()
+
+    def test_upload_requires_file(self):
+        response = self.client.post(self.url, {}, format="multipart")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "No files provided" in response.data["detail"]

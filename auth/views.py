@@ -14,6 +14,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from sesame.utils import get_token, get_user
 from sib_api_v3_sdk.rest import ApiException
 
+from account.serializers import UserSerializer
+
 User = get_user_model()
 
 
@@ -131,6 +133,7 @@ class CheckMagicLinkAPIView(APIView):
             {
                 "access": access_token,
                 "refresh": str(refresh),
+                "user": UserSerializer(user).data,
             },
             status=status.HTTP_200_OK,
         )

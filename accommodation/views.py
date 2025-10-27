@@ -1,8 +1,9 @@
 from django.contrib.gis.geos import Point
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
-from rest_framework import generics, permissions, status
+from rest_framework import filters, generics, permissions, status
 from rest_framework.response import Response
 
 from .filters import AccommodationFilter
@@ -80,13 +81,29 @@ class AccommodationListView(generics.ListAPIView):
 class MyAccommodationListView(generics.ListCreateAPIView):
     serializer_class = AccommodationGeoSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ["name"]
 
     def get_queryset(self):
         owners = getattr(self.request.user, "owners", None)
-        if owners and owners.exists():
-            return Accommodation.objects.filter(owner__in=owners.all())
+        if not (owners and owners.exists()):
+            return Accommodation.objects.none()
 
-        return Accommodation.objects.none()
+        qs = Accommodation.objects.filter(owner__in=self.request.user.owners.all())
+
+        has_availability = self.request.query_params.get("has_availability")
+        if has_availability is not None:
+            val = has_availability.lower() in ("true", "1", "yes")
+            if val:
+                qs = qs.filter(
+                    Q(nb_t1_available__gt=0)
+                    | Q(nb_t1_bis_available__gt=0)
+                    | Q(nb_t2_available__gt=0)
+                    | Q(nb_t3_available__gt=0)
+                    | Q(nb_t4_more_available__gt=0)
+                )
+
+        return qs
 
     def perform_create(self, serializer):
         data = self.request.data.copy()

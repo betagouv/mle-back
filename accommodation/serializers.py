@@ -296,3 +296,4 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
             "nb_t4_more_available",
             "accept_waiting_list",
         )
+        read_only_fields = ("id", "slug", "owner")

@@ -94,6 +94,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "microwave",
             "refrigerator",
             "bathroom",
+            "accept_waiting_list",
             "external_url",
             "source_id",
             "source",
@@ -160,6 +161,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "microwave",
             "refrigerator",
             "bathroom",
+            "accept_waiting_list",
             "external_url",
         )
         accommodation_fields = {}

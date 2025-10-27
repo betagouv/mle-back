@@ -5,10 +5,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 from rest_framework import filters, generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .filters import AccommodationFilter
 from .models import Accommodation
 from .serializers import AccommodationDetailSerializer, AccommodationGeoSerializer
+from .utils import upload_image_to_s3
 
 
 @extend_schema(
@@ -143,3 +145,40 @@ class MyAccommodationDetailView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MyAccommodationImageUploadView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, slug):
+        accommodation = get_object_or_404(
+            Accommodation.objects.filter(owner__in=request.user.owners.all()),
+            slug=slug,
+        )
+
+        files = request.FILES.getlist("images")
+        if not files:
+            return Response(
+                {"detail": "No files provided. Expecting field 'images'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        uploaded_urls = []
+
+        for file_ in files:
+            if file_.size > 10 * 1024 * 1024:  # 10 Mo max
+                return Response(
+                    {"detail": f"File {file_.name} exceeds the 10MB limit."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        for file_ in files:
+            file_content = file_.read()
+            url = upload_image_to_s3(file_content)
+            uploaded_urls.append(url)
+
+        if hasattr(accommodation, "images_urls"):
+            accommodation.images_urls = (accommodation.images_urls or []) + uploaded_urls
+            accommodation.save(update_fields=["images_urls"])
+
+        return Response({"images_urls": uploaded_urls}, status=status.HTTP_201_CREATED)

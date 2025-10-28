@@ -521,6 +521,21 @@ class MyAccommodationDetailAPITests(APITestCase):
         assert data["slug"] == original_slug
         assert data["name"] == "Updated Name With Read-Only Fields"
 
+    def test_patch_updates_images_in_correct_order(self):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+
+        new_urls = [
+            "https://s3.fake/image_b.jpg",
+            "https://s3.fake/image_a.jpg",
+            "https://s3.fake/image_c.jpg",
+        ]
+
+        response = self.client.patch(url, {"images_urls": new_urls}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+
+        self.my_accommodation.refresh_from_db()
+        assert self.my_accommodation.images_urls == new_urls, "URLs should be stored preserved order"
+
 
 class MyAccommodationImageUploadTests(APITestCase):
     def setUp(self):
@@ -548,12 +563,11 @@ class MyAccommodationImageUploadTests(APITestCase):
         assert response.status_code == status.HTTP_201_CREATED
         urls = response.data["images_urls"]
         assert len(urls) == 2
-        assert urls[0].startswith("https://s3.fake/")
+        assert all(url.startswith("https://s3.fake/") for url in urls)
+        assert mock_upload.call_count == 2
 
         self.accommodation.refresh_from_db()
-        assert len(self.accommodation.images_urls) == 2
-
-        assert mock_upload.call_count == 2
+        assert self.accommodation.images_urls == []
 
     @patch("accommodation.views.upload_image_to_s3")
     def test_upload_requires_ownership(self, mock_upload):

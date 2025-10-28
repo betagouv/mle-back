@@ -167,7 +167,7 @@ class MyAccommodationImageUploadView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, slug):
-        accommodation = get_object_or_404(
+        get_object_or_404(
             Accommodation.objects.filter(owner__in=request.user.owners.all()),
             slug=slug,
         )
@@ -192,9 +192,5 @@ class MyAccommodationImageUploadView(APIView):
             file_content = file_.read()
             url = upload_image_to_s3(file_content)
             uploaded_urls.append(url)
-
-        if hasattr(accommodation, "images_urls"):
-            accommodation.images_urls = (accommodation.images_urls or []) + uploaded_urls
-            accommodation.save(update_fields=["images_urls"])
 
         return Response({"images_urls": uploaded_urls}, status=status.HTTP_201_CREATED)

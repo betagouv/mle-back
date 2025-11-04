@@ -267,3 +267,57 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
             "accept_waiting_list",
         )
         read_only_fields = ("id", "slug", "owner")
+
+
+class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSerializer):
+    class Meta:
+        model = Accommodation
+        geo_field = "geom"
+        fields = (
+            "id",
+            "name",
+            "description",
+            "slug",
+            "city",
+            "postal_code",
+            "nb_total_apartments",
+            "nb_accessible_apartments",
+            "nb_coliving_apartments",
+            "images_urls",
+            "available",
+            "nb_t1",
+            "nb_t1_available",
+            "price_min_t1",
+            "price_max_t1",
+            "nb_t1_bis",
+            "nb_t1_bis_available",
+            "price_min_t1_bis",
+            "price_max_t1_bis",
+            "nb_t2",
+            "nb_t2_available",
+            "price_min_t2",
+            "price_max_t2",
+            "nb_t3",
+            "nb_t3_available",
+            "price_min_t3",
+            "price_max_t3",
+            "nb_t4_more",
+            "nb_t4_more_available",
+            "price_min_t4_more",
+            "price_max_t4_more",
+            "accept_waiting_list",
+            "laundry_room",
+            "common_areas",
+            "bike_storage",
+            "parking",
+            "secure_access",
+            "residence_manager",
+            "kitchen_type",
+            "desk",
+            "cooking_plates",
+            "microwave",
+            "refrigerator",
+            "bathroom",
+            "external_url",
+        )
+        read_only_fields = ("id", "slug", "owner", "price_min")

@@ -278,6 +278,7 @@ class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelS
             "name",
             "description",
             "slug",
+            "address",
             "city",
             "postal_code",
             "nb_total_apartments",

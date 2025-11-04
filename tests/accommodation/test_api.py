@@ -465,6 +465,16 @@ class MyAccommodationDetailAPITests(APITestCase):
         acc = Accommodation.objects.get(name="New Accommodation")
         assert acc.owner == self.owner
 
+    def test_get_my_accommodation(self):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()["properties"]
+        assert data["name"] == self.my_accommodation.name
+        assert data["updated_at"] is not None
+
     def test_post_requires_authentication(self):
         self.client.force_authenticate(user=None)
         url = reverse("my-accommodation-list")

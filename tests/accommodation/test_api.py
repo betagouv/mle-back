@@ -481,6 +481,10 @@ class MyAccommodationDetailAPITests(APITestCase):
             "bathroom": "private",
             "laundry_room": True,
             "slug": "new_slug",
+            "nb_t1": 104,
+            "nb_t1_available": 10,
+            "price_min_t1": 300,
+            "price_max_t1": 450,
         }
 
         response = self.client.patch(url, payload, format="json")
@@ -492,6 +496,10 @@ class MyAccommodationDetailAPITests(APITestCase):
         assert data["laundry_room"] is True
         assert data["updated_at"] is not None
         assert data["slug"] == current_slug, "slug should not be changed"
+        assert data["nb_t1"] == 104
+        assert data["nb_t1_available"] == 10
+        assert data["price_min_t1"] == 300
+        assert data["price_max_t1"] == 450
 
         self.my_accommodation.refresh_from_db()
         assert self.my_accommodation.name == "Updated Accommodation Name"

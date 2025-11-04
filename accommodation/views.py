@@ -14,6 +14,8 @@ from .utils import upload_image_to_s3
 
 
 @extend_schema(
+    summary="Retrieve a single published accommodation",
+    description="Return detailed information about a published accommodation identified by its slug.",
     responses=AccommodationDetailSerializer,
 )
 class AccommodationDetailView(generics.RetrieveAPIView):
@@ -23,6 +25,8 @@ class AccommodationDetailView(generics.RetrieveAPIView):
 
 
 @extend_schema(
+    summary="List all published accommodations",
+    description="Return a list of all published accommodations, supporting filters such as bbox, accessibility, coliving, price, etc.",
     parameters=[
         OpenApiParameter(
             "bbox",
@@ -33,19 +37,19 @@ class AccommodationDetailView(generics.RetrieveAPIView):
         OpenApiParameter(
             "is_accessible",
             OpenApiTypes.BOOL,
-            description="Filter to return only accommodations with accessible apartments (nb_accessible_apartments > 0).",
+            description="Return only accommodations with accessible apartments (nb_accessible_apartments > 0).",
             required=False,
         ),
         OpenApiParameter(
             "only_with_availibility",
             OpenApiTypes.BOOL,
-            description="Filter to return only accommodations with available apartments (nb_t1_available > 0 or nb_t1_bis_available > 0 or nb_t2_available > 0 or nb_t3_available > 0 or nb_t4_more_available > 0).",
+            description="Return only accommodations with available apartments (nb_t1_available > 0 | nb_t1_bis_available > 0 | nb_t2_available > 0 | nb_t3_available > 0 | nb_t4_more_available > 0).",
             required=False,
         ),
         OpenApiParameter(
             "has_coliving",
             OpenApiTypes.BOOL,
-            description="Filter to return only accommodations with coliving apartments (nb_coliving_apartments > 0).",
+            description="Return only accommodations offering coliving options (nb_coliving_apartments > 0).",
             required=False,
         ),
         OpenApiParameter(
@@ -63,7 +67,7 @@ class AccommodationDetailView(generics.RetrieveAPIView):
         OpenApiParameter(
             "price_max",
             OpenApiTypes.NUMBER,
-            description="Price max in euros for filtering accommodations with a price lower than the given value.",
+            description="Maximum price (in euros) for filtering accommodations below the given value.",
             required=False,
         ),
     ],
@@ -77,15 +81,14 @@ class AccommodationListView(generics.ListAPIView):
 
 
 @extend_schema(
-    description="List accommodations belonging to the authenticated user.",
+    summary="List or create accommodations owned by the authenticated owner",
+    description="Allows an authenticated owner to list and create accommodations linked to their owner account.",
     responses=AccommodationGeoSerializer,
     parameters=[
         OpenApiParameter(
             name="has_availability",
             type=OpenApiTypes.BOOL,
-            description=(
-                "Filter accommodations to return only those that have available apartments. Use true (falsy not managed)"
-            ),
+            description="Filter accommodations to return only those with available apartments. Use 'true' to enable.",
             required=False,
         ),
         OpenApiParameter(
@@ -123,6 +126,12 @@ class MyAccommodationListView(generics.ListCreateAPIView):
 
         return qs
 
+    @extend_schema(
+        summary="Create a new accommodation for the authenticated owner",
+        description="Create a new accommodation belonging to the authenticated user’s owner account.",
+        request=AccommodationGeoSerializer,
+        responses=AccommodationGeoSerializer,
+    )
     def perform_create(self, serializer):
         data = self.request.data.copy()
         geom = data.get("geom")
@@ -136,7 +145,8 @@ class MyAccommodationListView(generics.ListCreateAPIView):
 
 
 @extend_schema(
-    description="Retrieve, create or update accommodations belonging to the authenticated owner.",
+    summary="Retrieve or update a specific accommodation owned by the authenticated owner",
+    description="Allows an authenticated owner to retrieve or partially update an accommodation by slug.",
     request=MyAccommodationGeoSerializer,
     responses=MyAccommodationGeoSerializer,
 )
@@ -149,7 +159,6 @@ class MyAccommodationDetailView(generics.GenericAPIView):
         owners = getattr(self.request.user, "owners", None)
         if owners and owners.exists():
             return Accommodation.objects.filter(owner__in=owners.all())
-
         return Accommodation.objects.none()
 
     def get_object(self):
@@ -177,6 +186,20 @@ class MyAccommodationDetailView(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    summary="Upload one or more images for an accommodation, authenticated as owner",
+    description=(
+        "Upload one or multiple image files (multipart/form-data) for an accommodation "
+        "belonging to the authenticated owner. Returns public S3 URLs. "
+        "The accommodation is not modified; use PATCH afterwards to save the URLs in order."
+    ),
+    request={"multipart/form-data": {"images": {"type": "array", "items": {"type": "string", "format": "binary"}}}},
+    responses={
+        201: OpenApiTypes.OBJECT,
+        400: OpenApiTypes.OBJECT,
+        404: OpenApiTypes.OBJECT,
+    },
+)
 class MyAccommodationImageUploadView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -193,18 +216,13 @@ class MyAccommodationImageUploadView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        uploaded_urls = []
-
         for file_ in files:
-            if file_.size > 10 * 1024 * 1024:  # 10 Mo max
+            if file_.size > 10 * 1024 * 1024:  # 10MB max
                 return Response(
                     {"detail": f"File {file_.name} exceeds the 10MB limit."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        for file_ in files:
-            file_content = file_.read()
-            url = upload_image_to_s3(file_content)
-            uploaded_urls.append(url)
+        uploaded_urls = [upload_image_to_s3(file_.read()) for file_ in files]
 
         return Response({"images_urls": uploaded_urls}, status=status.HTTP_201_CREATED)

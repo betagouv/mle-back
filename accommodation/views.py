@@ -155,6 +155,20 @@ class MyAccommodationDetailView(generics.GenericAPIView):
     def get_object(self):
         return get_object_or_404(self.get_queryset(), slug=self.kwargs[self.lookup_field])
 
+    @extend_schema(
+        summary="Retrieve an accommodation belonging to the authenticated owner",
+        responses=MyAccommodationGeoSerializer,
+    )
+    def get(self, request, *args, **kwargs):
+        accommodation = self.get_object()
+        serializer = self.get_serializer(accommodation)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Partially update an accommodation belonging to the authenticated owner",
+        request=MyAccommodationGeoSerializer,
+        responses=MyAccommodationGeoSerializer,
+    )
     def patch(self, request, *args, **kwargs):
         accommodation = self.get_object()
         serializer = self.get_serializer(accommodation, data=request.data, partial=True)

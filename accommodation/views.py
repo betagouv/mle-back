@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from .filters import AccommodationFilter
 from .models import Accommodation
-from .serializers import AccommodationDetailSerializer, AccommodationGeoSerializer
+from .serializers import AccommodationDetailSerializer, AccommodationGeoSerializer, MyAccommodationGeoSerializer
 from .utils import upload_image_to_s3
 
 
@@ -137,11 +137,11 @@ class MyAccommodationListView(generics.ListCreateAPIView):
 
 @extend_schema(
     description="Retrieve, create or update accommodations belonging to the authenticated owner.",
-    request=AccommodationGeoSerializer,
-    responses=AccommodationGeoSerializer,
+    request=MyAccommodationGeoSerializer,
+    responses=MyAccommodationGeoSerializer,
 )
 class MyAccommodationDetailView(generics.GenericAPIView):
-    serializer_class = AccommodationGeoSerializer
+    serializer_class = MyAccommodationGeoSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = "slug"
 

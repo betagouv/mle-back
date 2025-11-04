@@ -474,13 +474,15 @@ class MyAccommodationDetailAPITests(APITestCase):
     def test_patch_update_own_accommodation(self):
         url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
 
-        payload = {"name": "Updated Accommodation Name"}
+        payload = {"name": "Updated Accommodation Name", "bathroom": "private", "laundry_room": True}
 
         response = self.client.patch(url, payload, format="json")
         assert response.status_code == status.HTTP_200_OK
 
         data = response.json()["properties"]
         assert data["name"] == "Updated Accommodation Name"
+        assert data["bathroom"] == "private"
+        assert data["laundry_room"] is True
 
         self.my_accommodation.refresh_from_db()
         assert self.my_accommodation.name == "Updated Accommodation Name"

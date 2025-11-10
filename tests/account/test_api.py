@@ -25,14 +25,14 @@ class AccountAPITests(APITestCase):
         response = self.client.post(reverse("request-magic-link"), {"email": "test@test.com"})
         assert response.status_code == 200
         assert response.json() == {
-            "detail": "If an account exists with this email, you will receive a link to log in. Please contact xxx in case of problem."
+            "detail": "Si un compte existe avec cette adresse e-mail, vous recevrez un lien pour vous connecter. Veuillez contacter xxx en cas de problème."
         }
 
         UserFactory.create(email="test@test.com")
         response = self.client.post(reverse("request-magic-link"), {"email": "test@test.com"})
         assert response.status_code == 200
         assert response.json() == {
-            "detail": "If an account exists with this email, you will receive a link to log in. Please contact xxx in case of problem."
+            "detail": "Si un compte existe avec cette adresse e-mail, vous recevrez un lien pour vous connecter. Veuillez contacter xxx en cas de problème."
         }
         assert mock_send_email.call_count == 1
 

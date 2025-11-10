@@ -569,6 +569,37 @@ class MyAccommodationDetailAPITests(APITestCase):
         self.my_accommodation.refresh_from_db()
         assert self.my_accommodation.images_urls == new_urls, "URLs should be stored preserved order"
 
+    def test_create_accommodation_returns_400_if_nb_available_exceeds_total(self):
+        url = reverse("my-accommodation-list")
+        payload = {
+            "name": "Invalid Accommodation",
+            "address": "123 Rue de Paris",
+            "city": "Paris",
+            "postal_code": "75001",
+            "geom": {"type": "Point", "coordinates": [2.35, 48.85]},
+            "nb_t1": 2,
+            "nb_t1_available": 5,
+            "published": True,
+        }
+
+        response = self.client.post(url, payload, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
+        assert "nb_t1_available" in response.json()
+
+    def test_patch_returns_400_if_nb_available_exceeds_total(self):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+
+        payload = {
+            "nb_t2": 1,
+            "nb_t2_available": 3,
+        }
+
+        response = self.client.patch(url, payload, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
+        assert "nb_t2_available" in response.json()
+
 
 class MyAccommodationImageUploadTests(APITestCase):
     def setUp(self):

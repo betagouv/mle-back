@@ -5,7 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
 from django.urls import reverse
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext, gettext_lazy
 
 from account.models import Owner
 
@@ -151,6 +151,30 @@ class Accommodation(models.Model):
     def get_absolute_url(self):
         return f"{settings.FRONT_SITE_URL}/trouver-un-logement-etudiant/ville/{slugify(self.city)}/{self.slug}"
 
+    def clean(self):
+        super().clean()
+        errors = {}
+        for attr_available in [
+            "nb_t1_available",
+            "nb_t1_bis_available",
+            "nb_t2_available",
+            "nb_t3_available",
+            "nb_t4_more_available",
+        ]:
+            field_available = getattr(self, attr_available)
+            field_stock = getattr(self, attr_available.replace("_available", ""))
+            if field_available is not None and field_stock is not None and field_available > field_stock:
+                errors[attr_available] = gettext(
+                    f"The number of available {field_available} is greater than the number of {field_stock}"
+                )
+
+        if errors:
+            raise ValidationError(errors)
+
+        reserved_slugs = {"my"}
+        if self.slug in reserved_slugs:
+            raise ValidationError({"slug": f"Reserved slug '{self.slug}'."})
+
     def save(self, *args, **kwargs):
         self.clean()
         self.images_count = len(self.images_urls or [])
@@ -174,24 +198,6 @@ class Accommodation(models.Model):
             ]
         )
         super().save(*args, **kwargs)
-
-    def clean(self):
-        for attr_available in [
-            "nb_t1_available",
-            "nb_t1_bis_available",
-            "nb_t2_available",
-            "nb_t3_available",
-            "nb_t4_more_available",
-        ]:
-            field_available = getattr(self, attr_available)
-            field_stock = getattr(self, attr_available.replace("_available", ""))
-            if field_available is not None and field_stock is not None and field_available > field_stock:
-                field_available = field_stock
-                setattr(self, attr_available, field_available)
-
-        reserved_slugs = {"my"}
-        if self.slug in reserved_slugs:
-            raise ValidationError({"slug": f"Reserved slug '{self.slug}'."})
 
 
 class ExternalSource(models.Model):

@@ -1,3 +1,3 @@
 .PHONY: messages
 messages:
-	python manage.py makemessages -l fr
+	python manage.py makemessages -l fr --no-location

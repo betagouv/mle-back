@@ -1,4 +1,6 @@
 import requests
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
@@ -181,6 +183,42 @@ class BaseAccommodationSerialiser(serializers.Serializer):
         prices = [obj.price_max_t1, obj.price_max_t1_bis, obj.price_max_t2, obj.price_max_t3, obj.price_max_t4_more]
         prices = [p for p in prices if p is not None]
         return max(prices) if prices else None
+
+    def validate(self, data):
+        pairs = [
+            ("nb_t1", "nb_t1_available"),
+            ("nb_t1_bis", "nb_t1_bis_available"),
+            ("nb_t2", "nb_t2_available"),
+            ("nb_t3", "nb_t3_available"),
+            ("nb_t4_more", "nb_t4_more_available"),
+        ]
+
+        errors = {}
+
+        for stock_field, available_field in pairs:
+            stock = data.get(stock_field, getattr(self.instance, stock_field, None) if self.instance else None)
+            available = data.get(
+                available_field, getattr(self.instance, available_field, None) if self.instance else None
+            )
+
+            if stock is not None and available is not None and available > stock:
+                errors[available_field] = gettext(
+                    "The number of available %(available)d is greater than the total %(total)d"
+                ) % {"available": available, "total": stock}
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return data
+
+    def create(self, validated_data):
+        try:
+            instance = super().create(validated_data)
+            instance.full_clean()
+            instance.save()
+            return instance
+        except ValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
 
 
 class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.ModelSerializer):

@@ -493,6 +493,7 @@ class MyAccommodationDetailAPITests(APITestCase):
             "slug": "new_slug",
             "nb_t1": 104,
             "nb_t1_available": 10,
+            "nb_t2": 16,
             "price_min_t1": 300,
             "price_max_t1": 450,
         }
@@ -513,6 +514,7 @@ class MyAccommodationDetailAPITests(APITestCase):
 
         self.my_accommodation.refresh_from_db()
         assert self.my_accommodation.name == "Updated Accommodation Name"
+        assert self.my_accommodation.nb_total_apartments == 120
 
     def test_patch_cannot_update_others_accommodation(self):
         url = reverse("my-accommodation-detail", args=[self.other_accommodation.slug])

@@ -164,6 +164,15 @@ class Accommodation(models.Model):
         non_null_prices = [p for p in price_min_fields if p is not None]
         self.price_min = min(non_null_prices) if non_null_prices else None
 
+        self.nb_total_apartments = sum(
+            [
+                int(self.nb_t1 or 0),
+                int(self.nb_t1_bis or 0),
+                int(self.nb_t2 or 0),
+                int(self.nb_t3 or 0),
+                int(self.nb_t4_more or 0),
+            ]
+        )
         super().save(*args, **kwargs)
 
     def clean(self):

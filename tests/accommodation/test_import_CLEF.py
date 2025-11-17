@@ -38,7 +38,7 @@ abcde,Third planned residence,Résidence Universitaire conventionnée,10 Rue de 
     assert accommodation1.geom.y == 48.8698
     assert accommodation1.owner.name == "Example Manager"
     assert accommodation1.owner.url == "http://first.com"
-    assert accommodation1.nb_total_apartments == 100
+    assert accommodation1.nb_total_apartments == 85
     assert accommodation1.nb_accessible_apartments == 5
     assert accommodation1.nb_coliving_apartments == 10
     assert accommodation1.nb_t1 == 20
@@ -57,7 +57,7 @@ abcde,Third planned residence,Résidence Universitaire conventionnée,10 Rue de 
     assert accommodation2.geom.y == 43.2965
     assert accommodation2.owner.name == "Another Manager"
     assert accommodation2.owner.url == "http://second.com"
-    assert accommodation2.nb_total_apartments == 150
+    assert accommodation2.nb_total_apartments == 125
     assert accommodation2.nb_accessible_apartments == 10
     assert accommodation2.nb_coliving_apartments == 5
     assert accommodation2.nb_t1 == 25
@@ -134,7 +134,7 @@ def test_import_clef_command(mock_settings):
                         "codePostal": "69120",
                         "gestionnaireNom": "DEF",
                         "gestionnaireSite": "https://def.test",
-                        "nombreTotalLogement": 200,
+                        "nombreTotalLogement": 180,
                         "nombreLogementCollocation": None,
                         "nombreLogementPMR": 12,
                         "nombreT1": 125,
@@ -274,7 +274,7 @@ def test_import_clef_command(mock_settings):
         assert accommodation.geom.x == 4.934459
         assert accommodation.geom.y == 45.779062
         assert accommodation.images_urls is None
-        assert accommodation.nb_total_apartments == 200
+        assert accommodation.nb_total_apartments == 180
         assert accommodation.nb_accessible_apartments == 12
         assert accommodation.nb_coliving_apartments is None
         assert accommodation.nb_t1 == 125

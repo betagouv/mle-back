@@ -508,6 +508,8 @@ class MyAccommodationDetailAPITests(APITestCase):
         assert data["updated_at"] is not None
         assert data["slug"] == current_slug, "slug should not be changed"
         assert data["nb_t1"] == 104
+        assert data["nb_t2"] == 16
+        assert data["nb_t3"] is None
         assert data["nb_t1_available"] == 10
         assert data["price_min_t1"] == 300
         assert data["price_max_t1"] == 450

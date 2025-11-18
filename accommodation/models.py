@@ -273,3 +273,18 @@ class ExternalSource(models.Model):
 
     def __str__(self):
         return f"Source {self.source} - {self.source_id} - for {self.accommodation}"
+
+
+class FavoriteAccommodation(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="favorites")
+    accommodation = models.ForeignKey(
+        "accommodation.Accommodation", on_delete=models.CASCADE, related_name="favorited_by"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "accommodation")
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.user} puts {self.accommodation} on favorites"

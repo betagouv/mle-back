@@ -2,14 +2,20 @@ from django.contrib.gis.geos import Point
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
-from rest_framework import filters, generics, permissions, status
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
+from rest_framework import filters, generics, mixins, permissions, status, viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .filters import AccommodationFilter
-from .models import Accommodation
-from .serializers import AccommodationDetailSerializer, AccommodationGeoSerializer, MyAccommodationGeoSerializer
+from .models import Accommodation, FavoriteAccommodation
+from .serializers import (
+    AccommodationDetailSerializer,
+    AccommodationGeoSerializer,
+    FavoriteAccommodationGeoSerializer,
+    MyAccommodationGeoSerializer,
+)
 from .utils import upload_image_to_s3
 
 
@@ -226,3 +232,70 @@ class MyAccommodationImageUploadView(APIView):
         uploaded_urls = [upload_image_to_s3(file_.read()) for file_ in files]
 
         return Response({"images_urls": uploaded_urls}, status=status.HTTP_201_CREATED)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="List user favorite accommodations",
+        description=(
+            "Returns the list of accommodations marked as favorites by the "
+            "authenticated user. Results are automatically filtered based on "
+            "`request.user`."
+        ),
+        responses={
+            200: FavoriteAccommodationGeoSerializer(many=True),
+            401: OpenApiResponse(description="Authentication required"),
+        },
+    ),
+    create=extend_schema(
+        summary="Add a favorite accommodation",
+        description=(
+            "Adds an accommodation to the authenticated user's list of favorites. "
+            "The `accommodation_id` must be provided in the request body. "
+            "If the favorite already exists, the API simply returns the existing object."
+        ),
+        request=FavoriteAccommodationGeoSerializer,
+        responses={
+            201: FavoriteAccommodationGeoSerializer,
+            400: OpenApiResponse(description="Invalid request"),
+            401: OpenApiResponse(description="Authentication required"),
+        },
+        examples=[
+            {
+                "name": "add_favorite_example",
+                "summary": "Add accommodation to favorites",
+                "value": {"accommodation_id": 42},
+            }
+        ],
+    ),
+    destroy=extend_schema(
+        summary="Remove a favorite accommodation",
+        description=(
+            "Deletes a favorite belonging to the authenticated user. "
+            "Attempting to delete another user's favorite will return a 404 or 403 "
+            "depending on configuration."
+        ),
+        responses={
+            204: OpenApiResponse(description="Favorite deleted"),
+            401: OpenApiResponse(description="Authentication required"),
+            404: OpenApiResponse(description="Favorite not found"),
+        },
+    ),
+)
+class FavoriteAccommodationViewSet(
+    mixins.ListModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
+):
+    serializer_class = FavoriteAccommodationGeoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return FavoriteAccommodation.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        slug = kwargs.get("slug")
+        favorite = get_object_or_404(FavoriteAccommodation, user=request.user, accommodation__slug=slug)
+        favorite.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -648,3 +648,51 @@ class MyAccommodationImageUploadTests(APITestCase):
         response = self.client.post(self.url, {}, format="multipart")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "No files provided" in response.data["detail"]
+
+
+class FavoriteAccommodationViewSetTests(APITestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.client.force_authenticate(user=self.user)
+
+        self.accommodation = AccommodationFactory(
+            slug="my-favorite-accommodation",
+            geom=Point(2.35, 48.85),
+            published=True,
+            name="My Favorite Accommodation",
+        )
+
+    def test_create_favorite_accommodation(self):
+        url = reverse("favorite-accommodation-list")
+        payload = {"accommodation_slug": self.accommodation.slug}
+
+        response = self.client.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_list_favorite_accommodations(self):
+        url = reverse("favorite-accommodation-list")
+        payload = {"accommodation_slug": self.accommodation.slug}
+
+        response = self.client.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()
+        results = data["results"]
+
+        assert len(results) == 1
+        assert results[0]["accommodation"]["id"] == self.accommodation.id
+
+    def test_delete_favorite_accommodation(self):
+        url = reverse("favorite-accommodation-list")
+        payload = {"accommodation_slug": self.accommodation.slug}
+
+        response = self.client.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+
+        url = reverse("favorite-accommodation-detail", args=[self.accommodation.slug])
+
+        response = self.client.delete(url, format="json")
+        assert response.status_code == status.HTTP_204_NO_CONTENT

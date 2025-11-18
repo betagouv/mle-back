@@ -8,7 +8,7 @@ from account.models import Owner
 from account.serializers import OwnerSerializer
 from common.serializers import BinaryToBase64Field
 
-from .models import Accommodation, ExternalSource
+from .models import Accommodation, ExternalSource, FavoriteAccommodation
 from .utils import upload_image_to_s3
 
 
@@ -361,3 +361,30 @@ class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelS
             "updated_at",
         )
         read_only_fields = ("id", "slug", "owner", "price_min", "updated_at")
+
+
+class FavoriteAccommodationGeoSerializer(serializers.ModelSerializer):
+    geom = serializers.SerializerMethodField()
+    accommodation = AccommodationGeoSerializer(read_only=True)
+    accommodation_slug = serializers.SlugRelatedField(
+        slug_field="slug", queryset=Accommodation.objects.all(), write_only=True
+    )
+
+    class Meta:
+        model = FavoriteAccommodation
+        fields = ("id", "accommodation", "accommodation_slug", "created_at", "geom")
+
+    def get_geom(self, obj):
+        if obj.accommodation and obj.accommodation.geom:
+            return {
+                "type": "Point",
+                "coordinates": [obj.accommodation.geom.x, obj.accommodation.geom.y],
+            }
+        return None
+
+    def create(self, validated_data):
+        accommodation = validated_data.pop("accommodation_slug")
+        favorite, _ = FavoriteAccommodation.objects.get_or_create(
+            user=self.context["request"].user, accommodation=accommodation
+        )
+        return favorite

@@ -16,3 +16,7 @@ fileignoreconfig:
     checksum: b856d245795bd960945b4b3a7056f8f2bea0e5435b50cfef1c89581d1673fba8
   - filename: accommodation/utils.py
     checksum: 4554da26f8553ce4b3fea7a11f50103c94bdca288a7208ce5feb32dc42c0ae12
+  - filename: accommodation/models.py
+    checksum: 913fdd87efd5da0dae19e33683de0da56806030910b3781f182d5f2679f7eab7
+  - filename: accommodation/migrations/0037_favorites.py
+    checksum: 5dde99db31a5618f10caf05cf63ccb31da36a9b16bee16fdf49a7156071e1b04

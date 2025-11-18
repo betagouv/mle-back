@@ -1,6 +1,7 @@
 import requests
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext
+from drf_spectacular.utils import OpenApiTypes, extend_schema_field
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
@@ -374,6 +375,7 @@ class FavoriteAccommodationGeoSerializer(serializers.ModelSerializer):
         model = FavoriteAccommodation
         fields = ("id", "accommodation", "accommodation_slug", "created_at", "geom")
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
     def get_geom(self, obj):
         if obj.accommodation and obj.accommodation.geom:
             return {

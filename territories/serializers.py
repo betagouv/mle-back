@@ -1,5 +1,5 @@
 from django.contrib.gis.db.models.functions import Distance
-from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.utils import OpenApiTypes, extend_schema_field
 from rest_framework import serializers
 
 from .mixins import BBoxMixin, CityMixin
@@ -71,6 +71,7 @@ class CityListSerializer(BBoxMixin, CityMixin):
             "department_code",
         )
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_department_code(self, obj):
         return obj.department.code
 

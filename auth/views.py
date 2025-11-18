@@ -73,6 +73,7 @@ def request_magic_link(request):
 class RequestMagicLinkAPIView(APIView):
     authentication_classes = []
     permission_classes = []
+    serializer_class = None
 
     def post(self, request):
         email = request.data.get("email")
@@ -114,6 +115,7 @@ class RequestMagicLinkAPIView(APIView):
 class CheckMagicLinkAPIView(APIView):
     authentication_classes = []
     permission_classes = []
+    serializer_class = None
 
     def post(self, request):
         token = request.data.get("sesame")
@@ -141,6 +143,7 @@ class CheckMagicLinkAPIView(APIView):
 
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = None
 
     def post(self, request):
         try:

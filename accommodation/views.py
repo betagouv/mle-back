@@ -2,7 +2,14 @@ from django.contrib.gis.geos import Point
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    OpenApiResponse,
+    OpenApiTypes,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import filters, generics, mixins, permissions, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -261,11 +268,12 @@ class MyAccommodationImageUploadView(APIView):
             401: OpenApiResponse(description="Authentication required"),
         },
         examples=[
-            {
-                "name": "add_favorite_example",
-                "summary": "Add accommodation to favorites",
-                "value": {"accommodation_id": 42},
-            }
+            OpenApiExample(
+                name="add_favorite_example",
+                summary="Add accommodation to favorites",
+                value={"accommodation_slug": "my-favorite-accommodation"},
+                request_only=True,
+            )
         ],
     ),
     destroy=extend_schema(
@@ -289,6 +297,8 @@ class FavoriteAccommodationViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return FavoriteAccommodation.objects.none()
         return FavoriteAccommodation.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):

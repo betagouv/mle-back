@@ -517,6 +517,15 @@ class MyAccommodationDetailAPITests(APITestCase):
         self.my_accommodation.refresh_from_db()
         assert self.my_accommodation.name == "Updated Accommodation Name"
         assert self.my_accommodation.nb_total_apartments == 120
+        assert self.my_accommodation.published is True
+
+        payload = {"published": False}
+
+        response = self.client.patch(url, payload, format="json")
+        assert response.status_code == status.HTTP_200_OK
+
+        self.my_accommodation.refresh_from_db()
+        assert self.my_accommodation.published is False
 
     def test_patch_cannot_update_others_accommodation(self):
         url = reverse("my-accommodation-detail", args=[self.other_accommodation.slug])

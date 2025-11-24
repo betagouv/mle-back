@@ -360,6 +360,7 @@ class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelS
             "bathroom",
             "external_url",
             "updated_at",
+            "published",
         )
         read_only_fields = ("id", "slug", "owner", "price_min", "updated_at")
 

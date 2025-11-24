@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("accommodation", "0036_promologis"),
+        ("accommodation", "0038_opal_afev"),
     ]
 
     operations = [

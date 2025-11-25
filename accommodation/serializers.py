@@ -74,14 +74,31 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "owner_id",
         )
 
+    def _update_fields(self, accommodation, validated_data):
+        for field_name, field_value in validated_data.items():
+            if field_value is not None:
+                setattr(accommodation, field_name, field_value)
+        return accommodation
+
+    def _manage_images(self, accommodation, images_content, images_urls):
+        image_urls = []
+        if images_content is not None or images_urls is not None:
+            for img_data in (images_content or []) + (images_urls or []):
+                if isinstance(img_data, str) and img_data.startswith("http"):
+                    img_data = requests.get(img_data).content
+                url = upload_image_to_s3(img_data)
+                image_urls.append(url)
+            accommodation.images_urls = image_urls
+        return accommodation
+
     def create(self, validated_data):
         source_id = validated_data.pop("source_id")
         source = validated_data.pop("source")
         images_urls = validated_data.pop("images_urls") or None
         images_content = validated_data.pop("images_content") or None
         owner_id = validated_data.pop("owner_id", None)
-        accommodation = None
 
+        accommodation = None
         if source_id and source:
             accommodation = Accommodation.objects.filter(sources__source_id=source_id, sources__source=source).first()
 
@@ -93,72 +110,13 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
                 postal_code=validated_data["postal_code"],
             )
 
-        fields = (
-            "description",
-            "geom",
-            "residence_type",
-            "nb_total_apartments",
-            "nb_accessible_apartments",
-            "nb_coliving_apartments",
-            "nb_t1",
-            "nb_t1_available",
-            "nb_t1_bis",
-            "nb_t1_bis_available",
-            "nb_t2",
-            "nb_t2_available",
-            "nb_t3",
-            "nb_t3_available",
-            "nb_t4_more",
-            "nb_t4_more_available",
-            "price_min_t1",
-            "price_max_t1",
-            "price_min_t1_bis",
-            "price_max_t1_bis",
-            "price_min_t2",
-            "price_max_t2",
-            "price_min_t3",
-            "price_max_t3",
-            "price_min_t4_more",
-            "price_max_t4_more",
-            "laundry_room",
-            "common_areas",
-            "bike_storage",
-            "parking",
-            "secure_access",
-            "residence_manager",
-            "kitchen_type",
-            "desk",
-            "cooking_plates",
-            "microwave",
-            "refrigerator",
-            "bathroom",
-            "accept_waiting_list",
-            "external_url",
-        )
-        accommodation_fields = {}
-        for field_name in fields:
-            if validated_data.get(field_name) is not None:
-                # do not erase values on update
-                accommodation_fields[field_name] = validated_data.pop(field_name, None)
-
-        for field_name, field_value in accommodation_fields.items():
-            if field_value is not None:
-                # do not erase values on update
-                setattr(accommodation, field_name, field_value)
-
-        image_urls = []
-        if images_content is not None or images_urls is not None:
-            for img_data in (images_content or []) + (images_urls or []):
-                if isinstance(img_data, str) and img_data.startswith("http"):
-                    img_data = requests.get(img_data).content
-                url = upload_image_to_s3(img_data)
-                image_urls.append(url)
-
-            accommodation.images_urls = image_urls
+        accommodation = self._update_fields(accommodation, validated_data)
 
         if owner_id:
             owner = Owner.objects.get(pk=owner_id)
             accommodation.owner = owner
+
+        accommodation = self._manage_images(accommodation, images_content, images_urls)
 
         accommodation.save()
 
@@ -169,6 +127,21 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         )
 
         return accommodation
+
+    def update(self, instance, validated_data):
+        images_urls = validated_data.pop("images_urls", None)
+        images_content = validated_data.pop("images_content", None)
+        owner_id = validated_data.pop("owner_id", None)
+
+        instance = self._update_fields(instance, validated_data)
+
+        if owner_id:
+            owner = Owner.objects.get(pk=owner_id)
+            instance.owner = owner
+
+        instance = self._manage_images(instance, images_content, images_urls)
+        instance.save()
+        return instance
 
 
 class BaseAccommodationSerialiser(serializers.Serializer):

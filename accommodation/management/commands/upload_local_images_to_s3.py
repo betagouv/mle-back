@@ -1,76 +1,35 @@
-import mimetypes
 import os
 import re
 
-import boto3
-from botocore.exceptions import ClientError
 from django.conf import settings
-from django.core.management.base import BaseCommand
+
+from accommodation.management.commands.upload_base_command import UploadS3BaseCommand
 
 local_directory = "temp/evolea_images/"
 prefix_on_s3 = "evolea-images"
 image_regexp = None  # r"^9021.*\.jpg"
 
 
-class Command(BaseCommand):
+class Command(UploadS3BaseCommand):
     help = "Upload images to S3"
 
     def handle(self, *args, **options):
-        upload_images_in_directory(local_directory)
+        if not os.path.isdir(local_directory):
+            print(f"Local dir {local_directory} doesnot exist.")
+            return
 
+        images_urls = []
+        for filename in os.listdir(local_directory):
+            if image_regexp is not None and re.match(image_regexp, filename) is None:
+                print(f"Ignore file {filename} not matching image_regexp")
+                continue
+            file_path = os.path.join(local_directory, filename)
 
-def upload_image_to_s3(image_path, file_name):
-    s3 = boto3.client(
-        "s3",
-        endpoint_url=settings.AWS_S3_ENDPOINT_URL,
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        config=boto3.session.Config(
-            signature_version="s3v4",
-            request_checksum_calculation="when_required",
-            response_checksum_validation="when_required",
-        ),
-    )
+            if os.path.isfile(file_path) and filename.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")):
+                print(f"Uploading {filename}...")
+                self.upload_image_to_s3(file_path, prefix_on_s3)
+                print(f"File uploaded to S3 with URL: {settings.AWS_S3_PUBLIC_BASE_URL}/{prefix_on_s3}/{filename}")
+                images_urls.append(f"{settings.AWS_S3_PUBLIC_BASE_URL}/{prefix_on_s3}/{filename}")
 
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-
-    mime_type = mimetypes.guess_type(file_name)[0] or "image/jpeg"
-
-    file_key = f"{prefix_on_s3}/{file_name}"
-
-    with open(image_path, "rb") as f:
-        try:
-            s3.put_object(
-                Bucket=bucket_name,
-                Key=file_key,
-                Body=f,
-                ContentType=mime_type,
-                ACL="public-read",
-            )
-            print(f"Image {file_name} uploaded {file_key}")
-            return f"{settings.AWS_S3_PUBLIC_BASE_URL}/{file_key}"
-        except ClientError as e:
-            print(f"Error uploading {file_name}: {e}")
-            return None
-
-
-def upload_images_in_directory(directory_path):
-    if not os.path.isdir(directory_path):
-        print(f"Local dir {directory_path} does not exist.")
-        return
-
-    images_urls = []
-    for filename in sorted(os.listdir(directory_path)):
-        if image_regexp is not None and re.match(image_regexp, filename) is None:
-            print(f"Ignore file {filename} not matching image_regexp")
-            continue
-        file_path = os.path.join(directory_path, filename)
-
-        if os.path.isfile(file_path) and filename.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")):
-            print(f"Uploading {filename}...")
-            upload_image_to_s3(file_path, filename)
-            print(f"File uploaded to S3 with URL: {settings.AWS_S3_PUBLIC_BASE_URL}/{prefix_on_s3}/{filename}")
-            images_urls.append(f"{settings.AWS_S3_PUBLIC_BASE_URL}/{prefix_on_s3}/{filename}")
-
-    print(f"Images for {directory_path}:")
-    print("|".join(images_urls))
+        print(f"Images for {local_directory}:")
+        print("|".join(images_urls))

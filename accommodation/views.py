@@ -83,6 +83,13 @@ class AccommodationDetailView(generics.RetrieveAPIView):
             description="Maximum price (in euros) for filtering accommodations below the given value.",
             required=False,
         ),
+        OpenApiParameter(
+            "view_crous",
+            OpenApiTypes.BOOL,
+            description="If true, only CROUS accommodations will be returned, if false, only non CROUS accommodations will be returned.",
+            required=False,
+            default=False,
+        ),
     ],
     responses=AccommodationGeoSerializer,
 )

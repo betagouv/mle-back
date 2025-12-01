@@ -10,7 +10,7 @@ from rest_framework.test import APITestCase
 from accommodation.models import Accommodation
 from tests.account.factories import OwnerFactory, UserFactory
 
-from .factories import AccommodationFactory
+from .factories import AccommodationFactory, ExternalSourceFactory
 
 
 class AccommodationDetailAPITests(APITestCase):
@@ -330,6 +330,32 @@ class AccommodationListAPITests(APITestCase):
         assert returned_ids.index(accommodation_mixed_null_and_zero.id) < returned_ids.index(
             accommodation_with_unknown_availibity_waiting_list.id
         )
+
+    def test_accommodation_list_crous(self):
+        accommodation_crous = AccommodationFactory(geom=Point(2.35, 48.85))
+        ExternalSourceFactory(accommodation=accommodation_crous, source="crous")
+
+        response = self.client.get(reverse("accommodation-list"))
+
+        assert response.status_code == 200
+        results = response.json()
+
+        features = response.json()["results"]["features"]
+        returned_ids = [feature["id"] for feature in features]
+
+        assert results["count"] == 6
+        assert accommodation_crous.id not in returned_ids
+
+        response = self.client.get(reverse("accommodation-list"), {"view_crous": True})
+
+        assert response.status_code == 200
+        results = response.json()
+
+        features = response.json()["results"]["features"]
+        returned_ids = [feature["id"] for feature in features]
+
+        assert results["count"] == 1
+        assert returned_ids == [accommodation_crous.id]
 
 
 class MyAccommodationListAPITests(APITestCase):

@@ -14,6 +14,7 @@ class AccommodationFilter(BaseFilter):
         method="filter_has_coliving", label="Only accommodations with coliving apartments"
     )
     price_max = filters.NumberFilter(method="filter_price_max", label="Price max in euros")
+    view_crous = filters.BooleanFilter(method="filter_view_crous", label="Whether to return CROUS accommodations")
 
     def filter_is_accessible(self, queryset, name, value):
         if value is True:
@@ -41,6 +42,19 @@ class AccommodationFilter(BaseFilter):
             return queryset
         return queryset.filter(price_min__isnull=False, price_min__lte=value)
 
+    def filter_view_crous(self, queryset, name, value):
+        if value is True:
+            return queryset.filter(sources__source="crous")
+        return queryset.exclude(sources__source="crous")
+
     class Meta:
         model = Accommodation
         fields = []
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        data = self.data.copy()
+        if "view_crous" not in data:
+            data["view_crous"] = False  # ton default
+            self.data = data

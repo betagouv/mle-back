@@ -9,7 +9,6 @@ from django.contrib.gis.geos import Point
 from accommodation.serializers import AccommodationImportSerializer
 from account.models import Owner
 from territories.management.commands.geo_base_command import GeoBaseCommand
-from territories.models import City, Department
 
 
 class Command(GeoBaseCommand):
@@ -19,24 +18,6 @@ class Command(GeoBaseCommand):
         parser.add_argument("--file", type=str, help="Path of the CSV file to process (separator: ,)")
         parser.add_argument("--source", type=str, help="External source, see accommodation.models.ExternalSource")
         parser.add_argument("--skip-images", type=bool, default=False, help="Skip images import")
-
-    def _get_or_create_city(self, city, postal_code):
-        # normalize city name
-        response = self.fetch_city_from_api(postal_code, city, strict_mode=True)
-        if not response:
-            return
-        city = response["nom"] if response else city
-        try:
-            return City.objects.get(name__iexact=city, postal_codes__contains=[postal_code])
-        except City.DoesNotExist:
-            department_code = postal_code[:2]
-            if postal_code.startswith("97") or postal_code.startswith("98"):
-                department_code = postal_code[:3]
-
-            city = City.objects.create(
-                name=city, postal_codes=[postal_code], department=Department.objects.get(code=department_code)
-            )
-            return self.fill_city_from_api(city)
 
     def handle(self, *args, **options):
         def to_digit(value, can_be_zero=True):

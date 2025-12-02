@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-13 13:43+0000\n"
+"POT-Creation-Date: 2025-11-10 16:09+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,244 +18,201 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: accommodation/admin.py:22
 msgid "Unpublish selected accommodations"
 msgstr "Dépublier les résidences sélectionnées"
 
-#: accommodation/admin.py:28
 msgid "Publish selected accommodations"
 msgstr "Publier les résidences sélectionnées"
 
-#: accommodation/admin.py:34
 msgid "Make unavailable selected accommodations"
 msgstr "Supprimer le lien de redirection vers les résidences sélectionnées"
 
-#: accommodation/admin.py:40
 msgid "Make available selected accommodations"
 msgstr "Activer le lien de redirection vers les résidences sélectionnées"
 
-#: accommodation/apps.py:8 accommodation/models.py:141
 msgid "Accommodation"
 msgstr "Résidence"
 
-#: accommodation/models.py:35
 msgid "Name"
 msgstr "Nom"
 
-#: accommodation/models.py:37
 msgid "Description"
-msgstr ""
+msgstr "Description"
 
-#: accommodation/models.py:38
 msgid "Location"
 msgstr "Localisation"
 
-#: accommodation/models.py:39
 msgid "Address"
 msgstr "Addresse"
 
-#: accommodation/models.py:40 territories/models.py:90
 msgid "City"
 msgstr "Ville"
 
-#: accommodation/models.py:41
 msgid "Postal code"
 msgstr "Code postal"
 
-#: accommodation/models.py:47
 msgid "Residence type"
 msgstr "Type de résidence"
 
-#: accommodation/models.py:51
 msgid "Total number of apartments"
 msgstr ""
 
-#: accommodation/models.py:54
 msgid "Number of accessible apartments"
 msgstr "Nombre d'appartements accessibles"
 
-#: accommodation/models.py:57
 msgid "Number of coliving apartments"
 msgstr "Nombre d'appartements en colocation"
 
-#: accommodation/models.py:59
 msgid "Number of T1"
 msgstr "Nombre de T1"
 
-#: accommodation/models.py:61
 msgid "Number of available T1"
 msgstr "Nombre de T1 disponibles"
 
-#: accommodation/models.py:63
 msgid "Number of T1 bis"
 msgstr "Nombre de T1 bis"
 
-#: accommodation/models.py:65
 msgid "Number of available T1 bis"
 msgstr "Nombre de T1 bis disponibles"
 
-#: accommodation/models.py:67
 msgid "Number of T2"
 msgstr "Nombre de T2"
 
-#: accommodation/models.py:69
 msgid "Number of available T2"
 msgstr "Nombre de T2 disponibles"
 
-#: accommodation/models.py:71
 msgid "Number of T3"
 msgstr "Nombre de T3"
 
-#: accommodation/models.py:73
 msgid "Number of available T3"
 msgstr "Nombre de T3 disponibles"
 
-#: accommodation/models.py:75
 msgid "Number of T4"
 msgstr "Nombre de T4"
 
-#: accommodation/models.py:77
 msgid "Number of available T4"
 msgstr "Nombre de T4 disponibles"
 
-#: accommodation/models.py:80
 msgid "Minimum price"
 msgstr "Prix minimum"
 
-#: accommodation/models.py:82
 msgid "Minimum price for T1"
 msgstr "Prix minimum pour un T1"
 
-#: accommodation/models.py:83
 msgid "Maximum price for T1"
 msgstr "Prix maximum pour un T1"
 
-#: accommodation/models.py:85
 msgid "Minimum price for T1 bis"
 msgstr "Prix minimum pour un T1 bis"
 
-#: accommodation/models.py:88
 msgid "Maximum price for T1 bis"
 msgstr "Prix maximum pour un T1 bis"
 
-#: accommodation/models.py:90
 msgid "Minimum price for T2"
 msgstr "Prix minimum pour un T2"
 
-#: accommodation/models.py:91
 msgid "Maximum price for T2"
 msgstr "Prix maximum pour un T2"
 
-#: accommodation/models.py:92
 msgid "Minimum price for T3"
 msgstr "Prix minimum pour un T3"
 
-#: accommodation/models.py:93
 msgid "Maximum price for T3"
 msgstr "Prix maximum pour un T3"
 
-#: accommodation/models.py:95
 msgid "Minimum price for T4"
 msgstr "Prix minimum pour un T4"
 
-#: accommodation/models.py:98
 msgid "Maximum price for T4"
 msgstr "Prix maximum pour un T4"
 
-#: accommodation/models.py:100
 msgid "Laundry room"
 msgstr "Laverie"
 
-#: accommodation/models.py:101
 msgid "Common areas"
 msgstr "Espaces communs"
 
-#: accommodation/models.py:102
 msgid "Bike storage"
 msgstr "Parking vélo"
 
-#: accommodation/models.py:103
 msgid "Parking"
 msgstr ""
 
-#: accommodation/models.py:105
 msgid "Secure access"
 msgstr "Accès sécurisé"
 
-#: accommodation/models.py:108
 msgid "Residence manager"
 msgstr "Gardien"
 
-#: accommodation/models.py:111
 msgid "Kitchen type"
 msgstr "Type de cuisine"
 
-#: accommodation/models.py:113
 msgid "Desk"
 msgstr "Bureau"
 
-#: accommodation/models.py:115
 msgid "Cooking plates"
 msgstr "Plaques de cuisson"
 
-#: accommodation/models.py:117
 msgid "Microwave"
 msgstr "Micro-ondes"
 
-#: accommodation/models.py:118
 msgid "Refrigerator"
 msgstr "Réfrigérateur"
 
-#: accommodation/models.py:120
 msgid "Bathroom"
 msgstr "Salle de bain"
 
-#: accommodation/models.py:123
 msgid "Accept waiting list"
 msgstr "Accepte les listes d'attente"
 
-#: accommodation/models.py:129
 msgid "Published"
 msgstr "Publié"
 
-#: accommodation/models.py:130
 msgid "Available"
 msgstr "Lien de redirection"
 
-#: accommodation/models.py:142
 msgid "Accommodations"
 msgstr "Résidences"
 
-#: accommodation/models.py:227
 msgid "External source"
 msgstr "Source externe"
 
-#: accommodation/models.py:228
 msgid "External sources"
 msgstr "Sources externes"
 
-#: account/models.py:16
+#, python-format
+msgid ""
+"The number of available %(available)d is greater than the total %(total)d"
+msgstr "Le nombre disponible %(available)d est supérieur au total %(total)d"
+
+msgid "Linked user"
+msgstr "Utilisateurs associé"
+
+msgid "Linked users"
+msgstr "Utilisateurs associés"
+
 msgid "Owner"
 msgstr "Bailleur"
 
-#: account/models.py:17
 msgid "Owners"
 msgstr "Bailleurs"
 
-#: auth/views.py:36
-msgid "User not found or not authorized"
-msgstr "Utilisateur non trouvé ou non autorisé"
-
-#: auth/views.py:53
 #, python-format
-msgid "A link has been sent to %(email)s"
-msgstr "Un lien a été envoyé à %(email)s"
+msgid ""
+"If an account exists with the email %(email)s, you will receive a link to "
+"log in. Please contact %(bizdev)s in case of problem."
+msgstr ""
+"Si un compte existe avec l'email %(email)s, vous recevrez un lien pour vous "
+"connecter. Veuillez contacter %(bizdev)s en cas de problème."
 
-#: auth/views.py:55
-msgid "An error occured while sending the link"
-msgstr "Une erreur est survenue lors de l'envoi du lien"
+#, python-format
+msgid ""
+"If an account exists with this email, you will receive a link to log in. "
+"Please contact %(bizdev)s in case of problem."
+msgstr ""
+"Si un compte existe avec cette adresse e-mail, vous recevrez un lien pour "
+"vous connecter. Veuillez contacter %(bizdev)s en cas de problème."
 
-#: templates/admin/login.html:11
 msgid ""
 "\n"
 "                If you don't have a login/password but you have an active "
@@ -268,46 +225,35 @@ msgstr ""
 "magique.\n"
 "                "
 
-#: templates/admin/login.html:18
 msgid "Email"
 msgstr "Courriel"
 
-#: templates/admin/login.html:23
 msgid "Receive a login link"
 msgstr "Recevoir un lien de connexion"
 
-#: territories/models.py:15
 msgid "Territory"
 msgstr "Territoire"
 
-#: territories/models.py:16
 msgid "Territories"
 msgstr "Territoires"
 
-#: territories/models.py:43
 msgid "Country"
 msgstr "Pays"
 
-#: territories/models.py:44
 msgid "Countries"
 msgstr "Pays"
 
-#: territories/models.py:52
 msgid "Academy"
 msgstr "Académie"
 
-#: territories/models.py:53
 msgid "Academies"
 msgstr "Académies"
 
-#: territories/models.py:64
 msgid "Department"
 msgstr "Département"
 
-#: territories/models.py:65
 msgid "Departments"
 msgstr "Départements"
 
-#: territories/models.py:91
 msgid "Cities"
 msgstr "Villes"

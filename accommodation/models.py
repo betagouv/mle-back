@@ -2,9 +2,10 @@ from autoslug import AutoSlugField
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
 from django.urls import reverse
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext, gettext_lazy
 
 from account.models import Owner
 
@@ -150,7 +151,32 @@ class Accommodation(models.Model):
     def get_absolute_url(self):
         return f"{settings.FRONT_SITE_URL}/trouver-un-logement-etudiant/ville/{slugify(self.city)}/{self.slug}"
 
+    def clean(self):
+        super().clean()
+        errors = {}
+        for attr_available in [
+            "nb_t1_available",
+            "nb_t1_bis_available",
+            "nb_t2_available",
+            "nb_t3_available",
+            "nb_t4_more_available",
+        ]:
+            field_available = getattr(self, attr_available)
+            field_stock = getattr(self, attr_available.replace("_available", ""))
+            if field_available is not None and field_stock is not None and field_available > field_stock:
+                errors[attr_available] = gettext(
+                    f"The number of available {field_available} is greater than the number of {field_stock}"
+                )
+
+        if errors:
+            raise ValidationError(errors)
+
+        reserved_slugs = {"my"}
+        if self.slug in reserved_slugs:
+            raise ValidationError({"slug": f"Reserved slug '{self.slug}'."})
+
     def save(self, *args, **kwargs):
+        self.clean()
         self.images_count = len(self.images_urls or [])
         price_min_fields = [
             self.price_min_t1,
@@ -162,18 +188,15 @@ class Accommodation(models.Model):
         non_null_prices = [p for p in price_min_fields if p is not None]
         self.price_min = min(non_null_prices) if non_null_prices else None
 
-        for attr_available in [
-            "nb_t1_available",
-            "nb_t1_bis_available",
-            "nb_t2_available",
-            "nb_t3_available",
-            "nb_t4_more_available",
-        ]:
-            field_available = getattr(self, attr_available)
-            field_stock = getattr(self, attr_available.replace("_available", ""))
-            if field_available is not None and field_stock is not None and field_available > field_stock:
-                field_available = field_stock
-                setattr(self, attr_available, field_available)
+        self.nb_total_apartments = sum(
+            [
+                int(self.nb_t1 or 0),
+                int(self.nb_t1_bis or 0),
+                int(self.nb_t2 or 0),
+                int(self.nb_t3 or 0),
+                int(self.nb_t4_more or 0),
+            ]
+        )
         super().save(*args, **kwargs)
 
 
@@ -203,6 +226,10 @@ class ExternalSource(models.Model):
     SOURCE_PODELIHA = "podeliha"
     SOURCE_MGEL = "mgel"
     SOURCE_EST_HABITAT = "est-habitat"
+    SOURCE_PROMOLOGIS = "promologis"
+    SOURCE_SACOGIVA = "sacogiva"
+    SOURCE_OPAL = "opal"
+    SOURCE_AFEV = "afev"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -229,6 +256,10 @@ class ExternalSource(models.Model):
         (SOURCE_PODELIHA, "Podeliha"),
         (SOURCE_MGEL, "MGEL"),
         (SOURCE_EST_HABITAT, "Est Habitat"),
+        (SOURCE_PROMOLOGIS, "Promologis"),
+        (SOURCE_SACOGIVA, "Sacogiva"),
+        (SOURCE_OPAL, "Opal"),
+        (SOURCE_AFEV, "AFEV"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")
@@ -242,3 +273,18 @@ class ExternalSource(models.Model):
 
     def __str__(self):
         return f"Source {self.source} - {self.source_id} - for {self.accommodation}"
+
+
+class FavoriteAccommodation(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="favorites")
+    accommodation = models.ForeignKey(
+        "accommodation.Accommodation", on_delete=models.CASCADE, related_name="favorited_by"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "accommodation")
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.user} puts {self.accommodation} on favorites"

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.gis",
     "rest_framework",
     "rest_framework_gis",
+    "rest_framework_simplejwt.token_blacklist",
     "territories",
     "qa",
     "account",
@@ -169,6 +171,16 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "config.pagination.CustomPageNumberPagination",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "PAGE_SIZE": 30,
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
 }
 
 SPECTACULAR_SETTINGS = {
@@ -214,3 +226,5 @@ AWS_S3_ADDRESSING_STYLE = env("AWS_S3_ADDRESSING_STYLE", default="path")
 AWS_DEFAULT_ACL = env("AWS_DEFAULT_ACL", default="public-read")
 AWS_SUFFIX_DIR = ""
 AWS_S3_PUBLIC_BASE_URL = env("AWS_S3_PUBLIC_BASE_URL")
+
+BIZDEV_EMAIL = env("BIZDEV_EMAIL")

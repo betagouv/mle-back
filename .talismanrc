@@ -6,9 +6,19 @@ fileignoreconfig:
     checksum: 51e977042f39e347bb87eedc4f208ec5e630961e2dbe72ae9745c240fc027238
   - filename: institution/migrations/0001_educational_instit.py
     checksum: de6c7a2c3b79668ef9332f25bdd6c932c106da2d45870bf9e8040b65aeca8e8c
-  - filename: auth/views.py
-    checksum: 8c7e41a1bc45e91345b7195bcb69d3e140f1cc968a81dbd6067f026afb41fcf8
   - filename: templates/admin/login.html
     checksum: d9db13058c4c7dab9c56128687a54ed4184f5d9659c84f9e44064da1ef4ba723
   - filename: .env.sample
-    checksum: e38fd929c1bc0970eb0aa314b5cceac887668b49447807352aca4ee994c15e1a
+    checksum: 729c4b96b53676271f19011670743c51726bb58ce1afc8f9cdc65ef354c712d3
+  - filename: auth/views.py
+    checksum: 69b87fda651f45d35766d8de855ea0ad5f85aef135e7ee544973cbdddda1db45
+  - filename: tests/account/test_api.py
+    checksum: b856d245795bd960945b4b3a7056f8f2bea0e5435b50cfef1c89581d1673fba8
+  - filename: accommodation/utils.py
+    checksum: 4554da26f8553ce4b3fea7a11f50103c94bdca288a7208ce5feb32dc42c0ae12
+  - filename: accommodation/models.py
+    checksum: 913fdd87efd5da0dae19e33683de0da56806030910b3781f182d5f2679f7eab7
+  - filename: accommodation/migrations/0037_favorites.py
+    checksum: 5dde99db31a5618f10caf05cf63ccb31da36a9b16bee16fdf49a7156071e1b04
+  - filename: accommodation/management/commands/import_crous_accommodations.py
+    checksum: 5738f57f14ffa3ac87cebfd03b41e88638638cc7aa61ffb0ddaba6103b90fb68

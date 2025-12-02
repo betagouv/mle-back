@@ -1,11 +1,14 @@
 import base64
-from unittest.mock import ANY
+from unittest.mock import ANY, patch
 
 from django.contrib.gis.geos import Point
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tests.account.factories import OwnerFactory
+from accommodation.models import Accommodation
+from tests.account.factories import OwnerFactory, UserFactory
 
 from .factories import AccommodationFactory
 
@@ -327,3 +330,378 @@ class AccommodationListAPITests(APITestCase):
         assert returned_ids.index(accommodation_mixed_null_and_zero.id) < returned_ids.index(
             accommodation_with_unknown_availibity_waiting_list.id
         )
+
+
+class MyAccommodationListAPITests(APITestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.owner = OwnerFactory(users=[self.user])
+        self.client.force_authenticate(user=self.user)
+
+        self.other_owner = OwnerFactory()
+
+        self.my_accommodation_1 = AccommodationFactory(
+            owner=self.owner,
+            geom=Point(2.35, 48.85),
+            published=True,
+            name="Paris Residence",
+            nb_t2_available=2,
+        )
+        self.my_accommodation_2 = AccommodationFactory(
+            owner=self.owner,
+            geom=Point(4.85, 45.75),
+            published=True,
+            name="Lyon Coliving",
+            nb_t1_available=0,
+            nb_t2_available=0,
+            nb_t3_available=0,
+            nb_t4_more_available=0,
+        )
+
+        self.other_accommodation = AccommodationFactory(
+            owner=self.other_owner,
+            geom=Point(-1.55, 47.21),
+            published=True,
+            name="Nantes Loft",
+        )
+
+    def test_my_accommodation_list_requires_authentication(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.get(reverse("my-accommodation-list"))
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_my_accommodation_list_returns_only_user_accommodations(self):
+        response = self.client.get(reverse("my-accommodation-list"))
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()
+        results = data["results"]["features"]
+
+        returned_ids = [feature["id"] for feature in results]
+
+        assert len(results) == 2
+        assert self.my_accommodation_1.id in returned_ids
+        assert self.my_accommodation_2.id in returned_ids
+        assert self.other_accommodation.id not in returned_ids
+
+    def test_my_accommodation_list_empty_if_no_owned(self):
+        other_user = UserFactory()
+        self.client.force_authenticate(user=other_user)
+
+        response = self.client.get(reverse("my-accommodation-list"))
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()
+        assert data["count"] == 0
+        assert len(data["results"]["features"]) == 0
+
+    def test_my_accommodation_list_search_by_name(self):
+        url = reverse("my-accommodation-list") + "?search=paris"
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()
+        results = data["results"]["features"]
+        names = [r["properties"]["name"].lower() for r in results]
+
+        assert len(results) == 1
+        assert "paris" in names[0]
+
+    def test_my_accommodation_list_filter_has_availability_true(self):
+        url = reverse("my-accommodation-list") + "?has_availability=true"
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()
+        results = data["results"]["features"]
+        slugs = [r["properties"]["slug"] for r in results]
+
+        assert self.my_accommodation_1.slug in slugs
+        assert self.my_accommodation_2.slug not in slugs
+
+
+class MyAccommodationDetailAPITests(APITestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.owner = OwnerFactory(users=[self.user])
+        self.client.force_authenticate(user=self.user)
+
+        self.other_owner = OwnerFactory()
+
+        self.my_accommodation = AccommodationFactory(
+            owner=self.owner,
+            slug="my-accommodation",
+            geom=Point(2.35, 48.85),
+            published=True,
+            name="My First Accommodation",
+        )
+
+        self.other_accommodation = AccommodationFactory(
+            owner=self.other_owner,
+            slug="not-mine",
+            geom=Point(2.35, 48.85),
+            published=True,
+            name="Someone Else's Accommodation",
+        )
+
+    def test_create_new_accommodation(self):
+        url = reverse("my-accommodation-list")
+        payload = {
+            "name": "New Accommodation",
+            "address": "123 Rue de Paris",
+            "city": "Paris",
+            "postal_code": "75001",
+            "geom": {"type": "Point", "coordinates": [2.35, 48.85]},
+            "published": True,
+        }
+
+        response = self.client.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED, response.content
+
+        data = response.json()["properties"]
+        assert data["name"] == "New Accommodation"
+        assert "slug" in data
+
+        acc = Accommodation.objects.get(name="New Accommodation")
+        assert acc.owner == self.owner
+
+    def test_get_my_accommodation(self):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()["properties"]
+        assert data["name"] == self.my_accommodation.name
+        assert data["updated_at"] is not None
+
+    def test_post_requires_authentication(self):
+        self.client.force_authenticate(user=None)
+        url = reverse("my-accommodation-list")
+        response = self.client.post(url, {}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_patch_update_own_accommodation(self):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+
+        current_slug = self.my_accommodation.slug
+
+        payload = {
+            "name": "Updated Accommodation Name",
+            "bathroom": "private",
+            "laundry_room": True,
+            "slug": "new_slug",
+            "nb_t1": 104,
+            "nb_t1_available": 10,
+            "nb_t2": 16,
+            "price_min_t1": 300,
+            "price_max_t1": 450,
+        }
+
+        response = self.client.patch(url, payload, format="json")
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()["properties"]
+        assert data["name"] == "Updated Accommodation Name"
+        assert data["bathroom"] == "private"
+        assert data["laundry_room"] is True
+        assert data["updated_at"] is not None
+        assert data["slug"] == current_slug, "slug should not be changed"
+        assert data["nb_t1"] == 104
+        assert data["nb_t2"] == 16
+        assert data["nb_t3"] is None
+        assert data["nb_t1_available"] == 10
+        assert data["price_min_t1"] == 300
+        assert data["price_max_t1"] == 450
+
+        self.my_accommodation.refresh_from_db()
+        assert self.my_accommodation.name == "Updated Accommodation Name"
+        assert self.my_accommodation.nb_total_apartments == 120
+        assert self.my_accommodation.published is True
+
+        payload = {"published": False}
+
+        response = self.client.patch(url, payload, format="json")
+        assert response.status_code == status.HTTP_200_OK
+
+        self.my_accommodation.refresh_from_db()
+        assert self.my_accommodation.published is False
+
+    def test_patch_cannot_update_others_accommodation(self):
+        url = reverse("my-accommodation-detail", args=[self.other_accommodation.slug])
+
+        payload = {"name": "Hack attempt!"}
+
+        response = self.client.patch(url, payload, format="json")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_patch_requires_authentication(self):
+        self.client.force_authenticate(user=None)
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+        response = self.client.patch(url, {"name": "Should Fail"}, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_patch_cannot_change_id_or_slug(self):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+
+        original_id = self.my_accommodation.id
+        original_slug = self.my_accommodation.slug
+
+        payload = {"id": 9999, "slug": "hacked-slug", "name": "Updated Name With Read-Only Fields"}
+
+        response = self.client.patch(url, payload, format="json")
+        assert response.status_code == 200
+
+        self.my_accommodation.refresh_from_db()
+
+        assert self.my_accommodation.id == original_id
+        assert self.my_accommodation.slug == original_slug
+
+        assert self.my_accommodation.name == "Updated Name With Read-Only Fields"
+
+        data = response.json()["properties"]
+        assert data["slug"] == original_slug
+        assert data["name"] == "Updated Name With Read-Only Fields"
+
+    def test_patch_updates_images_in_correct_order(self):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+
+        new_urls = [
+            "https://s3.fake/image_b.jpg",
+            "https://s3.fake/image_a.jpg",
+            "https://s3.fake/image_c.jpg",
+        ]
+
+        response = self.client.patch(url, {"images_urls": new_urls}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+
+        self.my_accommodation.refresh_from_db()
+        assert self.my_accommodation.images_urls == new_urls, "URLs should be stored preserved order"
+
+    def test_create_accommodation_returns_400_if_nb_available_exceeds_total(self):
+        url = reverse("my-accommodation-list")
+        payload = {
+            "name": "Invalid Accommodation",
+            "address": "123 Rue de Paris",
+            "city": "Paris",
+            "postal_code": "75001",
+            "geom": {"type": "Point", "coordinates": [2.35, 48.85]},
+            "nb_t1": 2,
+            "nb_t1_available": 5,
+            "published": True,
+        }
+
+        response = self.client.post(url, payload, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
+        assert "nb_t1_available" in response.json()
+
+    def test_patch_returns_400_if_nb_available_exceeds_total(self):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+
+        payload = {
+            "nb_t2": 1,
+            "nb_t2_available": 3,
+        }
+
+        response = self.client.patch(url, payload, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
+        assert "nb_t2_available" in response.json()
+
+
+class MyAccommodationImageUploadTests(APITestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.owner = OwnerFactory(users=[self.user])
+        self.client.force_authenticate(user=self.user)
+
+        self.accommodation = AccommodationFactory(
+            owner=self.owner,
+            slug="my-place",
+            images_urls=[],
+        )
+
+        self.url = reverse("my-accommodation-upload", args=[self.accommodation.slug])
+
+    @patch("accommodation.views.upload_image_to_s3")
+    def test_upload_multiple_images_success(self, mock_upload):
+        mock_upload.side_effect = lambda data: f"https://s3.fake/{len(data)}.jpg"
+
+        file1 = SimpleUploadedFile("photo1.jpg", b"dummydata1", content_type="image/jpeg")
+        file2 = SimpleUploadedFile("photo2.png", b"dummydata2", content_type="image/png")
+
+        response = self.client.post(self.url, {"images": [file1, file2]}, format="multipart")
+
+        assert response.status_code == status.HTTP_201_CREATED
+        urls = response.data["images_urls"]
+        assert len(urls) == 2
+        assert all(url.startswith("https://s3.fake/") for url in urls)
+        assert mock_upload.call_count == 2
+
+        self.accommodation.refresh_from_db()
+        assert self.accommodation.images_urls == []
+
+    @patch("accommodation.views.upload_image_to_s3")
+    def test_upload_requires_ownership(self, mock_upload):
+        other_user = UserFactory()
+        self.client.force_authenticate(user=other_user)
+
+        file1 = SimpleUploadedFile("photo1.jpg", b"dummydata1", content_type="image/jpeg")
+        response = self.client.post(self.url, {"images": [file1]}, format="multipart")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        mock_upload.assert_not_called()
+
+    def test_upload_requires_file(self):
+        response = self.client.post(self.url, {}, format="multipart")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "No files provided" in response.data["detail"]
+
+
+class FavoriteAccommodationViewSetTests(APITestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.client.force_authenticate(user=self.user)
+
+        self.accommodation = AccommodationFactory(
+            slug="my-favorite-accommodation",
+            geom=Point(2.35, 48.85),
+            published=True,
+            name="My Favorite Accommodation",
+        )
+
+    def test_create_favorite_accommodation(self):
+        url = reverse("favorite-accommodation-list")
+        payload = {"accommodation_slug": self.accommodation.slug}
+
+        response = self.client.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_list_favorite_accommodations(self):
+        url = reverse("favorite-accommodation-list")
+        payload = {"accommodation_slug": self.accommodation.slug}
+
+        response = self.client.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        data = response.json()
+        results = data["results"]
+
+        assert len(results) == 1
+        assert results[0]["accommodation"]["id"] == self.accommodation.id
+
+    def test_delete_favorite_accommodation(self):
+        url = reverse("favorite-accommodation-list")
+        payload = {"accommodation_slug": self.accommodation.slug}
+
+        response = self.client.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+
+        url = reverse("favorite-accommodation-detail", args=[self.accommodation.slug])
+
+        response = self.client.delete(url, format="json")
+        assert response.status_code == status.HTTP_204_NO_CONTENT

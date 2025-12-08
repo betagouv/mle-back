@@ -120,6 +120,7 @@ class Command(GeoBaseCommand):
                     "refrigerator": to_bool(row.get("refrigerator")),
                     "bathroom": row["bathroom"].lower().strip(),
                     "accept_waiting_list": to_bool(row.get("accept_waiting_list")),
+                    "scholarship_holders_priority": to_bool(row.get("scholarship_holders_priority")),
                     "external_url": row["owner_url"].strip(),
                     "geom": geom,
                     "owner_id": owner.pk if owner else None,

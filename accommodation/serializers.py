@@ -66,6 +66,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "refrigerator",
             "bathroom",
             "accept_waiting_list",
+            "scholarship_holders_priority",
             "external_url",
             "source_id",
             "source",
@@ -252,6 +253,7 @@ class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.Mod
             "external_url",
             "available",
             "accept_waiting_list",
+            "scholarship_holders_priority",
         )
 
 
@@ -278,6 +280,7 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
             "nb_t3_available",
             "nb_t4_more_available",
             "accept_waiting_list",
+            "scholarship_holders_priority",
         )
         read_only_fields = ("id", "slug", "owner")
 
@@ -320,6 +323,7 @@ class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelS
             "price_min_t4_more",
             "price_max_t4_more",
             "accept_waiting_list",
+            "scholarship_holders_priority",
             "laundry_room",
             "common_areas",
             "bike_storage",

@@ -36,9 +36,14 @@ class GeoBaseCommand(BaseCommand):
             if postal_code.startswith("97") or postal_code.startswith("98"):
                 department_code = postal_code[:3]
 
-            city = City.objects.create(
-                name=city, postal_codes=[postal_code], department=Department.objects.get(code=department_code)
-            )
+            try:
+                department_code = Department.objects.get(code=department_code)
+            except Department.DoesNotExist:
+                self.stdout.write(
+                    self.style.WARNING(f"⚠️ Unable to find department {department_code}, cannot create city {city}")
+                )
+                return
+            city = City.objects.create(name=city, postal_codes=[postal_code], department=department_code)
             return self.fill_city_from_api(city)
 
     @staticmethod

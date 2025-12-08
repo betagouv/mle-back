@@ -144,6 +144,7 @@ class AccommodationListAPITests(APITestCase):
                 "price_min": 300,
                 "images_urls": None,
                 "available": True,
+                "published": True,
                 "nb_t1_available": 2,
                 "nb_t1_bis_available": None,
                 "nb_t2_available": None,

@@ -33,7 +33,10 @@ class GeoBaseCommand(BaseCommand):
             return City.objects.get(name__iexact=city, postal_codes__contains=[postal_code])
         except City.DoesNotExist:
             department_code = postal_code[:2]
-            if postal_code.startswith("97") or postal_code.startswith("98"):
+
+            if postal_code.startswith("20"):
+                department_code = "2A" if postal_code.startswith("200") or postal_code.startswith("201") else "2B"
+            elif postal_code.startswith("97") or postal_code.startswith("98"):
                 department_code = postal_code[:3]
 
             try:

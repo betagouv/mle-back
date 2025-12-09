@@ -38,7 +38,7 @@ class Command(BaseCommand):
         with open(csv_file_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile, delimiter=",")
             for row in reader:
-                res_name = row["Résidence"].strip()
+                res_name = row["Residence"].strip()
                 nb_logements = int(row["Nb Logement"])
                 type_logement = normalize_type(row["Type Logement"])
 

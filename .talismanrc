@@ -20,6 +20,8 @@ fileignoreconfig:
     checksum: 5dde99db31a5618f10caf05cf63ccb31da36a9b16bee16fdf49a7156071e1b04
   - filename: accommodation/management/commands/import_crous_accommodations.py
     checksum: 5738f57f14ffa3ac87cebfd03b41e88638638cc7aa61ffb0ddaba6103b90fb68
+  - filename: bin/create_db.sql
+    checksum: 292e83473fd835d1ae8c83a89dbfa6c8b882ef872dd53f880998450253e6f354
   - filename: .env.sample
     checksum: d8753eebb9f1fb740e95375aa0f047526c9ca470bf9c84363c98a3f134469639
   - filename: bin/external_db_backup

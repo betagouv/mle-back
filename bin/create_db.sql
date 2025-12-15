@@ -1,14 +1,14 @@
-CREATE USER jde WITH PASSWORD 'jde';
-ALTER ROLE jde SET client_encoding TO 'utf8';
-ALTER ROLE jde SET default_transaction_isolation TO 'read committed';
-ALTER ROLE jde SET timezone TO 'UTC';
+CREATE USER mle WITH PASSWORD 'mle';
+ALTER ROLE mle SET client_encoding TO 'utf8';
+ALTER ROLE mle SET default_transaction_isolation TO 'read committed';
+ALTER ROLE mle SET timezone TO 'UTC';
 
-CREATE DATABASE jde;
-ALTER DATABASE jde OWNER TO jde;
+CREATE DATABASE mledb;
+ALTER DATABASE mledb OWNER TO mle;
 
-GRANT ALL PRIVILEGES ON DATABASE jde TO jde;
+GRANT ALL PRIVILEGES ON DATABASE mledb TO mle;
 
-\c jde;
+\c mledb;
 CREATE EXTENSION postgis;
 CREATE EXTENSION pg_trgm;
 CREATE EXTENSION unaccent;

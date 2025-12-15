@@ -8,8 +8,6 @@ fileignoreconfig:
     checksum: de6c7a2c3b79668ef9332f25bdd6c932c106da2d45870bf9e8040b65aeca8e8c
   - filename: templates/admin/login.html
     checksum: d9db13058c4c7dab9c56128687a54ed4184f5d9659c84f9e44064da1ef4ba723
-  - filename: .env.sample
-    checksum: 729c4b96b53676271f19011670743c51726bb58ce1afc8f9cdc65ef354c712d3
   - filename: auth/views.py
     checksum: 69b87fda651f45d35766d8de855ea0ad5f85aef135e7ee544973cbdddda1db45
   - filename: tests/account/test_api.py
@@ -22,3 +20,5 @@ fileignoreconfig:
     checksum: 5dde99db31a5618f10caf05cf63ccb31da36a9b16bee16fdf49a7156071e1b04
   - filename: accommodation/management/commands/import_crous_accommodations.py
     checksum: 5738f57f14ffa3ac87cebfd03b41e88638638cc7aa61ffb0ddaba6103b90fb68
+  - filename: .env.sample
+    checksum: d8753eebb9f1fb740e95375aa0f047526c9ca470bf9c84363c98a3f134469639

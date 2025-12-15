@@ -77,6 +77,7 @@ def mock_settings(settings):
     settings.OMOGEN_API_CLIENT_SECRET = "client_secret"
     settings.OMOGEN_API_API_KEY = "api_key"
     settings.OMOGEN_API_CLEF_APP_NAME = "clef-residence-pp"
+    settings.OMOGEN_API_AUTH_PATH = "auth_url"
     return settings
 
 
@@ -87,7 +88,7 @@ def test_import_clef_command(mock_settings):
         mock.patch("accommodation.serializers.upload_image_to_s3") as mock_upload_image_to_s3,
     ):
         mocker.post(
-            f"https://{mock_settings.OMOGEN_API_HOST}/auth-test/token",
+            f"https://{mock_settings.OMOGEN_API_HOST}/auth_url",
             json={"access_token": "test_token"},
         )
 

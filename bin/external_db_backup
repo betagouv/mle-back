@@ -19,10 +19,11 @@ dbclient-fetcher "postgresql"
 scalingo login --api-token "${DUPLICATE_API_TOKEN}"
 
 # Retrieve the addon id:
-addon_id="$( scalingo --region=osc-secnum-fr1 --app "${APP}" addons \
-             | grep "postgresql" \
-             | cut -d "|" -f 3 \
-             | tr -d " " )"
+addon_id="$(
+  scalingo --region=osc-secnum-fr1 --app "${APP}" addons \
+    | grep "postgresql" \
+    | awk -F'│' '{gsub(/^ *| *$/,"",$3); print $3}'
+)"
 
 # Download the latest backup available for the specified addon:
 scalingo --region=osc-secnum-fr1 --app "${APP}" --addon "${addon_id}" \

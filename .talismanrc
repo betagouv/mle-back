@@ -22,3 +22,5 @@ fileignoreconfig:
     checksum: 5738f57f14ffa3ac87cebfd03b41e88638638cc7aa61ffb0ddaba6103b90fb68
   - filename: .env.sample
     checksum: d8753eebb9f1fb740e95375aa0f047526c9ca470bf9c84363c98a3f134469639
+  - filename: bin/external_db_backup
+    checksum: b79541a934dc45d791cbd44b7a12a939a23e678ffb7e5541ca5b830844a0cfde

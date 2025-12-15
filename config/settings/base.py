@@ -96,7 +96,7 @@ SECURE_SSL_REDIRECT = True
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-database_url = os.environ.get("DATABASE_URL", "postgres://jde:jde@localhost/jde")
+database_url = os.environ.get("DATABASE_URL", "postgres://mle:mle@localhost/mledb")
 DATABASES = {
     "default": env.db(),
 }
@@ -201,7 +201,7 @@ OMOGEN_API_CLIENT_SECRET = env("OMOGEN_API_CLIENT_SECRET")
 OMOGEN_API_HOST = env("OMOGEN_API_HOST")
 OMOGEN_API_AUTH_PATH = env("OMOGEN_API_AUTH_PATH")
 OMOGEN_API_CLEF_APP_NAME = env("OMOGEN_API_CLEF_APP_NAME")
-OMOGEN_API_RAMSESE_APP_NAME = env("OMOGEN_API_RAMSESE_APP_NAME")
+# OMOGEN_API_RAMSESE_APP_NAME = env("OMOGEN_API_RAMSESE_APP_NAME")
 
 # BREVO API
 BREVO_API_KEY = env("BREVO_API_KEY")
@@ -228,3 +228,10 @@ AWS_SUFFIX_DIR = ""
 AWS_S3_PUBLIC_BASE_URL = env("AWS_S3_PUBLIC_BASE_URL")
 
 BIZDEV_EMAIL = env("BIZDEV_EMAIL")
+
+_gdal = env("GDAL_LIBRARY_PATH", default=None)
+_geos = env("GEOS_LIBRARY_PATH", default=None)
+if _gdal is not None:
+    GDAL_LIBRARY_PATH = _gdal
+if _geos is not None:
+    GEOS_LIBRARY_PATH = _geos

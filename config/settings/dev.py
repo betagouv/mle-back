@@ -14,7 +14,6 @@ FRONT_SITE_URL = "http://localhost:8000"
 
 AWS_SUFFIX_DIR = "-dev"
 
-
 if SENTRY_DSN is not None:  # noqa: F405
     from sentry_sdk.integrations.django import DjangoIntegration
 

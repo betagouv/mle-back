@@ -1,7 +1,7 @@
 import base64
 from unittest.mock import ANY, patch
 
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import MultiPolygon, Point, Polygon
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
@@ -9,6 +9,7 @@ from rest_framework.test import APITestCase
 
 from accommodation.models import Accommodation
 from tests.account.factories import OwnerFactory, UserFactory
+from tests.territories.factories import AcademyFactory
 
 from .factories import AccommodationFactory, ExternalSourceFactory
 
@@ -210,6 +211,16 @@ class AccommodationListAPITests(APITestCase):
 
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
         assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
+
+        academy = AcademyFactory(
+            name="Academie de Paris",
+            boundary=MultiPolygon(Polygon(((2.34, 48.84), (2.36, 48.84), (2.36, 48.86), (2.34, 48.86), (2.34, 48.84)))),
+        )
+        response = self.client.get(reverse("accommodation-list"), {"academy": academy.id})
+        results = response.json()
+        assert len(results["results"]["features"]) == 1
+        returned_ids = [feature["id"] for feature in results["results"]["features"]]
+        assert self.accommodation_paris.id in returned_ids
 
     def test_accommodation_list_excludes_null_price_min_with_price_max_filter(self):
         accommodation_null_price = AccommodationFactory(price_min=None)

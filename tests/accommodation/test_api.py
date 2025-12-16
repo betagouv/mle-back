@@ -216,7 +216,7 @@ class AccommodationListAPITests(APITestCase):
             name="Academie de Paris",
             boundary=MultiPolygon(Polygon(((2.34, 48.84), (2.36, 48.84), (2.36, 48.86), (2.34, 48.86), (2.34, 48.84)))),
         )
-        response = self.client.get(reverse("accommodation-list"), {"academy": academy.id})
+        response = self.client.get(reverse("accommodation-list"), {"academy_id": academy.id})
         results = response.json()
         assert len(results["results"]["features"]) == 1
         returned_ids = [feature["id"] for feature in results["results"]["features"]]

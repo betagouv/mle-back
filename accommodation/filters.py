@@ -4,6 +4,8 @@ from django_filters.rest_framework import filters
 from accommodation.models import Accommodation
 from common.filters import BaseFilter
 
+from territories.models import Academy
+
 
 class AccommodationFilter(BaseFilter):
     is_accessible = filters.BooleanFilter(method="filter_is_accessible", label="Only accessible accommodations")
@@ -15,6 +17,7 @@ class AccommodationFilter(BaseFilter):
     )
     price_max = filters.NumberFilter(method="filter_price_max", label="Price max in euros")
     view_crous = filters.BooleanFilter(method="filter_view_crous", label="Whether to return CROUS accommodations")
+    academy = filters.NumberFilter(method="filter_academy", label="Academy ID")
 
     def filter_is_accessible(self, queryset, name, value):
         if value is True:
@@ -46,6 +49,12 @@ class AccommodationFilter(BaseFilter):
         if value is True:
             return queryset.filter(sources__source="crous")
         return queryset.exclude(sources__source="crous")
+
+    def filter_academy(self, queryset, name, value):
+        academy = Academy.objects.get(id=value)
+        if academy is None:
+            return queryset
+        return queryset.filter(geom__within=academy.boundary)
 
     class Meta:
         model = Accommodation

@@ -51,8 +51,13 @@ class AccommodationFilter(BaseFilter):
         return queryset.exclude(sources__source="crous")
 
     def filter_academy(self, queryset, name, value):
-        academy = Academy.objects.get(id=value)
-        if academy is None:
+        if value is None:
+            return queryset
+        try:
+            academy = Academy.objects.get(id=value)
+        except Academy.DoesNotExist:
+            return queryset
+        if academy.boundary is None:
             return queryset
         return queryset.filter(geom__within=academy.boundary)
 

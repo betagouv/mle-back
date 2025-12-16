@@ -5,8 +5,8 @@ from django.conf import settings
 
 from accommodation.management.commands.upload_base_command import UploadS3BaseCommand
 
-local_directory = "temp/evolea_images/"
-prefix_on_s3 = "evolea-images"
+local_directory = "/Users/pierrechene/Downloads/maison-etudiant"
+prefix_on_s3 = "vichy-habitat-images"
 image_regexp = None  # r"^9021.*\.jpg"
 
 
@@ -32,4 +32,4 @@ class Command(UploadS3BaseCommand):
                 images_urls.append(f"{settings.AWS_S3_PUBLIC_BASE_URL}/{prefix_on_s3}/{filename}")
 
         print(f"Images for {local_directory}:")
-        print("|".join(images_urls))
+        print("|".join(sorted(images_urls)))

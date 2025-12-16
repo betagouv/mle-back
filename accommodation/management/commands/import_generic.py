@@ -15,7 +15,9 @@ class Command(GeoBaseCommand):
     help = "Import accommodations from a CSV file"
 
     def add_arguments(self, parser):
-        parser.add_argument("--file", type=str, help="Path of the CSV file to process (separator: ,)")
+        parser.add_argument(
+            "--file", type=str, help="Path of the CSV file to process (separator: ;)"
+        )  # TODO: change the mle-data sources to use the new convention
         parser.add_argument("--source", type=str, help="External source, see accommodation.models.ExternalSource")
         parser.add_argument("--skip-images", type=bool, default=False, help="Skip images import")
 
@@ -45,7 +47,7 @@ class Command(GeoBaseCommand):
             return
 
         with open(csv_file_path, newline="", encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile, delimiter=",")
+            reader = csv.DictReader(csvfile, delimiter=";")
             total_imported = 0
 
             owner = None

@@ -228,10 +228,3 @@ AWS_SUFFIX_DIR = ""
 AWS_S3_PUBLIC_BASE_URL = env("AWS_S3_PUBLIC_BASE_URL")
 
 BIZDEV_EMAIL = env("BIZDEV_EMAIL")
-
-_gdal = env("GDAL_LIBRARY_PATH", default=None)
-_geos = env("GEOS_LIBRARY_PATH", default=None)
-if _gdal is not None:
-    GDAL_LIBRARY_PATH = _gdal
-if _geos is not None:
-    GEOS_LIBRARY_PATH = _geos

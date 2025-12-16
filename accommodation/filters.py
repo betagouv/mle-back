@@ -17,7 +17,7 @@ class AccommodationFilter(BaseFilter):
     )
     price_max = filters.NumberFilter(method="filter_price_max", label="Price max in euros")
     view_crous = filters.BooleanFilter(method="filter_view_crous", label="Whether to return CROUS accommodations")
-    academy = filters.NumberFilter(method="filter_academy", label="Academy ID")
+    academy_id = filters.NumberFilter(method="filter_academy_id", label="Academy ID")
 
     def filter_is_accessible(self, queryset, name, value):
         if value is True:
@@ -50,7 +50,7 @@ class AccommodationFilter(BaseFilter):
             return queryset.filter(sources__source="crous")
         return queryset.exclude(sources__source="crous")
 
-    def filter_academy(self, queryset, name, value):
+    def filter_academy_id(self, queryset, name, value):
         if value is None:
             return queryset
         try:

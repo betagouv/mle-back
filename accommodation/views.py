@@ -90,6 +90,12 @@ class AccommodationDetailView(generics.RetrieveAPIView):
             required=False,
             default=False,
         ),
+        OpenApiParameter(
+            "academy_id",
+            OpenApiTypes.NUMBER,
+            description="Academy ID for filtering accommodations within the given academy.",
+            required=False,
+        ),
     ],
     responses=AccommodationGeoSerializer,
 )

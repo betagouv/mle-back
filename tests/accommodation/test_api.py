@@ -62,7 +62,6 @@ class AccommodationDetailAPITests(APITestCase):
         assert result["nb_t4"] == self.accommodation_published.nb_t4
         assert result["nb_t5"] == self.accommodation_published.nb_t5
         assert result["nb_t6"] == self.accommodation_published.nb_t6
-        assert result["nb_t7"] == self.accommodation_published.nb_t7
         assert result["nb_t7_more"] == self.accommodation_published.nb_t7_more
         assert result["accept_waiting_list"] is False
         assert result["scholarship_holders_priority"] is False
@@ -167,8 +166,6 @@ class AccommodationListAPITests(APITestCase):
                 "nb_t5_available": None,
                 "nb_t6": None,
                 "nb_t6_available": None,
-                "nb_t7": None,
-                "nb_t7_available": None,
                 "nb_t7_more": None,
                 "nb_t7_more_available": None,
                 "accept_waiting_list": True,
@@ -318,7 +315,6 @@ class AccommodationListAPITests(APITestCase):
             nb_t4_available=0,
             nb_t5_available=0,
             nb_t6_available=0,
-            nb_t7_available=0,
             nb_t7_more_available=0,
             accept_waiting_list=True,
         )
@@ -332,7 +328,6 @@ class AccommodationListAPITests(APITestCase):
             nb_t4_available=None,
             nb_t5_available=None,
             nb_t6_available=None,
-            nb_t7_available=None,
             nb_t7_more_available=None,
             accept_waiting_list=True,
         )
@@ -425,7 +420,6 @@ class MyAccommodationListAPITests(APITestCase):
             nb_t4_available=0,
             nb_t5_available=0,
             nb_t6_available=0,
-            nb_t7_available=0,
             nb_t7_more_available=0,
         )
 

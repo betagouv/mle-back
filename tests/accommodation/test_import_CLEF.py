@@ -48,7 +48,6 @@ abcde,Third planned residence,Résidence Universitaire conventionnée,10 Rue de 
     assert accommodation1.nb_t4 == 10
     assert accommodation1.nb_t5 is None
     assert accommodation1.nb_t6 is None
-    assert accommodation1.nb_t7 is None
     assert accommodation1.nb_t7_more is None
     assert accommodation1.published is True
 
@@ -71,7 +70,6 @@ abcde,Third planned residence,Résidence Universitaire conventionnée,10 Rue de 
     assert accommodation2.nb_t4 == 30
     assert accommodation2.nb_t5 is None
     assert accommodation2.nb_t6 is None
-    assert accommodation2.nb_t7 is None
     assert accommodation2.nb_t7_more is None
     assert accommodation2.published is True
 
@@ -260,7 +258,6 @@ def test_import_clef_command(mock_settings):
         assert accommodation.nb_t4 == 5
         assert accommodation.nb_t5 is None
         assert accommodation.nb_t6 is None
-        assert accommodation.nb_t7 is None
         assert accommodation.nb_t7_more is None
 
         assert accommodation.images_urls == [
@@ -297,7 +294,6 @@ def test_import_clef_command(mock_settings):
         assert accommodation.nb_t4 == 5
         assert accommodation.nb_t5 is None
         assert accommodation.nb_t6 is None
-        assert accommodation.nb_t7 is None
         assert accommodation.nb_t7_more is None
 
         owner = Owner.objects.get(name="DEF")

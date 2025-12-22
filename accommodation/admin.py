@@ -79,8 +79,6 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_t5_available",
         "nb_t6",
         "nb_t6_available",
-        "nb_t7",
-        "nb_t7_available",
         "nb_t7_more",
         "nb_t7_more_available",
         "price_min_t1",
@@ -97,8 +95,6 @@ class AccommodationAdmin(OSMGeoAdmin):
         "price_max_t5",
         "price_min_t6",
         "price_max_t6",
-        "price_min_t7",
-        "price_max_t7",
         "price_min_t7_more",
         "price_max_t7_more",
     )
@@ -122,8 +118,6 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_t5_available",
         "nb_t6",
         "nb_t6_available",
-        "nb_t7",
-        "nb_t7_available",
         "nb_t7_more",
         "nb_t7_more_available",
         "price_min_t1",
@@ -140,8 +134,6 @@ class AccommodationAdmin(OSMGeoAdmin):
         "price_max_t5",
         "price_min_t6",
         "price_max_t6",
-        "price_min_t7",
-        "price_max_t7",
         "price_min_t7_more",
         "price_max_t7_more",
     )
@@ -155,7 +147,6 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_t4_available",
         "nb_t5_available",
         "nb_t6_available",
-        "nb_t7_available",
         "nb_t7_more_available",
         "price_min_t1",
         "price_max_t1",
@@ -171,8 +162,6 @@ class AccommodationAdmin(OSMGeoAdmin):
         "price_max_t5",
         "price_min_t6",
         "price_max_t6",
-        "price_min_t7",
-        "price_max_t7",
         "price_min_t7_more",
         "price_max_t7_more",
     )
@@ -189,7 +178,6 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_t4",
         "nb_t5",
         "nb_t6",
-        "nb_t7",
         "nb_t7_more",
     )
     exclude = ("images_urls", "images_count")

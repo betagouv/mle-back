@@ -73,9 +73,25 @@ class Accommodation(models.Model):
     nb_t3_available = models.PositiveIntegerField(
         null=True, blank=True, verbose_name=gettext_lazy("Number of available T3")
     )
-    nb_t4_more = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T4"))
-    nb_t4_more_available = models.PositiveIntegerField(
+    nb_t4 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T4"))
+    nb_t4_available = models.PositiveIntegerField(
         null=True, blank=True, verbose_name=gettext_lazy("Number of available T4")
+    )
+    nb_t5 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T5"))
+    nb_t5_available = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Number of available T5")
+    )
+    nb_t6 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T6"))
+    nb_t6_available = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Number of available T6")
+    )
+    nb_t7 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T7"))
+    nb_t7_available = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Number of available T7")
+    )
+    nb_t7_more = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Number of T7 more"))
+    nb_t7_more_available = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Number of available T7 more")
     )
     price_min = models.PositiveIntegerField(
         null=True, blank=True, db_index=True, verbose_name=gettext_lazy("Minimum price")
@@ -92,11 +108,19 @@ class Accommodation(models.Model):
     price_max_t2 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T2"))
     price_min_t3 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T3"))
     price_max_t3 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T3"))
-    price_min_t4_more = models.PositiveIntegerField(
-        null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T4")
+    price_min_t4 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T4"))
+    price_max_t4 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T4"))
+    price_min_t5 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T5"))
+    price_max_t5 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T5"))
+    price_min_t6 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T6"))
+    price_max_t6 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T6"))
+    price_min_t7 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T7"))
+    price_max_t7 = models.PositiveIntegerField(null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T7"))
+    price_min_t7_more = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Minimum price for T7 more")
     )
-    price_max_t4_more = models.PositiveIntegerField(
-        null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T4")
+    price_max_t7_more = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=gettext_lazy("Maximum price for T7 more")
     )
     laundry_room = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Laundry room"))
     common_areas = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Common areas"))
@@ -162,7 +186,11 @@ class Accommodation(models.Model):
             "nb_t1_bis_available",
             "nb_t2_available",
             "nb_t3_available",
-            "nb_t4_more_available",
+            "nb_t4_available",
+            "nb_t5_available",
+            "nb_t6_available",
+            "nb_t7_available",
+            "nb_t7_more_available",
         ]:
             field_available = getattr(self, attr_available)
             field_stock = getattr(self, attr_available.replace("_available", ""))
@@ -186,7 +214,11 @@ class Accommodation(models.Model):
             self.price_min_t1_bis,
             self.price_min_t2,
             self.price_min_t3,
-            self.price_min_t4_more,
+            self.price_min_t4,
+            self.price_min_t5,
+            self.price_min_t6,
+            self.price_min_t7,
+            self.price_min_t7_more,
         ]
         non_null_prices = [p for p in price_min_fields if p is not None]
         self.price_min = min(non_null_prices) if non_null_prices else None
@@ -197,7 +229,11 @@ class Accommodation(models.Model):
                 int(self.nb_t1_bis or 0),
                 int(self.nb_t2 or 0),
                 int(self.nb_t3 or 0),
-                int(self.nb_t4_more or 0),
+                int(self.nb_t4 or 0),
+                int(self.nb_t5 or 0),
+                int(self.nb_t6 or 0),
+                int(self.nb_t7 or 0),
+                int(self.nb_t7_more or 0),
             ]
         )
         super().save(*args, **kwargs)

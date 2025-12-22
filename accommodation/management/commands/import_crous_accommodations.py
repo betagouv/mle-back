@@ -7,6 +7,7 @@ from accommodation.models import ExternalSource
 from accommodation.serializers import AccommodationImportSerializer
 from account.models import Owner
 from territories.management.commands.geo_base_command import GeoBaseCommand
+import geopy
 
 
 class Command(GeoBaseCommand):
@@ -70,7 +71,10 @@ class Command(GeoBaseCommand):
 
                 geom = Point(lon, lat, srid=4326)
 
-                location = self._geocode(row["adresse_residence"])
+                try:
+                    location = self._geocode(row["adresse_residence"])
+                except geopy.exc.GeocoderTimedOut:
+                    location = None
                 if not location:
                     self.stderr.write(f"Could not geocode address: {row['adresse_residence']}")
                     continue
@@ -91,7 +95,7 @@ class Command(GeoBaseCommand):
                     "residence_type": "universitaire-conventionnee",
                     "geom": geom,
                     "owner_id": owner.pk,
-                    "source_id": row["code_residence"],
+                    "source_id": row["uairne"],
                     "source": source,
                     **self._parse_description(row["description_residence"]),
                 }

@@ -18,6 +18,7 @@ class AccommodationQuerySet(models.QuerySet):
                     + Coalesce(F("nb_t5_available"), 0)
                     + Coalesce(F("nb_t6_available"), 0)
                     + Coalesce(F("nb_t7_available"), 0)
+                    + Coalesce(F("nb_t7_more_available"), 0)
                 ),
                 unknown_availibility=Case(
                     When(
@@ -28,7 +29,8 @@ class AccommodationQuerySet(models.QuerySet):
                         & Q(nb_t4_available__isnull=True)
                         & Q(nb_t5_available__isnull=True)
                         & Q(nb_t6_available__isnull=True)
-                        & Q(nb_t7_available__isnull=True),
+                        & Q(nb_t7_available__isnull=True)
+                        & Q(nb_t7_more_available__isnull=True),
                         then=Value(True),
                     ),
                     default=Value(False),

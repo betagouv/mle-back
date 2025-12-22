@@ -45,7 +45,11 @@ abcde,Third planned residence,Résidence Universitaire conventionnée,10 Rue de 
     assert accommodation1.nb_t1_bis == 10
     assert accommodation1.nb_t2 == 30
     assert accommodation1.nb_t3 == 15
-    assert accommodation1.nb_t4_more == 10
+    assert accommodation1.nb_t4 == 10
+    assert accommodation1.nb_t5 is None
+    assert accommodation1.nb_t6 is None
+    assert accommodation1.nb_t7 is None
+    assert accommodation1.nb_t7_more is None
     assert accommodation1.published is True
 
     assert accommodation2.residence_type == "universitaire-conventionnee"
@@ -64,7 +68,11 @@ abcde,Third planned residence,Résidence Universitaire conventionnée,10 Rue de 
     assert accommodation2.nb_t1_bis == 20
     assert accommodation2.nb_t2 == 40
     assert accommodation2.nb_t3 == 10
-    assert accommodation2.nb_t4_more == 30
+    assert accommodation2.nb_t4 == 30
+    assert accommodation2.nb_t5 is None
+    assert accommodation2.nb_t6 is None
+    assert accommodation2.nb_t7 is None
+    assert accommodation2.nb_t7_more is None
     assert accommodation2.published is True
 
     assert accommodation3.published is False
@@ -249,7 +257,11 @@ def test_import_clef_command(mock_settings):
         assert accommodation.nb_t1_bis == 20
         assert accommodation.nb_t2 == 15
         assert accommodation.nb_t3 == 10
-        assert accommodation.nb_t4_more == 5
+        assert accommodation.nb_t4 == 5
+        assert accommodation.nb_t5 is None
+        assert accommodation.nb_t6 is None
+        assert accommodation.nb_t7 is None
+        assert accommodation.nb_t7_more is None
 
         assert accommodation.images_urls == [
             "https://s3.fake/fake_image_100.jpg",
@@ -282,7 +294,11 @@ def test_import_clef_command(mock_settings):
         assert accommodation.nb_t1_bis == 40
         assert accommodation.nb_t2 is None
         assert accommodation.nb_t3 == 10
-        assert accommodation.nb_t4_more == 5
+        assert accommodation.nb_t4 == 5
+        assert accommodation.nb_t5 is None
+        assert accommodation.nb_t6 is None
+        assert accommodation.nb_t7 is None
+        assert accommodation.nb_t7_more is None
 
         owner = Owner.objects.get(name="DEF")
         assert owner.url == "https://def.test"

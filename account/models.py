@@ -40,3 +40,14 @@ class Owner(models.Model):
             user.save()
 
             return owner
+
+
+class Student(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student")
+
+    class Meta:
+        verbose_name = gettext_lazy("Student")
+        verbose_name_plural = gettext_lazy("Students")
+
+    def __str__(self):
+        return self.user.username

@@ -34,7 +34,6 @@ class AccommodationFilter(BaseFilter):
                 | Q(nb_t4_available__gt=0)
                 | Q(nb_t5_available__gt=0)
                 | Q(nb_t6_available__gt=0)
-                | Q(nb_t7_available__gt=0)
                 | Q(nb_t7_more_available__gt=0)
             )
         return queryset

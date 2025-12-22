@@ -34,7 +34,6 @@ class Command(BaseCommand):
                 "nb_t4": 0,
                 "nb_t5": 0,
                 "nb_t6": 0,
-                "nb_t7": 0,
                 "nb_t7_more": 0,
             }
         )
@@ -69,9 +68,7 @@ class Command(BaseCommand):
                     entry["nb_t5"] += nb_logements
                 elif "T6" in type_logement:
                     entry["nb_t6"] += nb_logements
-                elif "T7" in type_logement:
-                    entry["nb_t7"] += nb_logements
-                elif any(t in type_logement for t in ["T8", "T9"]):
+                elif any(t in type_logement for t in ["T7", "T8", "T9"]):
                     entry["nb_t7_more"] += nb_logements
                 else:
                     print("non mapped type", type_logement)
@@ -102,7 +99,6 @@ class Command(BaseCommand):
                     "nb_t4": vals["nb_t4"],
                     "nb_t5": vals["nb_t5"],
                     "nb_t6": vals["nb_t6"],
-                    "nb_t7": vals["nb_t7"],
                     "nb_t7_more": vals["nb_t7_more"],
                 },
                 partial=True,

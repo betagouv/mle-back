@@ -292,7 +292,6 @@ class CityDetailAPITest(APITestCase):
             nb_t4=1,
             nb_t5=0,
             nb_t6=0,
-            nb_t7=0,
             nb_t7_more=0,
             price_min_t1=235,
             price_min_t2=236,
@@ -300,7 +299,6 @@ class CityDetailAPITest(APITestCase):
             price_min_t4=238,
             price_min_t5=239,
             price_min_t6=240,
-            price_min_t7=241,
             price_min_t7_more=242,
         )
         AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12, price_min_t3=234)
@@ -351,7 +349,6 @@ class CityDetailAPITest(APITestCase):
                 "nb_t4": 1,
                 "nb_t5": 0,
                 "nb_t6": 0,
-                "nb_t7": 0,
                 "nb_t7_more": 0,
                 "nb_coliving_apartments": 2,
                 "price_min": 234,

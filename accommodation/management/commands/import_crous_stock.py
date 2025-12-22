@@ -35,6 +35,7 @@ class Command(BaseCommand):
                 "nb_t5": 0,
                 "nb_t6": 0,
                 "nb_t7": 0,
+                "nb_t7_more": 0,
             }
         )
 

@@ -81,6 +81,8 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_t6_available",
         "nb_t7",
         "nb_t7_available",
+        "nb_t7_more",
+        "nb_t7_more_available",
         "price_min_t1",
         "price_max_t1",
         "price_min_t1_bis",
@@ -97,6 +99,8 @@ class AccommodationAdmin(OSMGeoAdmin):
         "price_max_t6",
         "price_min_t7",
         "price_max_t7",
+        "price_min_t7_more",
+        "price_max_t7_more",
     )
     list_filter = ("owner__name", "city", "postal_code")
     list_filter_as_owner = ("city", "postal_code")
@@ -120,6 +124,8 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_t6_available",
         "nb_t7",
         "nb_t7_available",
+        "nb_t7_more",
+        "nb_t7_more_available",
         "price_min_t1",
         "price_max_t1",
         "price_min_t1_bis",
@@ -136,6 +142,8 @@ class AccommodationAdmin(OSMGeoAdmin):
         "price_max_t6",
         "price_min_t7",
         "price_max_t7",
+        "price_min_t7_more",
+        "price_max_t7_more",
     )
     list_editable = ("available",)
     list_editable_as_owner = (
@@ -179,6 +187,7 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_t5",
         "nb_t6",
         "nb_t7",
+        "nb_t7_more",
     )
     exclude = ("images_urls", "images_count")
     actions_as_owner = [unavailable_accommodations, available_accommodations]

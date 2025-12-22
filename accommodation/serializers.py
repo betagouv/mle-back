@@ -175,6 +175,7 @@ class BaseAccommodationSerialiser(serializers.Serializer):
             obj.price_min_t5,
             obj.price_min_t6,
             obj.price_min_t7,
+            obj.price_min_t7_more,
         ]
         prices = [p for p in prices if p is not None]
         return min(prices) if prices else None
@@ -189,6 +190,7 @@ class BaseAccommodationSerialiser(serializers.Serializer):
             obj.price_max_t5,
             obj.price_max_t6,
             obj.price_max_t7,
+            obj.price_max_t7_more,
         ]
         prices = [p for p in prices if p is not None]
         return max(prices) if prices else None
@@ -203,6 +205,7 @@ class BaseAccommodationSerialiser(serializers.Serializer):
             ("nb_t5", "nb_t5_available"),
             ("nb_t6", "nb_t6_available"),
             ("nb_t7", "nb_t7_available"),
+            ("nb_t7_more", "nb_t7_more_available"),
         ]
 
         errors = {}

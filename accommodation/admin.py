@@ -156,6 +156,7 @@ class AccommodationAdmin(OSMGeoAdmin):
         "nb_t5_available",
         "nb_t6_available",
         "nb_t7_available",
+        "nb_t7_more_available",
         "price_min_t1",
         "price_max_t1",
         "price_min_t1_bis",
@@ -172,6 +173,8 @@ class AccommodationAdmin(OSMGeoAdmin):
         "price_max_t6",
         "price_min_t7",
         "price_max_t7",
+        "price_min_t7_more",
+        "price_max_t7_more",
     )
     readonly_fields = ("display_images", "owner", "residence_type", "slug", "updated_at")
     readonly_fields_as_owner = (

@@ -209,6 +209,7 @@ BREVO_CONTACT_LIST_ID = 3
 
 BREVO_TEMPLATES_ID = {
     "magic-link": 2,
+    "student-registration": 3,  # TODO : update the template id
 }
 
 # IBAIL API

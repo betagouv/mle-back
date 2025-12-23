@@ -1,3 +1,4 @@
+import uuid
 from autoslug import AutoSlugField
 from django.contrib.auth.models import Group, User
 from django.contrib.gis.db import models
@@ -51,3 +52,30 @@ class Student(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class StudentRegistrationToken(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="registration_tokens")
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = gettext_lazy("Student Registration Token")
+        verbose_name_plural = gettext_lazy("Student Registration Tokens")
+
+    def __str__(self):
+        return self.token
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = str(uuid.uuid4())
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_or_create_for_user(cls, user):
+        if not user:
+            return None
+
+        with transaction.atomic():
+            token, _ = cls.objects.get_or_create(student=user.student)
+            return token

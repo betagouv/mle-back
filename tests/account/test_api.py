@@ -5,9 +5,10 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
+from account.models import Student, StudentRegistrationToken
 from sesame.utils import get_token
 
-from .factories import GroupFactory, OwnerFactory, UserFactory
+from .factories import GroupFactory, OwnerFactory, StudentFactory, UserFactory
 
 
 class AccountAPITests(APITestCase):
@@ -147,3 +148,40 @@ class LogoutAPITests(APITestCase):
     def test_logout_without_auth(self):
         response = self.client.post(self.logout_url, {"refresh": self.refresh_token})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class StudentRegistrationAPITests(APITestCase):
+    @patch("sib_api_v3_sdk.TransactionalEmailsApi.send_transac_email")
+    def test_student_registration_success(self, mock_send_email):
+        mock_send_email.return_value = None
+
+        response = self.client.post(
+            reverse("student-register"),
+            {"email": "test@test.com", "first_name": "Test", "last_name": "Test", "password": "testpassword"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["message"], "Student registered successfully")
+        assert mock_send_email.call_count == 1
+        student = Student.objects.get(user__email="test@test.com")
+        self.assertEqual(student.user.first_name, "Test")
+        self.assertEqual(student.user.last_name, "Test")
+        self.assertEqual(student.user.is_active, True)
+        self.assertEqual(student.user.is_staff, False)
+        self.assertEqual(student.user.is_superuser, False)
+
+        self.assertTrue(StudentRegistrationToken.objects.filter(student=student).exists())
+
+
+class StudentRegistrationValidationAPITests(APITestCase):
+    def test_student_registration_validation_success(self):
+        student = StudentFactory.create(user__is_active=False, user__is_staff=False, user__is_superuser=False)
+        token = StudentRegistrationToken.get_or_create_for_user(student.user)
+        response = self.client.post(reverse("student-validate"), {"validation_token": token.token})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["message"], "Student validated successfully")
+
+        student.refresh_from_db()
+        self.assertEqual(student.user.is_active, True)
+        self.assertEqual(student.user.is_staff, False)
+        self.assertEqual(student.user.is_superuser, False)
+        self.assertFalse(StudentRegistrationToken.objects.filter(student=student).exists())

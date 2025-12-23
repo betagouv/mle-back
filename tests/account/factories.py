@@ -3,7 +3,7 @@ import factory.fuzzy
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
-from account.models import Owner
+from account.models import Owner, Student
 
 User = get_user_model()
 
@@ -49,3 +49,10 @@ class OwnerFactory(factory.django.DjangoModelFactory):
     @factory.lazy_attribute
     def image(self):
         return b"fake_image_data"
+
+
+class StudentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Student
+
+    user = factory.SubFactory(UserFactory)

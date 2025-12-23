@@ -6,7 +6,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from account.helpers import is_owner, is_superuser_or_bizdev
 
-from .models import Owner
+from .models import Owner, Student, StudentRegistrationToken
 
 User = get_user_model()
 
@@ -50,4 +50,24 @@ class StudentRegistrationSerializer(serializers.Serializer):
         except ValidationError as e:
             raise serializers.ValidationError(e.error_dict)
 
+        return attrs
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data["email"],
+            email=validated_data["email"],
+            first_name=validated_data["first_name"],
+            last_name=validated_data["last_name"],
+            password=validated_data["password"],
+        )
+        student = Student.objects.create(user=user)
+        return student
+
+
+class StudentRegistrationValidationSerializer(serializers.Serializer):
+    validation_token = serializers.CharField()
+
+    def validate(self, attrs):
+        if not StudentRegistrationToken.objects.filter(token=attrs["validation_token"]).exists():
+            raise serializers.ValidationError("Invalid token")
         return attrs

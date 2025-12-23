@@ -10,8 +10,6 @@ fileignoreconfig:
     checksum: d9db13058c4c7dab9c56128687a54ed4184f5d9659c84f9e44064da1ef4ba723
   - filename: auth/views.py
     checksum: 69b87fda651f45d35766d8de855ea0ad5f85aef135e7ee544973cbdddda1db45
-  - filename: tests/account/test_api.py
-    checksum: b856d245795bd960945b4b3a7056f8f2bea0e5435b50cfef1c89581d1673fba8
   - filename: accommodation/utils.py
     checksum: 4554da26f8553ce4b3fea7a11f50103c94bdca288a7208ce5feb32dc42c0ae12
   - filename: accommodation/models.py
@@ -27,4 +25,12 @@ fileignoreconfig:
   - filename: bin/external_db_backup
     checksum: b79541a934dc45d791cbd44b7a12a939a23e678ffb7e5541ca5b830844a0cfde
   - filename: account/serializers.py
-    checksum: a91aa6e358b7ab98488c9e67141979f73eadd38dce5cd614ea08008534fe5274
+    checksum: 5030d47dfce12e8da82b13ed09f6eb80808ba6399c4585570f27a09cd9fd8525
+  - filename: account/services.py
+    checksum: 6ac1759fd545fc77fe0a3848601bdec761b7fda75e80ceada8e1463932b40088
+  - filename: account/models.py
+    checksum: cd51709233782bb3fedcba9b664d3e358886f3a9ffb0572a70ad5a3c26375bb3
+  - filename: account/migrations/0004_student_studentregistrationtoken.py
+    checksum: 11f450dcf6cede2730635dbcf47bce7780a67f1cb671401ec798aec6e8eaf3e1
+  - filename: tests/account/test_api.py
+    checksum: e50c7aaad07354d2231d7c8e31c655b1550aea469f71f40e08fe663b011ef161

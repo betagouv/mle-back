@@ -26,3 +26,5 @@ fileignoreconfig:
     checksum: d8753eebb9f1fb740e95375aa0f047526c9ca470bf9c84363c98a3f134469639
   - filename: bin/external_db_backup
     checksum: b79541a934dc45d791cbd44b7a12a939a23e678ffb7e5541ca5b830844a0cfde
+  - filename: account/serializers.py
+    checksum: a91aa6e358b7ab98488c9e67141979f73eadd38dce5cd614ea08008534fe5274

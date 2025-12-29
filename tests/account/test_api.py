@@ -185,3 +185,15 @@ class StudentRegistrationValidationAPITests(APITestCase):
         self.assertEqual(student.user.is_staff, False)
         self.assertEqual(student.user.is_superuser, False)
         self.assertFalse(StudentRegistrationToken.objects.filter(student=student).exists())
+
+    def test_student_registration_validation_invalid_token(self):
+        response = self.client.post(reverse("student-validate"), {"validation_token": "invalidtoken"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["detail"], "Invalid or expired validation token")
+
+    def test_student_registration_validation_already_validated(self):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        token = StudentRegistrationToken.get_or_create_for_user(student.user)
+        response = self.client.post(reverse("student-validate"), {"validation_token": token.token})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["detail"], "Student already validated")

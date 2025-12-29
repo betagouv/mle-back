@@ -6,7 +6,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from account.helpers import is_owner, is_superuser_or_bizdev
 
-from .models import Owner, Student, StudentRegistrationToken
+from .models import Owner, Student
 
 User = get_user_model()
 
@@ -66,8 +66,3 @@ class StudentRegistrationSerializer(serializers.Serializer):
 
 class StudentRegistrationValidationSerializer(serializers.Serializer):
     validation_token = serializers.CharField()
-
-    def validate(self, attrs):
-        if not StudentRegistrationToken.objects.filter(token=attrs["validation_token"]).exists():
-            raise serializers.ValidationError("Invalid token")
-        return attrs

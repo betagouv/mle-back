@@ -1,5 +1,6 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
+from django.db import transaction
 
 from .models import Owner, StudentRegistrationToken
 from .serializers import OwnerSerializer, StudentRegistrationValidationSerializer
@@ -56,9 +57,24 @@ class StudentRegistrationValidationView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        registration_token = StudentRegistrationToken.objects.get(token=serializer.validated_data["validation_token"])
-        student = registration_token.student
-        student.user.is_active = True
-        student.user.save()
-        registration_token.delete()
+        try:
+            with transaction.atomic():
+                registration_token = StudentRegistrationToken.objects.select_for_update().get(
+                    token=serializer.validated_data["validation_token"]
+                )
+                student = registration_token.student
+                if student.user.is_active:
+                    return Response(
+                        {"detail": "Student already validated"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                student.user.is_active = True
+                student.user.save()
+                registration_token.delete()
+        except StudentRegistrationToken.DoesNotExist:
+            return Response(
+                {"detail": "Invalid or expired validation token"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         return Response({"message": "Student validated successfully"}, status=status.HTTP_200_OK)

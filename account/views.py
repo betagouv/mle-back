@@ -66,7 +66,10 @@ class StudentRegistrationValidationView(generics.GenericAPIView):
                 student = registration_token.student
                 if student.user.is_active:
                     return Response(
-                        {"detail": "Student already validated"},
+                        {
+                            "detail": "Student already validated",
+                            "type": "already_validated",
+                        },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 student.user.is_active = True
@@ -74,7 +77,7 @@ class StudentRegistrationValidationView(generics.GenericAPIView):
                 registration_token.delete()
         except StudentRegistrationToken.DoesNotExist:
             return Response(
-                {"detail": "Invalid or expired validation token"},
+                {"detail": "Invalid or expired validation token", "type": "invalid_or_expired_validation_token"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

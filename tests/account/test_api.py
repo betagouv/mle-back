@@ -165,7 +165,7 @@ class StudentRegistrationAPITests(APITestCase):
         student = Student.objects.get(user__email="test@test.com")
         self.assertEqual(student.user.first_name, "Test")
         self.assertEqual(student.user.last_name, "Test")
-        self.assertEqual(student.user.is_active, True)
+        self.assertEqual(student.user.is_active, False)
         self.assertEqual(student.user.is_staff, False)
         self.assertEqual(student.user.is_superuser, False)
 

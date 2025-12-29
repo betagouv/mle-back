@@ -59,6 +59,7 @@ class StudentRegistrationSerializer(serializers.Serializer):
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
             password=validated_data["password"],
+            is_active=False,
         )
         student = Student.objects.create(user=user)
         return student

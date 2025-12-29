@@ -1,6 +1,7 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from django.db import transaction
+from django.conf import settings
 
 from .models import Owner, StudentRegistrationToken
 from .serializers import OwnerSerializer, StudentRegistrationValidationSerializer

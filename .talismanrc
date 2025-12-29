@@ -24,13 +24,17 @@ fileignoreconfig:
     checksum: d8753eebb9f1fb740e95375aa0f047526c9ca470bf9c84363c98a3f134469639
   - filename: bin/external_db_backup
     checksum: b79541a934dc45d791cbd44b7a12a939a23e678ffb7e5541ca5b830844a0cfde
-  - filename: account/serializers.py
-    checksum: 5030d47dfce12e8da82b13ed09f6eb80808ba6399c4585570f27a09cd9fd8525
   - filename: account/services.py
     checksum: 6ac1759fd545fc77fe0a3848601bdec761b7fda75e80ceada8e1463932b40088
   - filename: account/models.py
     checksum: cd51709233782bb3fedcba9b664d3e358886f3a9ffb0572a70ad5a3c26375bb3
   - filename: account/migrations/0004_student_studentregistrationtoken.py
     checksum: 11f450dcf6cede2730635dbcf47bce7780a67f1cb671401ec798aec6e8eaf3e1
+  - filename: account/serializers.py
+    checksum: f18f63cd93dac8e0306cf62a5e33c840d05ff43a621d8d348bea8e8a80983bbc
+  - filename: account/backend.py
+    checksum: 947071d269180454b6396604fe5635102ab7698683dfd86c394174b109f90fec
+  - filename: account/views.py
+    checksum: a08814c684c70f9ad3e3fe931a8d399562ee6e6151188f5f8a2bb7080056101c
   - filename: tests/account/test_api.py
-    checksum: e50c7aaad07354d2231d7c8e31c655b1550aea469f71f40e08fe663b011ef161
+    checksum: 5c99bc364d5077630e9be3a4d67517cc2694673b5e89d4b9c9348e1bfaa8ead0

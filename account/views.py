@@ -2,9 +2,16 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from django.db import transaction
 from django.conf import settings
+from django.contrib.auth import authenticate
 
 from .models import Owner, StudentRegistrationToken
-from .serializers import OwnerSerializer, StudentRegistrationValidationSerializer
+from .serializers import (
+    OwnerSerializer,
+    StudentRegistrationValidationSerializer,
+    StudentTokenResponseSerializer,
+    StudentGetTokenSerializer,
+)
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from rest_framework import generics
 from rest_framework import permissions
@@ -13,6 +20,7 @@ from rest_framework import status
 
 from .serializers import StudentRegistrationSerializer
 from .services import send_student_registration_email
+from account.serializers import UserSerializer
 
 
 class OwnerViewSet(viewsets.ReadOnlyModelViewSet):
@@ -82,3 +90,40 @@ class StudentRegistrationValidationView(generics.GenericAPIView):
             )
 
         return Response({"message": "Student validated successfully"}, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    summary="Get a token for a student",
+    description="Get a token for a student with the given email and password.",
+    request=StudentGetTokenSerializer,
+    responses={200: StudentTokenResponseSerializer},
+)
+class StudentGetTokenView(generics.GenericAPIView):
+    authentication_classes = []
+    permission_classes = []
+    serializer_class = StudentGetTokenSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = authenticate(
+            request, email=serializer.validated_data["email"], password=serializer.validated_data["password"]
+        )
+        if not user:
+            return Response(
+                {"detail": "Invalid email or password.", "type": "invalid_email_or_password"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        return Response(
+            {
+                "access": access_token,
+                "refresh": str(refresh),
+                "user": UserSerializer(user).data,
+            },
+            status=status.HTTP_200_OK,
+        )

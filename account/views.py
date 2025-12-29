@@ -37,7 +37,7 @@ class StudentRegistrationView(generics.GenericAPIView):
 
         registration_token = StudentRegistrationToken.get_or_create_for_user(student.user)
 
-        validation_link = f"{request.build_absolute_uri()}?validation_token={registration_token.token}"
+        validation_link = f"{settings.FRONT_SITE_URL}/verification?validation_token={registration_token.token}"
 
         send_student_registration_email(student, validation_link)
         return Response({"message": "Student registered successfully"}, status=status.HTTP_201_CREATED)

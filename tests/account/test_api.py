@@ -197,3 +197,29 @@ class StudentRegistrationValidationAPITests(APITestCase):
         response = self.client.post(reverse("student-validate"), {"validation_token": token.token})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["detail"], "Student already validated")
+
+
+class StudentGetTokenAPITests(APITestCase):
+    def test_student_get_token_success(self):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        student.user.set_password("testpassword")
+        student.user.save()
+        response = self.client.post(reverse("student-token"), {"email": student.user.email, "password": "testpassword"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertIn("access", data)
+        self.assertIn("refresh", data)
+        self.assertIn("user", data)
+        self.assertEqual(data["user"]["email"], student.user.email)
+        self.assertEqual(data["user"]["first_name"], student.user.first_name)
+        self.assertEqual(data["user"]["last_name"], student.user.last_name)
+        self.assertNotIn("password", data["user"])
+
+    def test_student_get_token_invalid_credentials(self):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        response = self.client.post(
+            reverse("student-token"), {"email": student.user.email, "password": "invalidpassword"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["detail"], "Invalid email or password.")
+        self.assertEqual(response.json()["type"], "invalid_email_or_password")

@@ -77,6 +77,7 @@ TEMPLATES = [
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    "account.backend.EmailBackend",
     "sesame.backends.ModelBackend",
 ]
 

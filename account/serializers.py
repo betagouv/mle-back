@@ -35,6 +35,17 @@ class UserSerializer(serializers.ModelSerializer):
         return "admin" if is_superuser_or_bizdev(obj) else "owner" if is_owner(obj) else "user"
 
 
+class StudentTokenResponseSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+    user = UserSerializer()
+
+
+class StudentGetTokenSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+
 class StudentRegistrationSerializer(serializers.Serializer):
     email = serializers.EmailField()
     first_name = serializers.CharField()

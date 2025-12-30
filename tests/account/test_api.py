@@ -4,8 +4,9 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from account.models import Student, StudentRegistrationToken
+from account.services import build_password_reset_link
 from sesame.utils import get_token
 
 from .factories import GroupFactory, OwnerFactory, StudentFactory, UserFactory
@@ -223,3 +224,80 @@ class StudentGetTokenAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["detail"], "Invalid email or password.")
         self.assertEqual(response.json()["type"], "invalid_email_or_password")
+
+
+class StudentRequestPasswordResetAPITests(APITestCase):
+    @patch("sib_api_v3_sdk.TransactionalEmailsApi.send_transac_email")
+    def test_student_request_password_reset_success(self, mock_send_email):
+        mock_send_email.return_value = None
+
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        response = self.client.post(reverse("student-request-password-reset"), {"email": student.user.email})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["message"], "Password reset email sent if user exists")
+        assert mock_send_email.call_count == 1
+
+    @patch("sib_api_v3_sdk.TransactionalEmailsApi.send_transac_email")
+    def test_student_request_password_reset_invalid_email(self, mock_send_email):
+        mock_send_email.return_value = None
+
+        response = self.client.post(reverse("student-request-password-reset"), {"email": "invalidemail@test.com"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["message"], "Password reset email sent if user exists")
+        assert mock_send_email.call_count == 0
+
+
+class StudentPasswordResetConfirmAPITests(APITestCase):
+    def test_student_password_reset_confirm_success(self):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        link = build_password_reset_link(student.user, "https://www.example.com")
+        uid = link.split("uid=")[1].split("&")[0]
+        token = link.split("token=")[1]
+        response = self.client.post(
+            reverse("student-password-reset-confirm", args=[uid, token]), {"new_password": "testpassword"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["message"], "Password reset successfully")
+        student.refresh_from_db()
+        self.assertTrue(student.user.check_password("testpassword"))
+
+    def test_student_password_reset_confirm_invalid_token(self):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        link = build_password_reset_link(student.user, "https://www.example.com")
+        uid = link.split("uid=")[1].split("&")[0]
+        response = self.client.post(
+            reverse("student-password-reset-confirm", args=[uid, "invalidtoken"]), {"new_password": "testpassword"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["detail"], "Invalid reset link")
+        self.assertEqual(response.json()["type"], "invalid_reset_link")
+
+    def test_student_password_reset_confirm_invalid_uid(self):
+        response = self.client.post(
+            reverse("student-password-reset-confirm", args=["invaliduid", "validtoken"]),
+            {"new_password": "testpassword"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["detail"], "Invalid reset link")
+        self.assertEqual(response.json()["type"], "invalid_reset_link")
+
+
+class StudentLogoutAPITests(APITestCase):
+    def test_student_logout_success(self):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        refresh = RefreshToken.for_user(student.user)
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
+        response = self.client.post(
+            reverse("student-logout"), {"refresh": refresh_token}, HTTP_AUTHORIZATION=f"Bearer {access_token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["message"], "Logout successfully")
+        with self.assertRaises(TokenError):
+            refresh.verify()
+
+    def test_student_logout_invalid_token(self):
+        response = self.client.post(reverse("student-logout"), {"refresh": "invalidtoken"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["detail"], "Invalid token.")
+        self.assertEqual(response.json()["type"], "invalid_token")

@@ -46,6 +46,10 @@ class StudentGetTokenSerializer(serializers.Serializer):
     password = serializers.CharField()
 
 
+class StudentRequestPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
 class StudentRegistrationSerializer(serializers.Serializer):
     email = serializers.EmailField()
     first_name = serializers.CharField()
@@ -78,3 +82,15 @@ class StudentRegistrationSerializer(serializers.Serializer):
 
 class StudentRegistrationValidationSerializer(serializers.Serializer):
     validation_token = serializers.CharField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    new_password = serializers.CharField()
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+
+
+class StudentLogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()

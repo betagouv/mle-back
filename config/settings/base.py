@@ -211,6 +211,7 @@ BREVO_CONTACT_LIST_ID = 3
 BREVO_TEMPLATES_ID = {
     "magic-link": 2,
     "student-validation": 21,
+    "student-password-reset": 23,
 }
 
 # IBAIL API

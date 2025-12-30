@@ -166,7 +166,7 @@ class StudentRequestPasswordResetView(generics.GenericAPIView):
 
         try:
             student = Student.objects.get(user__email=serializer.validated_data["email"])
-            password_reset_link = build_password_reset_link(student.user, self.request.build_absolute_uri())
+            password_reset_link = build_password_reset_link(student.user, f"{settings.FRONT_SITE_URL}")
             send_student_password_reset_email(student, password_reset_link)
         except Student.DoesNotExist:
             pass

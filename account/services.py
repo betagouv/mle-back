@@ -40,8 +40,6 @@ def send_student_password_reset_email(student, reset_link):
         to=[{"email": student.user.email, "name": student.user.get_full_name() or student.user.username}],
         template_id=settings.BREVO_TEMPLATES_ID.get("student-password-reset"),
         params={
-            "FIRST_NAME": student.user.first_name,
-            "LAST_NAME": student.user.last_name,
             "RESET_LINK": reset_link,
         },
         tags=["student-password-reset"],

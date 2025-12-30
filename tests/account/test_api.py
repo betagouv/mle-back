@@ -246,6 +246,20 @@ class StudentRequestPasswordResetAPITests(APITestCase):
         self.assertEqual(response.json()["message"], "Password reset email sent if user exists")
         assert mock_send_email.call_count == 0
 
+    @patch("sib_api_v3_sdk.TransactionalEmailsApi.send_transac_email")
+    def test_student_request_password_reset_throttled(self, mock_send_email):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        mock_send_email.return_value = None
+        for i in range(5):
+            response = self.client.post(reverse("student-request-password-reset"), {"email": student.user.email})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.json()["message"], "Password reset email sent if user exists")
+            assert mock_send_email.call_count == i + 1
+
+        response = self.client.post(reverse("student-request-password-reset"), {"email": student.user.email})
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        assert mock_send_email.call_count == 5
+
 
 class StudentPasswordResetConfirmAPITests(APITestCase):
     def test_student_password_reset_confirm_success(self):

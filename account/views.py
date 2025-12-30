@@ -6,6 +6,8 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.exceptions import TokenError
 
+from account.throttles import PasswordResetThrottle
+
 from .models import Owner, StudentRegistrationToken
 from .serializers import (
     OwnerSerializer,
@@ -31,6 +33,8 @@ from .models import Student
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_str
+
+from drf_spectacular.utils import OpenApiResponse
 
 User = get_user_model()
 
@@ -145,11 +149,15 @@ class StudentGetTokenView(generics.GenericAPIView):
     summary="Request a password reset",
     description="Request a password reset for a student with the given email.",
     request=StudentRequestPasswordResetSerializer,
-    responses={200: {"message": "Password reset email sent if user exists"}},
+    responses={
+        200: OpenApiResponse(description="Password reset email sent if user exists"),
+        429: OpenApiResponse(description="Too many requests – rate limit exceeded"),
+    },
 )
 class StudentRequestPasswordResetView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = StudentRequestPasswordResetSerializer
+    throttle_classes = [PasswordResetThrottle]
     http_method_names = ["post"]
 
     def post(self, request, *args, **kwargs):

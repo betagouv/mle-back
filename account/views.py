@@ -3,11 +3,16 @@ from rest_framework import viewsets
 from django.db import transaction
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.exceptions import TokenError
 
 from .models import Owner, StudentRegistrationToken
 from .serializers import (
     OwnerSerializer,
+    PasswordResetConfirmSerializer,
+    StudentLogoutSerializer,
     StudentRegistrationValidationSerializer,
+    StudentRequestPasswordResetSerializer,
     StudentTokenResponseSerializer,
     StudentGetTokenSerializer,
 )
@@ -19,8 +24,15 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .serializers import StudentRegistrationSerializer
-from .services import send_student_registration_email
+from .services import send_student_registration_email, send_student_password_reset_email, build_password_reset_link
 from account.serializers import UserSerializer
+from .models import Student
+
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import force_str
+
+User = get_user_model()
 
 
 class OwnerViewSet(viewsets.ReadOnlyModelViewSet):
@@ -127,3 +139,91 @@ class StudentGetTokenView(generics.GenericAPIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+@extend_schema(
+    summary="Request a password reset",
+    description="Request a password reset for a student with the given email.",
+    request=StudentRequestPasswordResetSerializer,
+    responses={200: {"message": "Password reset email sent if user exists"}},
+)
+class StudentRequestPasswordResetView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = StudentRequestPasswordResetSerializer
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            student = Student.objects.get(user__email=serializer.validated_data["email"])
+            password_reset_link = build_password_reset_link(student.user, self.request.build_absolute_uri())
+            send_student_password_reset_email(student, password_reset_link)
+        except Student.DoesNotExist:
+            pass
+
+        return Response({"message": "Password reset email sent if user exists"}, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    summary="Confirm a password reset",
+    description="Confirm a password reset for a student with the given uid, token and new password.",
+    request=PasswordResetConfirmSerializer,
+    responses={200: {"message": "Password reset successfully"}},
+)
+class StudentPasswordResetConfirmView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PasswordResetConfirmSerializer
+    http_method_names = ["post"]
+
+    def post(self, request, uidb64, token):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError):
+            return Response(
+                {"detail": "Invalid reset link", "type": "invalid_reset_link"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not PasswordResetTokenGenerator().check_token(user, token):
+            return Response(
+                {"detail": "Invalid reset link", "type": "invalid_reset_link"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(serializer.validated_data["new_password"])
+        user.save()
+
+        return Response(
+            {"message": "Password reset successfully"},
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(
+    summary="Logout a student",
+    description="Logout a student with the given refresh token.",
+    request=StudentLogoutSerializer,
+    responses={200: {"message": "Logout successfully"}},
+)
+class StudentLogoutView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+    http_method_names = ["post"]
+    serializer_class = StudentLogoutSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            refresh_token = serializer.validated_data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except TokenError:
+            return Response({"detail": "Invalid token.", "type": "invalid_token"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Logout successfully"}, status=status.HTTP_200_OK)

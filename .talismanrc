@@ -40,5 +40,9 @@ fileignoreconfig:
     checksum: 3904cacb7c54302a811bacefbe1d8303012ceff31904bd8537ea6233d6ee609a
   - filename: account/views.py
     checksum: bc77bae0c01efbb38f54f3b0bfc04257a8445546cdd84db8bcceb7339ae32123
+  - filename: config/settings/base.py
+    checksum: 5b3359506f553e6fe2773f536c1613a53a67c732b44e9b87c34ebaadb5f47314
+  - filename: account/throttles.py
+    checksum: b81a4094e10e93f85b44190e3eb859a7bdbbb6493dedb01f6e07eee52113e3de
   - filename: tests/account/test_api.py
-    checksum: ae10fe5485a96dc14b30b4ea44efdd4371b2556935fed1dac10663f6fef6d2ba
+    checksum: a31c9f819978adabd6541ceb755e4fed73d97e27698963aab7eb172dbfcd20db

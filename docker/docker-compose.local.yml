@@ -8,4 +8,8 @@ services:
       POSTGRES_USER: mle
       POSTGRES_PASSWORD: mle
       POSTGRES_DB: mledb
-  
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

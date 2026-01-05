@@ -46,3 +46,7 @@ fileignoreconfig:
     checksum: b81a4094e10e93f85b44190e3eb859a7bdbbb6493dedb01f6e07eee52113e3de
   - filename: tests/account/test_api.py
     checksum: a31c9f819978adabd6541ceb755e4fed73d97e27698963aab7eb172dbfcd20db
+  - filename: alerts/models.py
+    checksum: 1dfd53d256b627ea774262f8c576c11a607428df0c377e095f6f4b0b841834f7
+  - filename: alerts/migrations/0001_initial.py
+    checksum: d8e68b66c0d6547f8ad17a0ac05db5f12215c1f38c9114ec025d832ec1fb3f43

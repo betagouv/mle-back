@@ -1,3 +1,4 @@
+import logging
 from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from django.db import transaction
@@ -7,6 +8,7 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.exceptions import TokenError
 
 from account.throttles import PasswordResetThrottle
+from notifications.exceptions import EmailDeliveryError
 
 from .models import Owner, StudentRegistrationToken
 from .serializers import (
@@ -26,9 +28,8 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .serializers import StudentRegistrationSerializer
-from .services import build_password_reset_link
+from .services import request_password_reset
 from account.serializers import UserSerializer
-from .models import Student
 
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -37,9 +38,10 @@ from django.utils.encoding import force_str
 from drf_spectacular.utils import OpenApiResponse
 
 from notifications.factories import get_email_gateway
-from notifications.services import send_account_validation, send_reset_password
+from notifications.services import send_account_validation
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class OwnerViewSet(viewsets.ReadOnlyModelViewSet):
@@ -68,8 +70,10 @@ class StudentRegistrationView(generics.GenericAPIView):
         validation_link = f"{settings.FRONT_SITE_URL}/verification?validation_token={registration_token.token}"
 
         email_gateway = get_email_gateway()
-
-        send_account_validation(student.user, validation_link, email_gateway)
+        try:
+            send_account_validation(student.user, validation_link, email_gateway)
+        except EmailDeliveryError:
+            logger.error(f"Failed to send account validation link to user {student.user.email}")
         return Response({"message": "Student registered successfully"}, status=status.HTTP_201_CREATED)
 
 
@@ -169,13 +173,7 @@ class StudentRequestPasswordResetView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        try:
-            student = Student.objects.get(user__email=serializer.validated_data["email"])
-            password_reset_link = build_password_reset_link(student.user, f"{settings.FRONT_SITE_URL}")
-            email_gateway = get_email_gateway()
-            send_reset_password(student.user, password_reset_link, email_gateway)
-        except Student.DoesNotExist:
-            pass
+        request_password_reset(serializer.validated_data["email"])
 
         return Response({"message": "Password reset email sent if user exists"}, status=status.HTTP_200_OK)
 

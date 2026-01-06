@@ -1,3 +1,4 @@
+import logging
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login
@@ -13,10 +14,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from sesame.utils import get_token, get_user
 
 from account.serializers import UserSerializer
+from notifications.exceptions import EmailDeliveryError
 from notifications.factories import get_email_gateway
 from notifications.services import send_magic_link
 
 User = get_user_model()
+
+logger = logging.getLogger(__name__)
 
 
 def magic_login_view(request):
@@ -52,7 +56,10 @@ def request_magic_link(request):
             return redirect("/admin/login/")
 
         email_gateway = get_email_gateway()
-        send_magic_link(user, magic_link, email_gateway)
+        try:
+            send_magic_link(user, magic_link, email_gateway)
+        except EmailDeliveryError:
+            logger.error(f"Failed to send magic link to user {user.email}")
     return redirect("/admin/login/")
 
 
@@ -80,7 +87,10 @@ class RequestMagicLinkAPIView(APIView):
         magic_link = f"{settings.FRONT_SITE_URL}/verification?sesame={token}"
 
         email_gateway = get_email_gateway()
-        send_magic_link(user, magic_link, email_gateway)
+        try:
+            send_magic_link(user, magic_link, email_gateway)
+        except EmailDeliveryError:
+            logger.error(f"Failed to send magic link to user {user.email}")
 
         return Response({"detail": generic_message}, status=status.HTTP_200_OK)
 

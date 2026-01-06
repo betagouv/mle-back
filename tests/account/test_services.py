@@ -1,26 +1,13 @@
 from account.services import (
-    send_student_password_reset_email,
-    send_student_registration_email,
     build_password_reset_link,
+    request_password_reset,
 )
-from account.models import StudentRegistrationToken
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from .factories import StudentFactory, UserFactory
 from unittest import mock
 import pytest
-
-
-@pytest.mark.django_db
-def test_send_student_registration_email():
-    student = StudentFactory.create()
-    token = StudentRegistrationToken.get_or_create_for_user(student.user)
-    url = f"https://www.example.com?validation_token={token.token}"
-    with mock.patch("sib_api_v3_sdk.TransactionalEmailsApi.send_transac_email") as mock_send_email:
-        mock_send_email.return_value = None
-        send_student_registration_email(student, url)
-        assert mock_send_email.call_count == 1
 
 
 @pytest.mark.django_db
@@ -34,10 +21,16 @@ def test_build_password_reset_link():
 
 
 @pytest.mark.django_db
-def test_send_student_password_reset_email():
+def test_request_password_reset():
     student = StudentFactory.create()
-    link = build_password_reset_link(student.user, "https://www.example.com")
-    with mock.patch("sib_api_v3_sdk.TransactionalEmailsApi.send_transac_email") as mock_send_email:
-        mock_send_email.return_value = None
-        send_student_password_reset_email(student, link)
-        assert mock_send_email.call_count == 1
+    expected_link = build_password_reset_link(student.user, "http://127.0.0.1:8000")
+    email_gateway = mock.Mock()
+
+    with (
+        mock.patch("account.services.get_email_gateway", return_value=email_gateway) as mock_get_gateway,
+        mock.patch("account.services.send_reset_password") as mock_send,
+    ):
+        request_password_reset(student.user.email)
+
+    mock_get_gateway.assert_called_once_with()
+    mock_send.assert_called_once_with(student.user, expected_link, email_gateway)

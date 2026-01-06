@@ -38,8 +38,6 @@ fileignoreconfig:
     checksum: b41ff36a329f1699f27c6becdd68c10ca455d41c7ea7a414c2c9ac01f5d80ec2
   - filename: account/services.py
     checksum: 3904cacb7c54302a811bacefbe1d8303012ceff31904bd8537ea6233d6ee609a
-  - filename: account/views.py
-    checksum: bc77bae0c01efbb38f54f3b0bfc04257a8445546cdd84db8bcceb7339ae32123
   - filename: config/settings/base.py
     checksum: 5b3359506f553e6fe2773f536c1613a53a67c732b44e9b87c34ebaadb5f47314
   - filename: account/throttles.py
@@ -50,3 +48,9 @@ fileignoreconfig:
     checksum: 1dfd53d256b627ea774262f8c576c11a607428df0c377e095f6f4b0b841834f7
   - filename: alerts/migrations/0001_initial.py
     checksum: d8e68b66c0d6547f8ad17a0ac05db5f12215c1f38c9114ec025d832ec1fb3f43
+  - filename: notifications/gateways/brevo_email_gateway.py
+    checksum: af0ade72ab60cb656eaa278a37129fc3437c50be08ce1fc73512711d4f64d572
+  - filename: account/views.py
+    checksum: 61d95c43b306af93d335bb3694b339756d95baf9f3d291a64f973ede005c1fb9
+  - filename: notifications/services.py
+    checksum: df6c4cfa45ba0be4a4d5522aa6294d63e0f93cf0bc965ff415be2abf712305ea

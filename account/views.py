@@ -26,7 +26,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .serializers import StudentRegistrationSerializer
-from .services import send_student_registration_email, send_student_password_reset_email, build_password_reset_link
+from .services import build_password_reset_link
 from account.serializers import UserSerializer
 from .models import Student
 
@@ -35,6 +35,9 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_str
 
 from drf_spectacular.utils import OpenApiResponse
+
+from notifications.factories import get_email_gateway
+from notifications.services import send_account_validation, send_reset_password
 
 User = get_user_model()
 
@@ -64,7 +67,9 @@ class StudentRegistrationView(generics.GenericAPIView):
 
         validation_link = f"{settings.FRONT_SITE_URL}/verification?validation_token={registration_token.token}"
 
-        send_student_registration_email(student, validation_link)
+        email_gateway = get_email_gateway()
+
+        send_account_validation(student.user, validation_link, email_gateway)
         return Response({"message": "Student registered successfully"}, status=status.HTTP_201_CREATED)
 
 
@@ -167,7 +172,8 @@ class StudentRequestPasswordResetView(generics.GenericAPIView):
         try:
             student = Student.objects.get(user__email=serializer.validated_data["email"])
             password_reset_link = build_password_reset_link(student.user, f"{settings.FRONT_SITE_URL}")
-            send_student_password_reset_email(student, password_reset_link)
+            email_gateway = get_email_gateway()
+            send_reset_password(student.user, password_reset_link, email_gateway)
         except Student.DoesNotExist:
             pass
 

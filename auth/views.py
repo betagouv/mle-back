@@ -1,4 +1,3 @@
-import sib_api_v3_sdk
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login
@@ -12,9 +11,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from sesame.utils import get_token, get_user
-from sib_api_v3_sdk.rest import ApiException
 
 from account.serializers import UserSerializer
+from notifications.factories import get_email_gateway
+from notifications.services import send_magic_link
 
 User = get_user_model()
 
@@ -51,22 +51,8 @@ def request_magic_link(request):
         except (User.DoesNotExist, User.MultipleObjectsReturned):
             return redirect("/admin/login/")
 
-        configuration = sib_api_v3_sdk.Configuration()
-        configuration.api_key["api-key"] = settings.BREVO_API_KEY
-
-        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
-
-        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
-            to=[{"email": user.email, "name": user.get_full_name() or user.username}],
-            template_id=settings.BREVO_TEMPLATES_ID.get("magic-link"),
-            params={"MAGIC_LINK": magic_link},
-            tags=["magic-link"],
-        )
-
-        try:
-            api_instance.send_transac_email(send_smtp_email)
-        except ApiException:
-            pass
+        email_gateway = get_email_gateway()
+        send_magic_link(user, magic_link, email_gateway)
     return redirect("/admin/login/")
 
 
@@ -93,21 +79,8 @@ class RequestMagicLinkAPIView(APIView):
         token = get_token(user)
         magic_link = f"{settings.FRONT_SITE_URL}/verification?sesame={token}"
 
-        configuration = sib_api_v3_sdk.Configuration()
-        configuration.api_key["api-key"] = settings.BREVO_API_KEY
-        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
-
-        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
-            to=[{"email": user.email, "name": user.get_full_name() or user.username}],
-            template_id=settings.BREVO_TEMPLATES_ID.get("magic-link"),
-            params={"MAGIC_LINK": magic_link},
-            tags=["magic-link"],
-        )
-
-        try:
-            api_instance.send_transac_email(send_smtp_email)
-        except ApiException:
-            pass
+        email_gateway = get_email_gateway()
+        send_magic_link(user, magic_link, email_gateway)
 
         return Response({"detail": generic_message}, status=status.HTTP_200_OK)
 

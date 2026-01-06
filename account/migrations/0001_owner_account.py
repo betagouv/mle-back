@@ -5,8 +5,6 @@ import os
 import autoslug.fields
 import django.db.models.deletion
 from django.conf import settings
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
 from django.db import migrations, models
 
 
@@ -15,9 +13,12 @@ def create_owners_group(apps, schema_editor):
         print("Skipping create_owners_group in test environment.")
         return
 
+    Group = apps.get_model("auth", "Group")
+    Permission = apps.get_model("auth", "Permission")
+    ContentType = apps.get_model("contenttypes", "ContentType")
     Accommodation = apps.get_model("accommodation", "Accommodation")
 
-    owners_group, created = Group.objects.get_or_create(name="Owners")
+    owners_group, _ = Group.objects.get_or_create(name="Owners")
 
     content_type = ContentType.objects.get_for_model(Accommodation)
 

@@ -61,7 +61,7 @@ class Command(GeoBaseCommand):
                     ("nb_t1_bis", "T1 bis"),
                     ("nb_t2", "T2"),
                     ("nb_t3", "T3"),
-                    ("nb_t4_more", "T4 et plus"),
+                    ("nb_t4", "T4 et plus"),
                 ]:
                     value = row.get(attr_clef) or ""
                     if not value or value.lower() in TO_IGNORE:

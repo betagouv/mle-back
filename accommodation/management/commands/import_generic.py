@@ -15,7 +15,9 @@ class Command(GeoBaseCommand):
     help = "Import accommodations from a CSV file"
 
     def add_arguments(self, parser):
-        parser.add_argument("--file", type=str, help="Path of the CSV file to process (separator: ,)")
+        parser.add_argument(
+            "--file", type=str, help="Path of the CSV file to process (separator: ;)"
+        )  # TODO: change the mle-data sources to use the new convention
         parser.add_argument("--source", type=str, help="External source, see accommodation.models.ExternalSource")
         parser.add_argument("--skip-images", type=bool, default=False, help="Skip images import")
 
@@ -45,7 +47,7 @@ class Command(GeoBaseCommand):
             return
 
         with open(csv_file_path, newline="", encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile, delimiter=",")
+            reader = csv.DictReader(csvfile, delimiter=";")
             total_imported = 0
 
             owner = None
@@ -96,7 +98,10 @@ class Command(GeoBaseCommand):
                     "nb_t1_bis": to_digit(row.get("nb_t1_bis", 0)),
                     "nb_t2": to_digit(row["nb_t2"]),
                     "nb_t3": to_digit(row.get("nb_t3", 0)),
-                    "nb_t4_more": to_digit(row.get("nb_t4_more", 0)),
+                    "nb_t4": to_digit(row.get("nb_t4", 0)),
+                    "nb_t5": to_digit(row.get("nb_t5", 0)),
+                    "nb_t6": to_digit(row.get("nb_t6", 0)),
+                    "nb_t7_more": to_digit(row.get("nb_t7_more", 0)),
                     "price_min_t1": to_digit(row["t1_rent_min"], can_be_zero=False),
                     "price_max_t1": to_digit(row["t1_rent_max"], can_be_zero=False),
                     "price_min_t1_bis": to_digit(row.get("t1_bis_rent_min"), can_be_zero=False),
@@ -105,8 +110,14 @@ class Command(GeoBaseCommand):
                     "price_max_t2": to_digit(row["t2_rent_max"], can_be_zero=False),
                     "price_min_t3": to_digit(row.get("t3_rent_min"), can_be_zero=False),
                     "price_max_t3": to_digit(row.get("t3_rent_max"), can_be_zero=False),
-                    "price_min_t4_more": to_digit(row.get("t4_more_rent_min"), can_be_zero=False),
-                    "price_max_t4_more": to_digit(row.get("t4_more_rent_max"), can_be_zero=False),
+                    "price_min_t4": to_digit(row.get("t4_rent_min"), can_be_zero=False),
+                    "price_max_t4": to_digit(row.get("t4_rent_max"), can_be_zero=False),
+                    "price_min_t5": to_digit(row.get("t5_rent_min"), can_be_zero=False),
+                    "price_max_t5": to_digit(row.get("t5_rent_max"), can_be_zero=False),
+                    "price_min_t6": to_digit(row.get("t6_rent_min"), can_be_zero=False),
+                    "price_max_t6": to_digit(row.get("t6_rent_max"), can_be_zero=False),
+                    "price_min_t7_more": to_digit(row.get("t7_more_rent_min"), can_be_zero=False),
+                    "price_max_t7_more": to_digit(row.get("t7_more_rent_max"), can_be_zero=False),
                     "laundry_room": to_bool(row["laundry_room"]),
                     "common_areas": to_bool(row["common_areas"]),
                     "bike_storage": to_bool(row["bike_storage"]),
@@ -120,6 +131,7 @@ class Command(GeoBaseCommand):
                     "refrigerator": to_bool(row.get("refrigerator")),
                     "bathroom": row["bathroom"].lower().strip(),
                     "accept_waiting_list": to_bool(row.get("accept_waiting_list")),
+                    "scholarship_holders_priority": to_bool(row.get("scholarship_holders_priority")),
                     "external_url": row["owner_url"].strip(),
                     "geom": geom,
                     "owner_id": owner.pk if owner else None,

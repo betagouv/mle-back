@@ -24,7 +24,10 @@ class CityMixin(serializers.ModelSerializer):
     nb_t1_bis = serializers.SerializerMethodField()
     nb_t2 = serializers.SerializerMethodField()
     nb_t3 = serializers.SerializerMethodField()
-    nb_t4_more = serializers.SerializerMethodField()
+    nb_t4 = serializers.SerializerMethodField()
+    nb_t5 = serializers.SerializerMethodField()
+    nb_t6 = serializers.SerializerMethodField()
+    nb_t7_more = serializers.SerializerMethodField()
     price_min = serializers.SerializerMethodField()
 
     def _get_city_stats(self, obj):
@@ -41,12 +44,18 @@ class CityMixin(serializers.ModelSerializer):
                 nb_t1_bis=Sum("nb_t1_bis"),
                 nb_t2=Sum("nb_t2"),
                 nb_t3=Sum("nb_t3"),
-                nb_t4_more=Sum("nb_t4_more"),
+                nb_t4=Sum("nb_t4"),
+                nb_t5=Sum("nb_t5"),
+                nb_t6=Sum("nb_t6"),
+                nb_t7_more=Sum("nb_t7_more"),
                 price_min_t1=Min("price_min_t1"),
                 price_min_t1_bis=Min("price_min_t1_bis"),
                 price_min_t2=Min("price_min_t2"),
                 price_min_t3=Min("price_min_t3"),
-                price_min_t4_more=Min("price_min_t4_more"),
+                price_min_t4=Min("price_min_t4"),
+                price_min_t5=Min("price_min_t5"),
+                price_min_t6=Min("price_min_t6"),
+                price_min_t7_more=Min("price_min_t7_more"),
             )
 
             price_candidates = [
@@ -56,7 +65,10 @@ class CityMixin(serializers.ModelSerializer):
                     stats.get("price_min_t1_bis"),
                     stats.get("price_min_t2"),
                     stats.get("price_min_t3"),
-                    stats.get("price_min_t4_more"),
+                    stats.get("price_min_t4"),
+                    stats.get("price_min_t5"),
+                    stats.get("price_min_t6"),
+                    stats.get("price_min_t7_more"),
                 ]
                 if p is not None
             ]
@@ -83,8 +95,20 @@ class CityMixin(serializers.ModelSerializer):
         return self._get_city_stats(obj)["nb_t3"]
 
     @extend_schema_field(serializers.IntegerField(help_text="Number of T4+ apartments in the city"))
-    def get_nb_t4_more(self, obj):
-        return self._get_city_stats(obj)["nb_t4_more"]
+    def get_nb_t4(self, obj):
+        return self._get_city_stats(obj)["nb_t4"]
+
+    @extend_schema_field(serializers.IntegerField(help_text="Number of T5 apartments in the city"))
+    def get_nb_t5(self, obj):
+        return self._get_city_stats(obj)["nb_t5"]
+
+    @extend_schema_field(serializers.IntegerField(help_text="Number of T6 apartments in the city"))
+    def get_nb_t6(self, obj):
+        return self._get_city_stats(obj)["nb_t6"]
+
+    @extend_schema_field(serializers.IntegerField(help_text="Number of T7 more apartments in the city"))
+    def get_nb_t7_more(self, obj):
+        return self._get_city_stats(obj)["nb_t7_more"]
 
     @extend_schema_field(serializers.IntegerField(help_text="Number of coliving accommodations in the city"))
     def get_nb_coliving_apartments(self, obj):

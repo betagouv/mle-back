@@ -1,4 +1,4 @@
-from django.db.models import Func
+from django.db.models import Func, F
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from rest_framework import status
@@ -64,7 +64,9 @@ class AcademyListAPIView(APIView):
     serializer_class = AcademySerializer
 
     def get(self, request, *args, **kwargs):
-        academies = Academy.objects.all().order_by("name")
+        academies = Academy.objects.annotate(name_unaccent=Func(F("name"), function="unaccent")).order_by(
+            "name_unaccent"
+        )
 
         serializer = AcademySerializer(academies, many=True)
         return Response(serializer.data)

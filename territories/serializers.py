@@ -48,7 +48,10 @@ class CityDetailSerializer(BBoxMixin, CityMixin):
             "nb_t1_bis",
             "nb_t2",
             "nb_t3",
-            "nb_t4_more",
+            "nb_t4",
+            "nb_t5",
+            "nb_t6",
+            "nb_t7_more",
             "price_min",
         )
 
@@ -80,6 +83,14 @@ class DepartmentSerializer(BBoxMixin):
     class Meta:
         model = Department
         fields = ("id", "name", "code", "bbox")
+
+
+class CitySerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer(read_only=True)
+
+    class Meta:
+        model = City
+        fields = ("id", "name", "slug", "department")
 
 
 class AcademySerializer(BBoxMixin):

@@ -155,7 +155,7 @@ class Command(GeoBaseCommand):
                     "nb_t1_bis": residence.get("nombreT1Bis"),
                     "nb_t2": residence.get("nombreT2"),
                     "nb_t3": residence.get("nombreT3"),
-                    "nb_t4_more": residence.get("nombreT4Plus"),
+                    "nb_t4": residence.get("nombreT4Plus"),
                     "geom": geom,
                     "source": ExternalSource.SOURCE_CLEF,
                     "source_id": residence.get("id"),

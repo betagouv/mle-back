@@ -1,7 +1,7 @@
 import base64
 from unittest.mock import ANY, patch
 
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import MultiPolygon, Point, Polygon
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
@@ -9,8 +9,9 @@ from rest_framework.test import APITestCase
 
 from accommodation.models import Accommodation
 from tests.account.factories import OwnerFactory, UserFactory
+from tests.territories.factories import AcademyFactory
 
-from .factories import AccommodationFactory
+from .factories import AccommodationFactory, ExternalSourceFactory
 
 
 class AccommodationDetailAPITests(APITestCase):
@@ -29,6 +30,7 @@ class AccommodationDetailAPITests(APITestCase):
             nb_t1=2,
             nb_t1_available=1,
             accept_waiting_list=False,
+            scholarship_holders_priority=False,
         )
         self.accommodation_unpublished = AccommodationFactory(published=False, available=False)
 
@@ -57,8 +59,12 @@ class AccommodationDetailAPITests(APITestCase):
         assert result["nb_t1_bis"] == self.accommodation_published.nb_t1_bis
         assert result["nb_t2"] == self.accommodation_published.nb_t2
         assert result["nb_t3"] == self.accommodation_published.nb_t3
-        assert result["nb_t4_more"] == self.accommodation_published.nb_t4_more
+        assert result["nb_t4"] == self.accommodation_published.nb_t4
+        assert result["nb_t5"] == self.accommodation_published.nb_t5
+        assert result["nb_t6"] == self.accommodation_published.nb_t6
+        assert result["nb_t7_more"] == self.accommodation_published.nb_t7_more
         assert result["accept_waiting_list"] is False
+        assert result["scholarship_holders_priority"] is False
 
     def test_accommodation_detail_not_found_if_unpublished(self):
         response = self.client.get(
@@ -85,6 +91,7 @@ class AccommodationListAPITests(APITestCase):
             nb_accessible_apartments=2,
             nb_coliving_apartments=5,
             price_min_t1=300,
+            nb_t1=20,
             nb_t1_available=2,
             accept_waiting_list=True,
         )
@@ -144,12 +151,25 @@ class AccommodationListAPITests(APITestCase):
                 "price_min": 300,
                 "images_urls": None,
                 "available": True,
+                "published": True,
+                "nb_t1": 20,
                 "nb_t1_available": 2,
+                "nb_t1_bis": None,
                 "nb_t1_bis_available": None,
+                "nb_t2": None,
                 "nb_t2_available": None,
+                "nb_t3": None,
                 "nb_t3_available": None,
-                "nb_t4_more_available": None,
+                "nb_t4": None,
+                "nb_t4_available": None,
+                "nb_t5": None,
+                "nb_t5_available": None,
+                "nb_t6": None,
+                "nb_t6_available": None,
+                "nb_t7_more": None,
+                "nb_t7_more_available": None,
                 "accept_waiting_list": True,
+                "scholarship_holders_priority": False,
             },
         } in results["results"]["features"]
 
@@ -200,6 +220,16 @@ class AccommodationListAPITests(APITestCase):
 
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
         assert self.accommodation_nantes_accessible_w_coliving_cheap.id in returned_ids
+
+        academy = AcademyFactory(
+            name="Academie de Paris",
+            boundary=MultiPolygon(Polygon(((2.34, 48.84), (2.36, 48.84), (2.36, 48.86), (2.34, 48.86), (2.34, 48.84)))),
+        )
+        response = self.client.get(reverse("accommodation-list"), {"academy_id": academy.id})
+        results = response.json()
+        assert len(results["results"]["features"]) == 1
+        returned_ids = [feature["id"] for feature in results["results"]["features"]]
+        assert self.accommodation_paris.id in returned_ids
 
     def test_accommodation_list_excludes_null_price_min_with_price_max_filter(self):
         accommodation_null_price = AccommodationFactory(price_min=None)
@@ -282,7 +312,10 @@ class AccommodationListAPITests(APITestCase):
             nb_t2_available=2,
             nb_t3_available=0,
             nb_t1_bis_available=0,
-            nb_t4_more_available=0,
+            nb_t4_available=0,
+            nb_t5_available=0,
+            nb_t6_available=0,
+            nb_t7_more_available=0,
             accept_waiting_list=True,
         )
 
@@ -292,7 +325,10 @@ class AccommodationListAPITests(APITestCase):
             nb_t2_available=0,
             nb_t3_available=None,
             nb_t1_bis_available=None,
-            nb_t4_more_available=None,
+            nb_t4_available=None,
+            nb_t5_available=None,
+            nb_t6_available=None,
+            nb_t7_more_available=None,
             accept_waiting_list=True,
         )
 
@@ -331,6 +367,32 @@ class AccommodationListAPITests(APITestCase):
             accommodation_with_unknown_availibity_waiting_list.id
         )
 
+    def test_accommodation_list_crous(self):
+        accommodation_crous = AccommodationFactory(geom=Point(2.35, 48.85))
+        ExternalSourceFactory(accommodation=accommodation_crous, source="crous")
+
+        response = self.client.get(reverse("accommodation-list"))
+
+        assert response.status_code == 200
+        results = response.json()
+
+        features = response.json()["results"]["features"]
+        returned_ids = [feature["id"] for feature in features]
+
+        assert results["count"] == 6
+        assert accommodation_crous.id not in returned_ids
+
+        response = self.client.get(reverse("accommodation-list"), {"view_crous": True})
+
+        assert response.status_code == 200
+        results = response.json()
+
+        features = response.json()["results"]["features"]
+        returned_ids = [feature["id"] for feature in features]
+
+        assert results["count"] == 1
+        assert returned_ids == [accommodation_crous.id]
+
 
 class MyAccommodationListAPITests(APITestCase):
     def setUp(self):
@@ -355,7 +417,10 @@ class MyAccommodationListAPITests(APITestCase):
             nb_t1_available=0,
             nb_t2_available=0,
             nb_t3_available=0,
-            nb_t4_more_available=0,
+            nb_t4_available=0,
+            nb_t5_available=0,
+            nb_t6_available=0,
+            nb_t7_more_available=0,
         )
 
         self.other_accommodation = AccommodationFactory(

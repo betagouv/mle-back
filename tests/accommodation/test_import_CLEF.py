@@ -45,7 +45,10 @@ abcde,Third planned residence,Résidence Universitaire conventionnée,10 Rue de 
     assert accommodation1.nb_t1_bis == 10
     assert accommodation1.nb_t2 == 30
     assert accommodation1.nb_t3 == 15
-    assert accommodation1.nb_t4_more == 10
+    assert accommodation1.nb_t4 == 10
+    assert accommodation1.nb_t5 is None
+    assert accommodation1.nb_t6 is None
+    assert accommodation1.nb_t7_more is None
     assert accommodation1.published is True
 
     assert accommodation2.residence_type == "universitaire-conventionnee"
@@ -64,7 +67,10 @@ abcde,Third planned residence,Résidence Universitaire conventionnée,10 Rue de 
     assert accommodation2.nb_t1_bis == 20
     assert accommodation2.nb_t2 == 40
     assert accommodation2.nb_t3 == 10
-    assert accommodation2.nb_t4_more == 30
+    assert accommodation2.nb_t4 == 30
+    assert accommodation2.nb_t5 is None
+    assert accommodation2.nb_t6 is None
+    assert accommodation2.nb_t7_more is None
     assert accommodation2.published is True
 
     assert accommodation3.published is False
@@ -77,6 +83,7 @@ def mock_settings(settings):
     settings.OMOGEN_API_CLIENT_SECRET = "client_secret"
     settings.OMOGEN_API_API_KEY = "api_key"
     settings.OMOGEN_API_CLEF_APP_NAME = "clef-residence-pp"
+    settings.OMOGEN_API_AUTH_PATH = "auth_url"
     return settings
 
 
@@ -87,7 +94,7 @@ def test_import_clef_command(mock_settings):
         mock.patch("accommodation.serializers.upload_image_to_s3") as mock_upload_image_to_s3,
     ):
         mocker.post(
-            f"https://{mock_settings.OMOGEN_API_HOST}/auth-test/token",
+            f"https://{mock_settings.OMOGEN_API_HOST}/auth_url",
             json={"access_token": "test_token"},
         )
 
@@ -248,7 +255,10 @@ def test_import_clef_command(mock_settings):
         assert accommodation.nb_t1_bis == 20
         assert accommodation.nb_t2 == 15
         assert accommodation.nb_t3 == 10
-        assert accommodation.nb_t4_more == 5
+        assert accommodation.nb_t4 == 5
+        assert accommodation.nb_t5 is None
+        assert accommodation.nb_t6 is None
+        assert accommodation.nb_t7_more is None
 
         assert accommodation.images_urls == [
             "https://s3.fake/fake_image_100.jpg",
@@ -281,7 +291,10 @@ def test_import_clef_command(mock_settings):
         assert accommodation.nb_t1_bis == 40
         assert accommodation.nb_t2 is None
         assert accommodation.nb_t3 == 10
-        assert accommodation.nb_t4_more == 5
+        assert accommodation.nb_t4 == 5
+        assert accommodation.nb_t5 is None
+        assert accommodation.nb_t6 is None
+        assert accommodation.nb_t7_more is None
 
         owner = Owner.objects.get(name="DEF")
         assert owner.url == "https://def.test"

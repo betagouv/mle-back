@@ -56,7 +56,7 @@ class AccommodationDetailView(generics.RetrieveAPIView):
         OpenApiParameter(
             "only_with_availibility",
             OpenApiTypes.BOOL,
-            description="Return only accommodations with available apartments (nb_t1_available > 0 | nb_t1_bis_available > 0 | nb_t2_available > 0 | nb_t3_available > 0 | nb_t4_more_available > 0).",
+            description="Return only accommodations with available apartments (nb_t1_available > 0 | nb_t1_bis_available > 0 | nb_t2_available > 0 | nb_t3_available > 0 | nb_t4_available > 0 | nb_t5_available > 0 | nb_t6_available > 0 | nb_t7_more_available > 0).",
             required=False,
         ),
         OpenApiParameter(
@@ -81,6 +81,19 @@ class AccommodationDetailView(generics.RetrieveAPIView):
             "price_max",
             OpenApiTypes.NUMBER,
             description="Maximum price (in euros) for filtering accommodations below the given value.",
+            required=False,
+        ),
+        OpenApiParameter(
+            "view_crous",
+            OpenApiTypes.BOOL,
+            description="If true, only CROUS accommodations will be returned, if false, only non CROUS accommodations will be returned.",
+            required=False,
+            default=False,
+        ),
+        OpenApiParameter(
+            "academy_id",
+            OpenApiTypes.NUMBER,
+            description="Academy ID for filtering accommodations within the given academy.",
             required=False,
         ),
     ],
@@ -134,7 +147,10 @@ class MyAccommodationListView(generics.ListCreateAPIView):
                     | Q(nb_t1_bis_available__gt=0)
                     | Q(nb_t2_available__gt=0)
                     | Q(nb_t3_available__gt=0)
-                    | Q(nb_t4_more_available__gt=0)
+                    | Q(nb_t4_available__gt=0)
+                    | Q(nb_t5_available__gt=0)
+                    | Q(nb_t6_available__gt=0)
+                    | Q(nb_t7_more_available__gt=0)
                 )
 
         return qs

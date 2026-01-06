@@ -32,3 +32,5 @@ staticfiles/
 *.csv
 
 temp/
+
+gdal*

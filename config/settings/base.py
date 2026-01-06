@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_gis",
     "rest_framework_simplejwt.token_blacklist",
+    "alerts",
     "territories",
     "qa",
     "account",
@@ -77,6 +78,7 @@ TEMPLATES = [
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    "account.backend.EmailBackend",
     "sesame.backends.ModelBackend",
 ]
 
@@ -96,7 +98,7 @@ SECURE_SSL_REDIRECT = True
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-database_url = os.environ.get("DATABASE_URL", "postgres://jde:jde@localhost/jde")
+database_url = os.environ.get("DATABASE_URL", "postgres://mle:mle@localhost/mledb")
 DATABASES = {
     "default": env.db(),
 }
@@ -174,6 +176,9 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+    "DEFAULT_THROTTLE_RATES": {
+        "password_reset": "5/hour",
+    },
 }
 
 SIMPLE_JWT = {
@@ -209,6 +214,8 @@ BREVO_CONTACT_LIST_ID = 3
 
 BREVO_TEMPLATES_ID = {
     "magic-link": 2,
+    "student-validation": 21,
+    "student-password-reset": 23,
 }
 
 # IBAIL API

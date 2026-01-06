@@ -29,17 +29,26 @@ class GeoBaseCommand(BaseCommand):
         if not response:
             return
         city = response["nom"] if response else city
-        try:
-            return City.objects.get(name__iexact=city, postal_codes__contains=[postal_code])
-        except City.DoesNotExist:
-            department_code = postal_code[:2]
-            if postal_code.startswith("97") or postal_code.startswith("98"):
-                department_code = postal_code[:3]
+        city_db = City.objects.filter(name__iexact=city, postal_codes__contains=[postal_code]).first()
+        if city_db:
+            return city_db
 
-            city = City.objects.create(
-                name=city, postal_codes=[postal_code], department=Department.objects.get(code=department_code)
+        department_code = postal_code[:2]
+
+        if postal_code.startswith("20"):
+            department_code = "2A" if postal_code.startswith("200") or postal_code.startswith("201") else "2B"
+        elif postal_code.startswith("97") or postal_code.startswith("98"):
+            department_code = postal_code[:3]
+
+        try:
+            department_code = Department.objects.get(code=department_code)
+        except Department.DoesNotExist:
+            self.stdout.write(
+                self.style.WARNING(f"⚠️ Unable to find department {department_code}, cannot create city {city}")
             )
-            return self.fill_city_from_api(city)
+            return
+        city = City.objects.create(name=city, postal_codes=[postal_code], department=department_code)
+        return self.fill_city_from_api(city)
 
     @staticmethod
     def fetch_city_from_api(code, name=None, strict_mode=False):
@@ -49,7 +58,12 @@ class GeoBaseCommand(BaseCommand):
         if name:
             filters = f"&nom={name}"
 
-        response = requests.get(f"{base_api_url}?codePostal={code}{filters}{returned_fields}")
+        try:
+            response = requests.get(f"{base_api_url}?codePostal={code}{filters}{returned_fields}")
+        except requests.exceptions.ConnectTimeout:
+            print("GEO API Timeout")
+            return
+
         if response_json := response.json():
             return response_json[0]
 

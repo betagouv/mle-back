@@ -1,59 +1,56 @@
 fileignoreconfig:
-- filename: Pipfile.lock
-  ignore_detectors: [filecontent]
-- filename: locale/fr/LC_MESSAGES/django.mo
-- filename: institution/models.py
-  checksum: 51e977042f39e347bb87eedc4f208ec5e630961e2dbe72ae9745c240fc027238
-- filename: institution/migrations/0001_educational_instit.py
-  checksum: de6c7a2c3b79668ef9332f25bdd6c932c106da2d45870bf9e8040b65aeca8e8c
-- filename: templates/admin/login.html
-  checksum: d9db13058c4c7dab9c56128687a54ed4184f5d9659c84f9e44064da1ef4ba723
-- filename: auth/views.py
-  checksum: 69b87fda651f45d35766d8de855ea0ad5f85aef135e7ee544973cbdddda1db45
-- filename: accommodation/utils.py
-  checksum: 4554da26f8553ce4b3fea7a11f50103c94bdca288a7208ce5feb32dc42c0ae12
-- filename: accommodation/models.py
-  checksum: 913fdd87efd5da0dae19e33683de0da56806030910b3781f182d5f2679f7eab7
-- filename: accommodation/migrations/0037_favorites.py
-  checksum: 5dde99db31a5618f10caf05cf63ccb31da36a9b16bee16fdf49a7156071e1b04
-- filename: accommodation/management/commands/import_crous_accommodations.py
-  checksum: 5738f57f14ffa3ac87cebfd03b41e88638638cc7aa61ffb0ddaba6103b90fb68
-- filename: bin/create_db.sql
-  checksum: 292e83473fd835d1ae8c83a89dbfa6c8b882ef872dd53f880998450253e6f354
-- filename: .env.sample
-  checksum: d8753eebb9f1fb740e95375aa0f047526c9ca470bf9c84363c98a3f134469639
-- filename: bin/external_db_backup
-  checksum: b79541a934dc45d791cbd44b7a12a939a23e678ffb7e5541ca5b830844a0cfde
-- filename: account/models.py
-  checksum: cd51709233782bb3fedcba9b664d3e358886f3a9ffb0572a70ad5a3c26375bb3
-- filename: account/migrations/0004_student_studentregistrationtoken.py
-  checksum: 11f450dcf6cede2730635dbcf47bce7780a67f1cb671401ec798aec6e8eaf3e1
-- filename: account/backend.py
-  checksum: 947071d269180454b6396604fe5635102ab7698683dfd86c394174b109f90fec
-- filename: account/urls.py
-  checksum: 0bbb1e3fbe0a68f131a208f4d23ae3ab88bf76c954d2b1dfd2c5009bf5342fa1
-- filename: account/serializers.py
-  checksum: b41ff36a329f1699f27c6becdd68c10ca455d41c7ea7a414c2c9ac01f5d80ec2
-- filename: config/settings/base.py
-  checksum: 5b3359506f553e6fe2773f536c1613a53a67c732b44e9b87c34ebaadb5f47314
-- filename: account/throttles.py
-  checksum: b81a4094e10e93f85b44190e3eb859a7bdbbb6493dedb01f6e07eee52113e3de
-- filename: tests/account/test_api.py
-  checksum: a31c9f819978adabd6541ceb755e4fed73d97e27698963aab7eb172dbfcd20db
-- filename: alerts/models.py
-  checksum: 1dfd53d256b627ea774262f8c576c11a607428df0c377e095f6f4b0b841834f7
-- filename: alerts/migrations/0001_initial.py
-  checksum: d8e68b66c0d6547f8ad17a0ac05db5f12215c1f38c9114ec025d832ec1fb3f43
-- filename: notifications/gateways/brevo_email_gateway.py
-  checksum: af0ade72ab60cb656eaa278a37129fc3437c50be08ce1fc73512711d4f64d572
-- filename: account/views.py
-  checksum: 61d95c43b306af93d335bb3694b339756d95baf9f3d291a64f973ede005c1fb9
-- filename: notifications/services.py
-  checksum: df6c4cfa45ba0be4a4d5522aa6294d63e0f93cf0bc965ff415be2abf712305ea
-- filename: tests/notifications/gateways/test_brevo_email.py
-  checksum: 7a8ef3140bfd34f8d08051df838e287f351fb394148456b8e95dce8f3cde4ada
-- filename: account/services.py
-  checksum: 1da34000ee9788598c854871500a0ebc68d4c3c838783c51a08c0ec05d33d2b9
-- filename: tests/account/test_services.py
-  checksum: fcb8c745a21ddf65414ce4551e34240fc079335df4574759e83448c40c7461d4
-version: "1.0"
+  - filename: Pipfile.lock
+    ignore_detectors: [filecontent]
+  - filename: locale/fr/LC_MESSAGES/django.mo
+  - filename: institution/models.py
+    checksum: 51e977042f39e347bb87eedc4f208ec5e630961e2dbe72ae9745c240fc027238
+  - filename: institution/migrations/0001_educational_instit.py
+    checksum: de6c7a2c3b79668ef9332f25bdd6c932c106da2d45870bf9e8040b65aeca8e8c
+  - filename: templates/admin/login.html
+    checksum: d9db13058c4c7dab9c56128687a54ed4184f5d9659c84f9e44064da1ef4ba723
+  - filename: auth/views.py
+    checksum: 69b87fda651f45d35766d8de855ea0ad5f85aef135e7ee544973cbdddda1db45
+  - filename: accommodation/utils.py
+    checksum: 4554da26f8553ce4b3fea7a11f50103c94bdca288a7208ce5feb32dc42c0ae12
+  - filename: accommodation/models.py
+    checksum: 913fdd87efd5da0dae19e33683de0da56806030910b3781f182d5f2679f7eab7
+  - filename: accommodation/migrations/0037_favorites.py
+    checksum: 5dde99db31a5618f10caf05cf63ccb31da36a9b16bee16fdf49a7156071e1b04
+  - filename: accommodation/management/commands/import_crous_accommodations.py
+    checksum: 5738f57f14ffa3ac87cebfd03b41e88638638cc7aa61ffb0ddaba6103b90fb68
+  - filename: bin/create_db.sql
+    checksum: 292e83473fd835d1ae8c83a89dbfa6c8b882ef872dd53f880998450253e6f354
+  - filename: .env.sample
+    checksum: d8753eebb9f1fb740e95375aa0f047526c9ca470bf9c84363c98a3f134469639
+  - filename: bin/external_db_backup
+    checksum: b79541a934dc45d791cbd44b7a12a939a23e678ffb7e5541ca5b830844a0cfde
+  - filename: account/models.py
+    checksum: cd51709233782bb3fedcba9b664d3e358886f3a9ffb0572a70ad5a3c26375bb3
+  - filename: account/migrations/0004_student_studentregistrationtoken.py
+    checksum: 11f450dcf6cede2730635dbcf47bce7780a67f1cb671401ec798aec6e8eaf3e1
+  - filename: account/backend.py
+    checksum: 947071d269180454b6396604fe5635102ab7698683dfd86c394174b109f90fec
+  - filename: account/urls.py
+    checksum: 0bbb1e3fbe0a68f131a208f4d23ae3ab88bf76c954d2b1dfd2c5009bf5342fa1
+  - filename: tests/account/test_services.py
+    checksum: 88875ca4a85a10f66be6845f9b2bb09e3855690d0a5f7dd600c8110577700335
+  - filename: account/serializers.py
+    checksum: b41ff36a329f1699f27c6becdd68c10ca455d41c7ea7a414c2c9ac01f5d80ec2
+  - filename: account/services.py
+    checksum: 3904cacb7c54302a811bacefbe1d8303012ceff31904bd8537ea6233d6ee609a
+  - filename: config/settings/base.py
+    checksum: 5b3359506f553e6fe2773f536c1613a53a67c732b44e9b87c34ebaadb5f47314
+  - filename: account/throttles.py
+    checksum: b81a4094e10e93f85b44190e3eb859a7bdbbb6493dedb01f6e07eee52113e3de
+  - filename: tests/account/test_api.py
+    checksum: a31c9f819978adabd6541ceb755e4fed73d97e27698963aab7eb172dbfcd20db
+  - filename: alerts/models.py
+    checksum: 1dfd53d256b627ea774262f8c576c11a607428df0c377e095f6f4b0b841834f7
+  - filename: alerts/migrations/0001_initial.py
+    checksum: d8e68b66c0d6547f8ad17a0ac05db5f12215c1f38c9114ec025d832ec1fb3f43
+  - filename: notifications/gateways/brevo_email_gateway.py
+    checksum: af0ade72ab60cb656eaa278a37129fc3437c50be08ce1fc73512711d4f64d572
+  - filename: account/views.py
+    checksum: 61d95c43b306af93d335bb3694b339756d95baf9f3d291a64f973ede005c1fb9
+  - filename: notifications/services.py
+    checksum: df6c4cfa45ba0be4a4d5522aa6294d63e0f93cf0bc965ff415be2abf712305ea

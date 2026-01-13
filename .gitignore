@@ -34,3 +34,5 @@ staticfiles/
 temp/
 
 gdal*
+
+libgdal*

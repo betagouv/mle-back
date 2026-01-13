@@ -46,7 +46,7 @@ class Command(GeoBaseCommand):
             self.stderr.write(self.style.ERROR(f"File not found: {csv_file_path}"))
             return
 
-        with open(csv_file_path, newline="", encoding="utf-8") as csvfile:
+        with open(csv_file_path, newline="", encoding="utf-8-sig") as csvfile:
             reader = csv.DictReader(csvfile, delimiter=";")
             total_imported = 0
 

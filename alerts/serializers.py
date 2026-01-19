@@ -69,6 +69,6 @@ class AccommodationAlertSerializer(serializers.ModelSerializer):
         if obj.is_accessible is True:
             data["is_accessible"] = True
         if obj.max_price is not None:
-            data["price_max"] = obj.max_price
+            data["price_max"] = str(obj.max_price)
         filterset = AccommodationFilter(data=data, queryset=queryset)
         return filterset.qs.count()

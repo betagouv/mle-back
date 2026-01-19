@@ -46,6 +46,7 @@ class AccommodationAlertAPITests(APITestCase):
         assert data["name"] == "Test Alert"
         assert data["city"]["id"] == self.city.id
         assert data["city"]["name"] == self.city.name
+        assert data["city"]["bbox"] == self.city.get_bbox()
         assert data["has_coliving"] is True
         assert data["is_accessible"] is True
         assert data["max_price"] == 1500

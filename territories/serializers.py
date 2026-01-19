@@ -85,7 +85,7 @@ class DepartmentSerializer(BBoxMixin):
         fields = ("id", "name", "code", "bbox")
 
 
-class CitySerializer(serializers.ModelSerializer):
+class CitySerializer(BBoxMixin):
     department = DepartmentSerializer(read_only=True)
 
     class Meta:

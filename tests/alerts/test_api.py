@@ -1,9 +1,11 @@
+from django.contrib.gis.geos import MultiPolygon, Point, Polygon
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from alerts.models import AccommodationAlert
 from tests.account.factories import StudentFactory
 from tests.alerts.factories import AccommodationAlertFactory
+from tests.accommodation.factories import AccommodationFactory
 from tests.territories.factories import DepartmentFactory, CityFactory, AcademyFactory
 
 
@@ -27,6 +29,7 @@ class AccommodationAlertAPITests(APITestCase):
         for alert in data:
             assert alert["city"]["id"] == self.city.id
             assert alert["city"]["name"] == self.city.name
+            assert alert["count"] == 0
 
     def test_create_accommodation_alert(self):
         url = reverse("accommodation-alert-list")
@@ -46,6 +49,7 @@ class AccommodationAlertAPITests(APITestCase):
         assert data["has_coliving"] is True
         assert data["is_accessible"] is True
         assert data["max_price"] == 1500
+        assert data["count"] == 0
 
     def test_update_accommodation_alert(self):
         alert = AccommodationAlertFactory(city=self.city, student=self.student)
@@ -66,6 +70,7 @@ class AccommodationAlertAPITests(APITestCase):
         assert data["has_coliving"] is False
         assert data["is_accessible"] is False
         assert data["max_price"] == 1000
+        assert data["count"] == 0
 
     def test_delete_accommodation_alert(self):
         alert = AccommodationAlertFactory(city=self.city, student=self.student)
@@ -84,6 +89,7 @@ class AccommodationAlertAPITests(APITestCase):
         assert data["name"] == "My Alert"
         assert data["city"]["id"] == self.city.id
         assert data["city"]["name"] == self.city.name
+        assert data["count"] == 0
 
     def test_unauthenticated_access_list(self):
         self.client.force_authenticate(user=None)
@@ -161,6 +167,7 @@ class AccommodationAlertAPITests(APITestCase):
         assert data["academy"] is None
         assert data["has_coliving"] is True
         assert data["max_price"] == 1200
+        assert data["count"] == 0
 
     def test_create_alert_with_academy(self):
         academy = AcademyFactory.create(name="Académie de Lyon")
@@ -181,6 +188,78 @@ class AccommodationAlertAPITests(APITestCase):
         assert data["department"] is None
         assert data["is_accessible"] is True
         assert data["max_price"] == 1000
+        assert data["count"] == 0
+
+    def test_get_count_accommodation_alert_by_city(self):
+        alert = AccommodationAlertFactory(
+            city=self.city,
+            student=self.student,
+            has_coliving=None,
+            is_accessible=None,
+            max_price=None,
+        )
+        AccommodationFactory.create_batch(5, city=self.city)
+        response = self.client.get(reverse("accommodation-alert-detail", args=[alert.id]))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 5
+
+    def test_get_count_accommodation_alert_by_academy_bbox(self):
+        academy_boundary = MultiPolygon(Polygon(((0, 0), (0, 1), (1, 1), (1, 0), (0, 0))))
+        academy = AcademyFactory.create(boundary=academy_boundary)
+        alert = AccommodationAlertFactory(
+            academy=academy,
+            student=self.student,
+            city=None,
+            department=None,
+            has_coliving=None,
+            is_accessible=None,
+            max_price=None,
+        )
+        AccommodationFactory.create(geom=Point(0.5, 0.5))
+        AccommodationFactory.create(geom=Point(2, 2))
+        response = self.client.get(reverse("accommodation-alert-detail", args=[alert.id]))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 1
+
+    def test_get_count_accommodation_alert_by_city_bbox(self):
+        city_boundary = MultiPolygon(Polygon(((2, 48), (2, 49), (3, 49), (3, 48), (2, 48))))
+        city = CityFactory.create(boundary=city_boundary, department=self.department)
+        alert = AccommodationAlertFactory(
+            city=city,
+            student=self.student,
+            department=None,
+            academy=None,
+            has_coliving=None,
+            is_accessible=None,
+            max_price=None,
+        )
+        AccommodationFactory.create(geom=Point(2.5, 48.5))
+        AccommodationFactory.create(geom=Point(4, 50))
+        response = self.client.get(reverse("accommodation-alert-detail", args=[alert.id]))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 1
+
+    def test_get_count_accommodation_alert_by_department_bbox(self):
+        department_boundary = MultiPolygon(Polygon(((10, 10), (10, 11), (11, 11), (11, 10), (10, 10))))
+        department = DepartmentFactory.create(boundary=department_boundary)
+        alert = AccommodationAlertFactory(
+            department=department,
+            student=self.student,
+            city=None,
+            academy=None,
+            has_coliving=None,
+            is_accessible=None,
+            max_price=None,
+        )
+        AccommodationFactory.create(geom=Point(10.5, 10.5))
+        AccommodationFactory.create(geom=Point(12, 12))
+        response = self.client.get(reverse("accommodation-alert-detail", args=[alert.id]))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 1
 
     def test_create_alert_validation_required_name(self):
         url = reverse("accommodation-alert-list")

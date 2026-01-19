@@ -261,6 +261,59 @@ class AccommodationAlertAPITests(APITestCase):
         data = response.json()
         assert data["count"] == 1
 
+    def test_get_count_accommodation_alert_is_accessible(self):
+        alert = AccommodationAlertFactory(
+            city=None,
+            department=None,
+            academy=None,
+            student=self.student,
+            has_coliving=None,
+            is_accessible=True,
+            max_price=None,
+        )
+        AccommodationFactory.create(nb_accessible_apartments=1)
+        AccommodationFactory.create(nb_accessible_apartments=0)
+        response = self.client.get(reverse("accommodation-alert-detail", args=[alert.id]))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 1
+
+    def test_get_count_accommodation_alert_has_coliving(self):
+        alert = AccommodationAlertFactory(
+            city=None,
+            department=None,
+            academy=None,
+            student=self.student,
+            has_coliving=True,
+            is_accessible=None,
+            max_price=None,
+        )
+        AccommodationFactory.create(nb_coliving_apartments=2)
+        AccommodationFactory.create(nb_coliving_apartments=0)
+        response = self.client.get(reverse("accommodation-alert-detail", args=[alert.id]))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 1
+
+    def test_get_count_accommodation_alert_price_max(self):
+        alert = AccommodationAlertFactory(
+            city=None,
+            department=None,
+            academy=None,
+            student=self.student,
+            has_coliving=None,
+            is_accessible=None,
+            max_price=800,
+        )
+        acc1 = AccommodationFactory.build(price_min_t1=700)
+        acc2 = AccommodationFactory.build(price_min_t1=1200)
+        acc1.save()
+        acc2.save()
+        response = self.client.get(reverse("accommodation-alert-detail", args=[alert.id]))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 1
+
     def test_create_alert_validation_required_name(self):
         url = reverse("accommodation-alert-list")
         payload = {

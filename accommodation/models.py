@@ -264,6 +264,8 @@ class ExternalSource(models.Model):
     SOURCE_VICHY_HABITAT = "vichy-habitat"
     SOURCE_APPARTSTUDY = "appartstudy"
     SOURCE_RESIDUP = "residup"
+    SOURCE_ALTEAL = "alteal"
+    SOURCE_SEVRE_LOIRE_HABITAT = "sevre-loire-habitat"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -298,6 +300,8 @@ class ExternalSource(models.Model):
         (SOURCE_VICHY_HABITAT, "Vichy Habitat"),
         (SOURCE_APPARTSTUDY, "Appartstudy"),
         (SOURCE_RESIDUP, "Résid'Up"),
+        (SOURCE_ALTEAL, "Alteal"),
+        (SOURCE_SEVRE_LOIRE_HABITAT, "Sevre Loire Habitat"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

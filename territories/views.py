@@ -5,18 +5,12 @@ from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from unidecode import unidecode
 
 from territories.models import Academy, City, Department
 from territories.serializers import CityDetailSerializer, NewsletterSubscriptionSerializer
 from territories.services import sync_newsletter_subscription_to_brevo
-
+from territories.search import build_combined_territory_queryset
 from .serializers import AcademySerializer, CityListSerializer, DepartmentSerializer, TerritoryCombinedSerializer
-
-
-class Unaccent(Func):
-    function = "unaccent"
-    template = "%(function)s(%(expressions)s)"
 
 
 class TerritoryCombinedListAPIView(APIView):
@@ -34,26 +28,13 @@ class TerritoryCombinedListAPIView(APIView):
         ]
     )
     def get(self, request, *args, **kwargs):
-        query = request.GET["q"]
+        raw_query = request.GET["q"]
 
-        academies = Academy.objects.all()
-        departments = Department.objects.all()
-        cities = City.objects.all()
-
-        if query:
-            query = unidecode(query)
-            academies = Academy.objects.annotate(name_unaccent=Unaccent("name")).filter(name_unaccent__icontains=query)
-
-            departments = Department.objects.annotate(name_unaccent=Unaccent("name")).filter(
-                name_unaccent__icontains=query
-            )
-
-            cities = City.objects.annotate(name_unaccent=Unaccent("name")).filter(name_unaccent__icontains=query)
-
+        combined_queryset = build_combined_territory_queryset(raw_query)
         data = {
-            "academies": academies,
-            "departments": departments,
-            "cities": cities,
+            "academies": combined_queryset["academies"],
+            "departments": combined_queryset["departments"],
+            "cities": combined_queryset["cities"],
         }
 
         serializer = TerritoryCombinedSerializer(data)

@@ -1,5 +1,5 @@
 import pytest
-from territories.search import build_combined_territory_queryset
+from territories.search import build_combined_territory_queryset, normalize_city_search
 from tests.territories.factories import AcademyFactory, CityFactory, DepartmentFactory
 
 
@@ -68,3 +68,16 @@ class TestCityFTSSearch:
     def test_department_search_is_case_and_accent_insensitive(self, territory_seed, query):
         result = build_combined_territory_queryset(query)
         self._assert_single_match(result["departments"], territory_seed["department"].name)
+
+    @pytest.mark.parametrize(
+        "raw_query,expected",
+        [
+            ("Saint-Étienne", "saint etienne"),
+            ("St Etienne", "saint etienne"),
+            ("STE-ETIENNE", "saint etienne"),
+            ("  Saint   Étienne  ", "saint etienne"),
+            ("Évry-Courcouronnes", "evry courcouronnes"),
+        ],
+    )
+    def test_normalize_city_search(self, raw_query, expected):
+        assert normalize_city_search(raw_query) == expected

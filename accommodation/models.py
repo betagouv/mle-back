@@ -135,6 +135,7 @@ class Accommodation(models.Model):
     )
     microwave = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Microwave"))
     refrigerator = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Refrigerator"))
+    wifi = models.BooleanField(default=False, null=True, blank=True, verbose_name=gettext_lazy("Wifi"))
     bathroom = models.CharField(
         max_length=50, choices=SHARED_OR_PRIVATE, null=True, blank=True, verbose_name=gettext_lazy("Bathroom")
     )

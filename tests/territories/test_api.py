@@ -16,21 +16,32 @@ from tests.territories.factories import AcademyFactory, CityFactory, DepartmentF
 class TerritoryCombinedListAPITests(APITestCase):
     def setUp(self):
         multi_polygon = MultiPolygon(Polygon(((5, 5), (5, 10), (10, 10), (10, 5), (5, 5))))
-        self.academy = AcademyFactory.create(name="Academie du Rhône", boundary=multi_polygon)
-        self.academy_paris = AcademyFactory.create(
-            name="Académie de Paris", boundary=MultiPolygon(Polygon(((2, 48), (2, 49), (3, 49), (3, 48), (2, 48))))
-        )
-        self.department = DepartmentFactory.create(name="Rhône", code=69, academy=self.academy, boundary=multi_polygon)
-        self.city = CityFactory.create(
-            name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department, average_income=30000
-        )
-        AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12, price_min_t1=123)
+        try:
+            self.academy = Academy.objects.get(name="Academie du Rhône")
+        except Academy.DoesNotExist:
+            self.academy = AcademyFactory.create(name="Academie du Rhône", boundary=multi_polygon)
 
-    def tearDown(self):
-        self.academy.delete()
-        self.academy_paris.delete()
-        self.department.delete()
-        self.city.delete()
+        try:
+            self.academy_paris = Academy.objects.get(name="Académie de Paris")
+        except Academy.DoesNotExist:
+            self.academy_paris = AcademyFactory.create(
+                name="Académie de Paris", boundary=MultiPolygon(Polygon(((2, 48), (2, 49), (3, 49), (3, 48), (2, 48))))
+            )
+
+        try:
+            self.department = Department.objects.get(name="Rhône", code=69, academy=self.academy)
+        except Department.DoesNotExist:
+            self.department = DepartmentFactory.create(
+                name="Rhône", code=69, academy=self.academy, boundary=multi_polygon
+            )
+        try:
+            self.city = City.objects.get(
+                name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department
+            )
+        except City.DoesNotExist:
+            self.city = CityFactory.create(
+                name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department, average_income=30000
+            )
 
     def test_get_territory_combined_list_filtered(self):
         for search_term in ("rh", "rhone", "rhône", "Rhône"):

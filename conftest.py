@@ -10,6 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 
 from accommodation.models import Accommodation
+from django.core.management import call_command
 
 fake = faker.Faker()
 
@@ -27,6 +28,12 @@ def django_db_setup(django_db_setup, django_db_blocker):
         cursor.execute(
             "ALTER TEXT SEARCH CONFIGURATION french_unaccent ALTER MAPPING FOR hword, hword_part, word WITH unaccent, french_stem"
         )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _flush_db(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
+        call_command("flush", "--noinput")
 
 
 @pytest.fixture(autouse=True)

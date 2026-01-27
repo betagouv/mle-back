@@ -26,6 +26,12 @@ class TerritoryCombinedListAPITests(APITestCase):
         )
         AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12, price_min_t1=123)
 
+    def tearDown(self):
+        self.academy.delete()
+        self.academy_paris.delete()
+        self.department.delete()
+        self.city.delete()
+
     def test_get_territory_combined_list_filtered(self):
         for search_term in ("rh", "rhone", "rhône", "Rhône"):
             response = self.client.get(reverse("territory-combined-list") + f"?q={search_term}")

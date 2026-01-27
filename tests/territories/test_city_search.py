@@ -1,6 +1,7 @@
 import pytest
 from territories.search import build_combined_territory_queryset, normalize_city_search
 from tests.territories.factories import AcademyFactory, CityFactory, DepartmentFactory
+from territories.models import Academy, Department, City
 
 
 @pytest.mark.django_db
@@ -8,9 +9,18 @@ class TestCityFTSSearch:
     @pytest.fixture(scope="class")
     def territory_seed(self, django_db_setup, django_db_blocker):
         with django_db_blocker.unblock():
-            academy = AcademyFactory.create(name="Académie de Lyon")
-            department = DepartmentFactory.create(name="Loire", code=42, academy=academy)
-            city = CityFactory.create(name="Saint-Étienne", department=department)
+            try:
+                academy = Academy.objects.get(name="Académie de Lyon")
+            except Academy.DoesNotExist:
+                academy = AcademyFactory.create(name="Académie de Lyon")
+            try:
+                department = Department.objects.get(code=42)
+            except Department.DoesNotExist:
+                department = DepartmentFactory.create(name="Loire", code=42, academy=academy)
+            try:
+                city = City.objects.get(name="Saint-Étienne")
+            except City.DoesNotExist:
+                city = CityFactory.create(name="Saint-Étienne", department=department)
             return {
                 "academy": academy,
                 "department": department,

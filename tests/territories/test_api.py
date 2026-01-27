@@ -268,7 +268,7 @@ class CityDetailAPITest(APITestCase):
         saint_etienne_multipolygon = MultiPolygon(
             Polygon(((4.3801, 45.4300), (4.4101, 45.4300), (4.4101, 45.4600), (4.3801, 45.4600), (4.3801, 45.4300)))
         )
-        CityFactory.create(
+        self.saint_etienne = CityFactory.create(
             name="Saint-Etienne",
             slug="saint-etienne",
             postal_codes=["42000", "42100"],
@@ -302,6 +302,10 @@ class CityDetailAPITest(APITestCase):
             price_min_t7_more=242,
         )
         AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12, price_min_t3=234)
+
+    def tearDown(self):
+        self.city.delete()
+        self.saint_etienne.delete()
 
     def test_get_city_details(self):
         url = reverse("city-detail", kwargs={"slug": self.city.slug})

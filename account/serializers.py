@@ -29,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("email", "first_name", "last_name", "role")
+        fields = ("id", "email", "first_name", "last_name", "role")
 
     def get_role(self, obj):
         return "admin" if is_superuser_or_bizdev(obj) else "owner" if is_owner(obj) else "user"

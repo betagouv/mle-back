@@ -29,7 +29,11 @@ class TerritoryCombinedListAPITests(APITestCase):
             )
 
         try:
-            self.department = Department.objects.get(name="Rhône", code=69, academy=self.academy)
+            self.department = Department.objects.get(
+                name="Rhône",
+                code=69,
+                academy=self.academy,
+            )
         except Department.DoesNotExist:
             self.department = DepartmentFactory.create(
                 name="Rhône", code=69, academy=self.academy, boundary=multi_polygon
@@ -42,6 +46,8 @@ class TerritoryCombinedListAPITests(APITestCase):
             self.city = CityFactory.create(
                 name="Lyon", postal_codes=["69001", "69002", "69003"], department=self.department, average_income=30000
             )
+
+        AccommodationFactory.create(city=self.city.name, postal_code="69001", nb_total_apartments=12, price_min_t1=123)
 
     def test_get_territory_combined_list_filtered(self):
         for search_term in ("rh", "rhone", "rhône", "Rhône"):

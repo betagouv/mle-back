@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("accommodation", "0043_alter_externalsource_source"),
+        ("accommodation", "0044_alter_externalsource_source"),
     ]
 
     operations = [

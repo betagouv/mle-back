@@ -31,7 +31,6 @@ whitenoise = "*"
 djangorestframework-simplejwt = "*"
 django-extensions = "*"
 
-
 [dev-packages]
 factory-boy = "*"
 ipdb = "*"

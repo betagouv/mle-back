@@ -19,6 +19,7 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 FRONT_SITE_URL = "https://test.monlogementetudiant.beta.gouv.fr"
+ADMIN_SITE_URL = "https://mle-back-staging.osc-secnum-fr1.scalingo.io"
 ENVIRONMENT = "staging"
 
 AWS_SUFFIX_DIR = "-staging"

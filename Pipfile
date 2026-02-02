@@ -29,6 +29,8 @@ sib-api-v3-sdk = "*"
 Unidecode = "*"
 whitenoise = "*"
 djangorestframework-simplejwt = "*"
+django_extensions = "*"
+
 
 [dev-packages]
 factory-boy = "*"
@@ -41,6 +43,7 @@ pytest-socket = "*"
 pytest-xdist = "*"
 requests-mock = "*"
 ruff = "*"
+
 
 [requires]
 python_version = "3.13"

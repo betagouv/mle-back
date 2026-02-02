@@ -10,6 +10,8 @@ ALLOWED_HOSTS = ["*"]
 
 SECURE_SSL_REDIRECT = False
 
+ENVIRONMENT = "test"
+
 FRONT_SITE_URL = "http://127.0.0.1:8000"
 
 _gdal = env("GDAL_LIBRARY_PATH", default=None)

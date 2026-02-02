@@ -6,3 +6,8 @@ class AccommodationConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "accommodation"
     verbose_name = gettext_lazy("Accommodation")
+
+    def ready(self):
+        from .events.bootstrap import bootstrap_accommodation_events
+
+        bootstrap_accommodation_events()

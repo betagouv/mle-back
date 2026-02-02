@@ -15,6 +15,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accommodation.events.bus import accommodation_event_bus
+from accommodation.events.events import AccommodationCreatedEvent, AccommodationUpdatedEvent
+
 from .filters import AccommodationFilter
 from .models import Accommodation, FavoriteAccommodation
 from .serializers import (
@@ -171,6 +174,11 @@ class MyAccommodationListView(generics.ListCreateAPIView):
 
         # TODO: assuming user can have only one owner, which is the case ATM, except for bizdev
         serializer.save(owner=self.request.user.owners.first(), **data)
+        accommodation = serializer.instance
+
+        accommodation_event_bus.publish(
+            AccommodationCreatedEvent(accommodation_id=accommodation.id, user_id=self.request.user.id)
+        )
 
 
 @extend_schema(
@@ -212,6 +220,10 @@ class MyAccommodationDetailView(generics.GenericAPIView):
         serializer = self.get_serializer(accommodation, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        accommodation_event_bus.publish(
+            AccommodationUpdatedEvent(accommodation_id=accommodation.id, user_id=self.request.user.id)
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

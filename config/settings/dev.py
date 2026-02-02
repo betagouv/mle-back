@@ -15,6 +15,7 @@ SECURE_HSTS_PRELOAD = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 FRONT_SITE_URL = "http://localhost:8000"
+ADMIN_SITE_URL = "http://localhost:8000"
 
 AWS_SUFFIX_DIR = "-dev"
 

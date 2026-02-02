@@ -4,6 +4,7 @@ from typing import Protocol
 from accommodation.models import Accommodation
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.conf import settings
 
 
 class AccommodationEvent(Protocol):
@@ -25,10 +26,12 @@ class BaseAccommodationEvent:
         user = User.objects.get(id=self.user_id)
 
         accommodation_url = accommodation.get_absolute_url()
-        user_url = reverse(
+        user_path = reverse(
             "admin:auth_user_change",
             args=[user.id],
         )
+
+        user_url = f"{settings.ADMIN_SITE_URL}{user_path}"
 
         return (
             f"Résidence {self.action_label}: "

@@ -1,4 +1,5 @@
 # accommodation/events/tests/test_bootstrap.py
+import functools
 import pytest
 from unittest.mock import Mock, patch
 from accommodation.events.bootstrap import bootstrap_accommodation_events
@@ -39,9 +40,17 @@ def test_bootstrap_is_idempotent():
 
     handlers = accommodation_event_bus._handlers
 
-    assert handlers[AccommodationCreatedEvent].count(handle_accommodation_created) == 1
+    assert len(handlers[AccommodationCreatedEvent]) == 1
+    handler = handlers[AccommodationCreatedEvent][0]
 
-    assert handlers[AccommodationUpdatedEvent].count(handle_accommodation_updated) == 1
+    assert isinstance(handler, functools.partial)
+    assert handler.func is handle_accommodation_created
+
+    assert len(handlers[AccommodationUpdatedEvent]) == 1
+    handler = handlers[AccommodationUpdatedEvent][0]
+
+    assert isinstance(handler, functools.partial)
+    assert handler.func is handle_accommodation_updated
 
 
 def test_event_bus_does_not_register_same_handler_twice():
@@ -71,6 +80,6 @@ def test_handler_called_once_after_multiple_bootstrap():
         bootstrap_accommodation_events()
         bootstrap_accommodation_events()
 
-        accommodation_event_bus.publish(AccommodationCreatedEvent(accommodation_id=1))
+        accommodation_event_bus.publish(AccommodationCreatedEvent(accommodation_id=1, user_id=1))
 
     mock_handler.assert_called_once()

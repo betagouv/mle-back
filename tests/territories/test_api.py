@@ -292,7 +292,7 @@ class CityDetailAPITest(APITestCase):
             Polygon(((4.3801, 45.4300), (4.4101, 45.4300), (4.4101, 45.4600), (4.3801, 45.4600), (4.3801, 45.4300)))
         )
 
-        if not City.objects.filter(name="Saint-Etienne").exists():
+        if not City.objects.filter(slug="saint-etienne").exists():
             self.saint_etienne = CityFactory.create(
                 name="Saint-Etienne",
                 slug="saint-etienne",

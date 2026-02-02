@@ -29,7 +29,7 @@ sib-api-v3-sdk = "*"
 Unidecode = "*"
 whitenoise = "*"
 djangorestframework-simplejwt = "*"
-django_extensions = "*"
+django-extensions = "*"
 
 
 [dev-packages]

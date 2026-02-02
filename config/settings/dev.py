@@ -7,6 +7,8 @@ env = environ.Env()
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
+ENVIRONMENT = "dev"
+
 SECURE_SSL_REDIRECT = False
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False

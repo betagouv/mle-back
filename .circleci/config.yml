@@ -22,6 +22,7 @@ env_vars: &shared_env_vars
   AWS_S3_ENDPOINT_URL: https://s3.gra.io.cloud.ovh.net
   AWS_S3_PUBLIC_BASE_URL: xxx
   BIZDEV_EMAIL: xxx
+  MATTERMOST_WEBHOOK_URL: https://fake-webhook-url.com
 
 executors:
   for_tests:

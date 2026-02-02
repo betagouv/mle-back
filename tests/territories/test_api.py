@@ -291,17 +291,21 @@ class CityDetailAPITest(APITestCase):
         saint_etienne_multipolygon = MultiPolygon(
             Polygon(((4.3801, 45.4300), (4.4101, 45.4300), (4.4101, 45.4600), (4.3801, 45.4600), (4.3801, 45.4300)))
         )
-        self.saint_etienne = CityFactory.create(
-            name="Saint-Etienne",
-            slug="saint-etienne",
-            postal_codes=["42000", "42100"],
-            epci_code="EPCI234",
-            insee_codes=["23456"],
-            average_income=20000,
-            popular=True,
-            nb_students=10000,
-            boundary=saint_etienne_multipolygon,
-        )
+
+        if not City.objects.filter(name="Saint-Etienne").exists():
+            self.saint_etienne = CityFactory.create(
+                name="Saint-Etienne",
+                slug="saint-etienne",
+                postal_codes=["42000", "42100"],
+                epci_code="EPCI234",
+                insee_codes=["23456"],
+                average_income=20000,
+                popular=True,
+                nb_students=10000,
+                boundary=saint_etienne_multipolygon,
+            )
+        else:
+            self.saint_etienne = City.objects.get(name="Saint-Etienne")
 
         AccommodationFactory.create(
             city=self.city.name,

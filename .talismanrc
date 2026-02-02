@@ -56,4 +56,6 @@ fileignoreconfig:
   checksum: 1da34000ee9788598c854871500a0ebc68d4c3c838783c51a08c0ec05d33d2b9
 - filename: tests/account/test_services.py
   checksum: fcb8c745a21ddf65414ce4551e34240fc079335df4574759e83448c40c7461d4
+- filename: tests/accommodation/test_api.py
+  checksum: 06cba5477ae1a58ad326f57c047133bc7e1936f67eb600ccc4f1a650716b9649
 version: "1.0"

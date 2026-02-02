@@ -20,8 +20,11 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 ALLOWED_HOSTS = []
 
+MATTERMOST_WEBHOOK_URL = env("MATTERMOST_WEBHOOK_URL")
+
 
 INSTALLED_APPS = [
+    "django_extensions",
     "admin_two_factor.apps.TwoStepVerificationConfig",
     "django.contrib.admin",
     "django.contrib.auth",

@@ -1,4 +1,5 @@
 import base64
+from contextlib import contextmanager
 from unittest.mock import ANY, patch
 
 from django.contrib.gis.geos import MultiPolygon, Point, Polygon
@@ -7,6 +8,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+import accommodation.events.bootstrap as bootstrap_module
+from accommodation.events.bus import accommodation_event_bus
+from accommodation.events.events import AccommodationCreatedEvent, AccommodationUpdatedEvent
 from accommodation.models import Accommodation
 from tests.account.factories import OwnerFactory, UserFactory
 from tests.territories.factories import AcademyFactory
@@ -486,6 +490,25 @@ class MyAccommodationListAPITests(APITestCase):
 
 
 class MyAccommodationDetailAPITests(APITestCase):
+    @contextmanager
+    def _fresh_event_bus(self):
+        """
+        Reset the event bus and bootstrap the events.
+        This is used to test the events are triggered correctly.
+        """
+        original_handlers = {key: list(value) for key, value in accommodation_event_bus._handlers.items()}
+        original_bootstrapped = bootstrap_module._bootstrapped
+        try:
+            accommodation_event_bus._handlers.clear()
+            bootstrap_module._bootstrapped = False
+            bootstrap_module.bootstrap_accommodation_events()
+            yield
+        finally:
+            accommodation_event_bus._handlers.clear()
+            for key, handlers in original_handlers.items():
+                accommodation_event_bus._handlers[key] = handlers
+            bootstrap_module._bootstrapped = original_bootstrapped
+
     def setUp(self):
         self.user = UserFactory()
         self.owner = OwnerFactory(users=[self.user])
@@ -508,6 +531,43 @@ class MyAccommodationDetailAPITests(APITestCase):
             published=True,
             name="Someone Else's Accommodation",
         )
+
+    @patch("accommodation.events.bootstrap.handle_accommodation_created")
+    def test_create_triggers_accommodation_created_handler(self, mock_handler):
+        with self._fresh_event_bus():
+            url = reverse("my-accommodation-list")
+            payload = {
+                "name": "New Accommodation",
+                "address": "123 Rue de Paris",
+                "city": "Paris",
+                "postal_code": "75001",
+                "geom": {"type": "Point", "coordinates": [2.35, 48.85]},
+                "published": True,
+            }
+
+            response = self.client.post(url, payload, format="json")
+            assert response.status_code == status.HTTP_201_CREATED, response.content
+
+            mock_handler.assert_called_once()
+            event = mock_handler.call_args[0][0]
+            assert isinstance(event, AccommodationCreatedEvent)
+
+            acc = Accommodation.objects.get(name="New Accommodation")
+            assert event.accommodation_id == acc.id
+
+    @patch("accommodation.events.bootstrap.handle_accommodation_updated")
+    def test_patch_triggers_accommodation_updated_handler(self, mock_handler):
+        with self._fresh_event_bus():
+            url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+            payload = {"name": "Updated Accommodation Name"}
+
+            response = self.client.patch(url, payload, format="json")
+            assert response.status_code == status.HTTP_200_OK
+
+            mock_handler.assert_called_once()
+            event = mock_handler.call_args[0][0]
+            assert isinstance(event, AccommodationUpdatedEvent)
+            assert event.accommodation_id == self.my_accommodation.id
 
     def test_create_new_accommodation(self):
         url = reverse("my-accommodation-list")

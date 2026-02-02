@@ -19,6 +19,8 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 FRONT_SITE_URL = "https://test.monlogementetudiant.beta.gouv.fr"
+ENVIRONMENT = "staging"
+
 AWS_SUFFIX_DIR = "-staging"
 
 if SENTRY_DSN is not None:  # noqa: F405

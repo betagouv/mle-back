@@ -5,6 +5,8 @@ from .base import *  # noqa: F403
 DEBUG = False
 ALLOWED_HOSTS = ["mle-back-prod.osc-secnum-fr1.scalingo.io"]
 
+ENVIRONMENT = "production"
+
 SECURE_HSTS_SECONDS = 3600
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True

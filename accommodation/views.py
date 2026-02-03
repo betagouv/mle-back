@@ -113,6 +113,7 @@ class AccommodationListView(generics.ListAPIView):
     summary="List or create accommodations owned by the authenticated owner",
     description="Allows an authenticated owner to list and create accommodations linked to their owner account.",
     responses=AccommodationGeoSerializer,
+    request=MyAccommodationGeoSerializer,
     parameters=[
         OpenApiParameter(
             name="has_availability",
@@ -133,6 +134,11 @@ class MyAccommodationListView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ["name"]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return MyAccommodationGeoSerializer
+        return MyAccommodationGeoSerializer
 
     def get_queryset(self):
         owners = getattr(self.request.user, "owners", None)

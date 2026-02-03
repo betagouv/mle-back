@@ -269,6 +269,7 @@ class ExternalSource(models.Model):
     SOURCE_SEVRE_LOIRE_HABITAT = "sevre-loire-habitat"
     SOURCE_ACM_HABITAT = "acm-habitat"
     SOURCE_GROUPE_3F_CVL = "groupe-3f-cvl"
+    SOURCE_LOGIS_METROPOLE = "logis-metropole"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -307,6 +308,7 @@ class ExternalSource(models.Model):
         (SOURCE_SEVRE_LOIRE_HABITAT, "Sevre Loire Habitat"),
         (SOURCE_ACM_HABITAT, "ACM Habitat"),
         (SOURCE_GROUPE_3F_CVL, "Groupe 3F CVL"),
+        (SOURCE_LOGIS_METROPOLE, "Logis Métropole"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

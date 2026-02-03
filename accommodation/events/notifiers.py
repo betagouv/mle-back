@@ -47,6 +47,8 @@ class MattermostNotifier:
 
 def get_notifier() -> Notifier:
     if settings.ENVIRONMENT == "production":
+        if not settings.MATTERMOST_WEBHOOK_URL:
+            raise RuntimeError("MATTERMOST_WEBHOOK_URL must be set in environment variables for production")
         return MattermostNotifier(
             webhook_url=settings.MATTERMOST_WEBHOOK_URL,
         )

@@ -1,6 +1,6 @@
 import base64
 from contextlib import contextmanager
-from unittest.mock import ANY, patch
+from unittest.mock import ANY, MagicMock, patch
 
 from django.contrib.gis.geos import MultiPolygon, Point, Polygon
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -569,26 +569,35 @@ class MyAccommodationDetailAPITests(APITestCase):
             assert isinstance(event, AccommodationUpdatedEvent)
             assert event.accommodation_id == self.my_accommodation.id
 
-    def test_create_new_accommodation(self):
+    @patch("accommodation.serializers.upload_image_to_s3")
+    @patch("accommodation.serializers.get_geolocator")
+    def test_create_new_accommodation(self, mock_geolocator, mock_upload_image_to_s3):
+        mock_geolocator.return_value = MagicMock()
+        mock_geolocator.return_value.geocode.return_value = MagicMock(latitude=48.85, longitude=2.35)
+        mock_upload_image_to_s3.return_value = "https://cdn.example.com/fake-image.jpg"
+
         url = reverse("my-accommodation-list")
         payload = {
             "name": "New Accommodation",
-            "address": "123 Rue de Paris",
+            "address": "55 rue du Faubourg Saint-Honoré",
             "city": "Paris",
-            "postal_code": "75001",
-            "geom": {"type": "Point", "coordinates": [2.35, 48.85]},
+            "postal_code": "75008",
             "published": True,
+            "images_files": [SimpleUploadedFile("file.jpg", b"file_content", content_type="image/jpeg")],
         }
 
-        response = self.client.post(url, payload, format="json")
+        response = self.client.post(url, payload, format="multipart")
         assert response.status_code == status.HTTP_201_CREATED, response.content
 
-        data = response.json()["properties"]
+        data = response.json()
         assert data["name"] == "New Accommodation"
         assert "slug" in data
 
         acc = Accommodation.objects.get(name="New Accommodation")
+        assert acc.geom.x == 2.35
+        assert acc.geom.y == 48.85
         assert acc.owner == self.owner
+        assert acc.images_urls == ["https://cdn.example.com/fake-image.jpg"]
 
     def test_get_my_accommodation(self):
         url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])

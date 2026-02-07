@@ -4,6 +4,7 @@ import uuid
 import boto3
 from botocore.config import Config
 from django.conf import settings
+from geopy.geocoders import BANFrance
 
 
 def upload_image_to_s3(binary_data, file_extension=".jpg"):
@@ -67,3 +68,5 @@ def compute_model_diff(instance, old_data, *, fields):
             }
 
     return diff
+def get_geolocator():
+    return BANFrance()

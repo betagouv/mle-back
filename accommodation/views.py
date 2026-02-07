@@ -1,4 +1,3 @@
-from django.contrib.gis.geos import Point
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -171,15 +170,8 @@ class MyAccommodationListView(generics.ListCreateAPIView):
         responses=AccommodationGeoSerializer,
     )
     def perform_create(self, serializer):
-        data = self.request.data.copy()
-        geom = data.get("geom")
-        if geom and isinstance(geom, dict) and geom.get("type") == "Point":
-            coordinates = geom.get("coordinates")
-            if coordinates:
-                data["geom"] = Point(*coordinates)
-
         # TODO: assuming user can have only one owner, which is the case ATM, except for bizdev
-        serializer.save(owner=self.request.user.owners.first(), **data)
+        serializer.save(owner=self.request.user.owners.first())
         accommodation = serializer.instance
 
         accommodation_event_bus.publish(

@@ -4,13 +4,14 @@ from django.utils.translation import gettext
 from drf_spectacular.utils import OpenApiTypes, extend_schema_field
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from django.contrib.gis.geos import Point
 
 from account.models import Owner
 from account.serializers import OwnerSerializer
 from common.serializers import BinaryToBase64Field
 
 from .models import Accommodation, ExternalSource, FavoriteAccommodation
-from .utils import upload_image_to_s3
+from .utils import get_geolocator, upload_image_to_s3
 
 
 class AccommodationImportSerializer(serializers.ModelSerializer):
@@ -343,83 +344,11 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
         read_only_fields = ("id", "slug", "owner")
 
 
-class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSerializer):
-    class Meta:
-        model = Accommodation
-        geo_field = "geom"
-        fields = (
-            "id",
-            "name",
-            "description",
-            "slug",
-            "address",
-            "city",
-            "postal_code",
-            "nb_total_apartments",
-            "nb_accessible_apartments",
-            "nb_coliving_apartments",
-            "images_urls",
-            "available",
-            "nb_t1",
-            "nb_t1_available",
-            "nb_t1_bis",
-            "nb_t1_bis_available",
-            "nb_t2",
-            "nb_t2_available",
-            "nb_t3",
-            "nb_t3_available",
-            "nb_t4",
-            "nb_t4_available",
-            "nb_t5",
-            "nb_t5_available",
-            "nb_t6",
-            "nb_t6_available",
-            "nb_t7_more",
-            "nb_t7_more_available",
-            "price_min_t1",
-            "price_max_t1",
-            "price_min_t1_bis",
-            "price_max_t1_bis",
-            "price_min_t2",
-            "price_max_t2",
-            "price_min_t3",
-            "price_max_t3",
-            "price_min_t4",
-            "price_max_t4",
-            "price_min_t5",
-            "price_max_t5",
-            "price_min_t6",
-            "price_max_t6",
-            "price_min_t7_more",
-            "price_max_t7_more",
-            "accept_waiting_list",
-            "scholarship_holders_priority",
-            "laundry_room",
-            "common_areas",
-            "bike_storage",
-            "parking",
-            "secure_access",
-            "residence_manager",
-            "kitchen_type",
-            "desk",
-            "cooking_plates",
-            "microwave",
-            "refrigerator",
-            "wifi",
-            "bathroom",
-            "external_url",
-            "updated_at",
-            "published",
-        )
-        read_only_fields = ("id", "slug", "owner", "price_min", "updated_at")
-
-
-class CreateMyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSerializer):
-    images_files = serializers.ListField(child=serializers.FileField(), required=False, default=None)
+class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, serializers.ModelSerializer):
+    images_files = serializers.ListField(child=serializers.FileField(), required=False, default=None, write_only=True)
 
     class Meta:
         model = Accommodation
-        geo_field = "geom"
         fields = (
             "id",
             "name",
@@ -485,18 +414,23 @@ class CreateMyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeature
             "published",
             "images_files",
         )
-        read_only_fields = ("id", "slug", "owner", "price_min", "updated_at")
+        read_only_fields = ("id", "slug", "owner", "price_min", "updated_at", "images_urls")
 
     def create(self, validated_data):
         images_files = validated_data.pop("images_files") or None
-
-        instance = super().create(validated_data)
+        validated_data.setdefault("images_urls", [])
         if images_files:
             for image_file in images_files:
                 image_url = upload_image_to_s3(image_file)
-                instance.images_urls.append(image_url)
-        instance.save()
-        return instance
+                validated_data["images_urls"].append(image_url)
+
+        address = validated_data.get("address")
+        geolocator = get_geolocator()
+        full_address = f"{address}, {validated_data.get('city')}, {validated_data.get('postal_code')}"
+        coordinates = geolocator.geocode(full_address)
+        if coordinates:
+            validated_data["geom"] = Point(float(coordinates.longitude), float(coordinates.latitude), srid=4326)
+        return super().create(validated_data)
 
 
 class FavoriteAccommodationGeoSerializer(serializers.ModelSerializer):

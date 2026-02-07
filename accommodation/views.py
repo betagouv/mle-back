@@ -138,7 +138,7 @@ class MyAccommodationListView(generics.ListCreateAPIView):
     def get_serializer_class(self):
         if self.request.method == "POST":
             return MyAccommodationSerializer
-        return AccommodationGeoSerializer
+        return MyAccommodationGeoSerializer
 
     def get_queryset(self):
         owners = getattr(self.request.user, "owners", None)

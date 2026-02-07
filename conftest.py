@@ -1,5 +1,6 @@
 import os
 import re
+from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import faker
@@ -60,6 +61,18 @@ def mock_requests():
         mocker.get(re.compile(r"https://image\.com/.*"), content=b"fake image", status_code=200)
 
         yield mocker
+
+
+@pytest.fixture(autouse=True)
+def mock_geolocator():
+    with patch("accommodation.serializers.get_geolocator") as mock_get_geolocator:
+        mock_geolocator_instance = MagicMock()
+        mock_geolocator_instance.geocode.return_value = MagicMock(
+            latitude=48.85,
+            longitude=2.35,
+        )
+        mock_get_geolocator.return_value = mock_geolocator_instance
+        yield mock_get_geolocator
 
 
 @pytest.fixture(autouse=True)

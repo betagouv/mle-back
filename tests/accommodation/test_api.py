@@ -1,6 +1,6 @@
 import base64
 from contextlib import contextmanager
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY, patch
 
 from django.contrib.gis.geos import MultiPolygon, Point, Polygon
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -570,10 +570,7 @@ class MyAccommodationDetailAPITests(APITestCase):
             assert event.accommodation_id == self.my_accommodation.id
 
     @patch("accommodation.serializers.upload_image_to_s3")
-    @patch("accommodation.serializers.get_geolocator")
-    def test_create_new_accommodation(self, mock_geolocator, mock_upload_image_to_s3):
-        mock_geolocator.return_value = MagicMock()
-        mock_geolocator.return_value.geocode.return_value = MagicMock(latitude=48.85, longitude=2.35)
+    def test_create_new_accommodation(self, mock_upload_image_to_s3):
         mock_upload_image_to_s3.return_value = "https://cdn.example.com/fake-image.jpg"
 
         url = reverse("my-accommodation-list")

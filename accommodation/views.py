@@ -24,6 +24,7 @@ from .serializers import (
     AccommodationGeoSerializer,
     FavoriteAccommodationGeoSerializer,
     MyAccommodationGeoSerializer,
+    MyAccommodationSerializer,
 )
 from .utils import compute_model_diff, snapshot_model, upload_image_to_s3
 
@@ -112,7 +113,7 @@ class AccommodationListView(generics.ListAPIView):
     summary="List or create accommodations owned by the authenticated owner",
     description="Allows an authenticated owner to list and create accommodations linked to their owner account.",
     responses=AccommodationGeoSerializer,
-    request=MyAccommodationGeoSerializer,
+    request=MyAccommodationSerializer,
     parameters=[
         OpenApiParameter(
             name="has_availability",
@@ -136,7 +137,7 @@ class MyAccommodationListView(generics.ListCreateAPIView):
 
     def get_serializer_class(self):
         if self.request.method == "POST":
-            return MyAccommodationGeoSerializer
+            return MyAccommodationSerializer
         return AccommodationGeoSerializer
 
     def get_queryset(self):

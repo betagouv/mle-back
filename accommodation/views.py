@@ -26,7 +26,7 @@ from .serializers import (
     FavoriteAccommodationGeoSerializer,
     MyAccommodationGeoSerializer,
 )
-from .utils import upload_image_to_s3
+from .utils import compute_model_diff, snapshot_model, upload_image_to_s3
 
 
 @extend_schema(
@@ -217,13 +217,31 @@ class MyAccommodationDetailView(generics.GenericAPIView):
     )
     def patch(self, request, *args, **kwargs):
         accommodation = self.get_object()
-        serializer = self.get_serializer(accommodation, data=request.data, partial=True)
+
+        old_data = snapshot_model(accommodation)
+
+        serializer = self.get_serializer(
+            accommodation,
+            data=request.data,
+            partial=True,
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        accommodation_event_bus.publish(
-            AccommodationUpdatedEvent(accommodation_id=accommodation.id, user_id=self.request.user.id)
+        data_diff = compute_model_diff(
+            accommodation,
+            old_data,
+            fields=serializer.validated_data.keys(),
         )
+
+        accommodation_event_bus.publish(
+            AccommodationUpdatedEvent(
+                accommodation_id=accommodation.id,
+                user_id=request.user.id,
+                data_diff=data_diff,
+            )
+        )
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

@@ -7,7 +7,20 @@ from django.conf import settings
 from geopy.geocoders import BANFrance
 
 
-def upload_image_to_s3(binary_data, file_extension=".jpg"):
+def upload_image_to_s3(binary_data: bytes, file_extension: str = ".jpg") -> str:
+    """
+    Upload binary image data to S3.
+
+    :param binary_data: Raw binary content (bytes-like)
+    :param file_extension: File extension including dot (e.g. ".jpg")
+    :raises TypeError: if binary_data is not bytes-like
+    """
+
+    if not isinstance(binary_data, (bytes, bytearray, memoryview)):
+        raise TypeError(
+            f"upload_image_to_s3 expects binary data (bytes-like). Got {type(binary_data).__name__} instead."
+        )
+
     s3 = boto3.client(
         "s3",
         endpoint_url=settings.AWS_S3_ENDPOINT_URL,

@@ -52,4 +52,4 @@ class AccommodationUpdatedEvent(BaseAccommodationEvent):
     action_label: ClassVar[str] = "mise à jour"
 
     def to_message(self) -> str:
-        super().to_message() + (f"Diff: \n```json \n{json.dumps(self.data_diff, indent=4)}``` \n")
+        return super().to_message() + (f"Diff: \n```json \n{json.dumps(self.data_diff, indent=4)}``` \n")

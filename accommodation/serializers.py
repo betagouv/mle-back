@@ -421,7 +421,8 @@ class MyAccommodationSerializer(BaseAccommodationSerialiser, serializers.ModelSe
         validated_data.setdefault("images_urls", [])
         if images_files:
             for image_file in images_files:
-                image_url = upload_image_to_s3(image_file)
+                binary_data = image_file.read()
+                image_url = upload_image_to_s3(binary_data)
                 validated_data["images_urls"].append(image_url)
 
         address = validated_data.get("address")

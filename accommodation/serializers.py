@@ -426,6 +426,11 @@ class MyAccommodationSerializer(BaseAccommodationSerialiser, serializers.ModelSe
                 image_url = upload_image_to_s3(binary_data)
                 validated_data["images_urls"].append(image_url)
 
+        owner = validated_data.pop("owner")
+        if not owner:
+            raise serializers.ValidationError({"owner": "Owner not found"})
+        validated_data["owner"] = owner
+
         # create city if not exists
         city_manager_service = get_city_manager_service()
         city = city_manager_service.get_or_create_city(validated_data.get("city"), validated_data.get("postal_code"))

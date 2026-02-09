@@ -126,5 +126,5 @@ class FakeCityManagerService:
         return city
 
 
-def get_city_manager_service() -> CityManagerService:
+def get_city_manager_service() -> CityManagerServiceProtocol:
     return CityManagerService()

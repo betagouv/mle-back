@@ -13,6 +13,8 @@ from django.db import connection
 from accommodation.models import Accommodation
 from django.core.management import call_command
 
+from territories.services import FakeCityManagerService
+
 fake = faker.Faker()
 
 
@@ -73,6 +75,13 @@ def mock_geolocator():
         )
         mock_get_geolocator.return_value = mock_geolocator_instance
         yield mock_get_geolocator
+
+
+@pytest.fixture(autouse=True)
+def mock_city_manager_service():
+    with patch("accommodation.serializers.get_city_manager_service") as mock_get_city_manager_service:
+        mock_get_city_manager_service.return_value = FakeCityManagerService()
+        yield mock_get_city_manager_service
 
 
 @pytest.fixture(autouse=True)

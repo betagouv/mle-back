@@ -4,9 +4,11 @@ import sib_api_v3_sdk
 import json
 from django.conf import settings
 
+from typing import Protocol
+
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
 
-from territories.models import City, Department
+from territories.models import Academy, City, Department
 
 configuration = sib_api_v3_sdk.Configuration()
 configuration.api_key["api-key"] = settings.BREVO_API_KEY
@@ -28,6 +30,10 @@ def sync_newsletter_subscription_to_brevo(email, territory_type, territory_name,
         if e.status == 404:
             contact_data["email"] = email
             api_instance.create_contact(contact_data)
+
+
+class CityManagerServiceProtocol(Protocol):
+    def get_or_create_city(self, city, postal_code) -> City: ...
 
 
 class CityManagerService:
@@ -112,5 +118,13 @@ class CityManagerService:
         raise TypeError(f"{mpoly.geom_type} not acceptable for this model")
 
 
-def get_city_manager_service():
+class FakeCityManagerService:
+    def get_or_create_city(self, city, postal_code) -> City:
+        academy, _ = Academy.objects.get_or_create(name="Academy 1")
+        department, _ = Department.objects.get_or_create(name="Department 1", academy=academy)
+        city, _ = City.objects.get_or_create(name=city, postal_codes=[postal_code], department=department)
+        return city
+
+
+def get_city_manager_service() -> CityManagerService:
     return CityManagerService()

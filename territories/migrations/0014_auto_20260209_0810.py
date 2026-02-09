@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
                 LANGUAGE sql
                 IMMUTABLE
                 AS $$
-                    SELECT unaccent('unaccent', $1);
+                    SELECT unaccent($1);
                 $$;
             """,
             reverse_sql="""

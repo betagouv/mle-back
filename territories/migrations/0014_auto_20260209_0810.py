@@ -11,6 +11,9 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             sql="""
+                CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
+                CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+                DROP FUNCTION IF EXISTS immutable_unaccent(text);
                 CREATE OR REPLACE FUNCTION immutable_unaccent(text)
                 RETURNS text
                 LANGUAGE sql

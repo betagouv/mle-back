@@ -11,29 +11,23 @@ class TestCityFTSSearch:
         with django_db_blocker.unblock():
             try:
                 academy = Academy.objects.get(name="Académie de Lyon")
-                academy_vendee = Academy.objects.get(name="Académie de Vendée")
             except Academy.DoesNotExist:
                 academy = AcademyFactory.create(name="Académie de Lyon")
-                academy_vendee = AcademyFactory.create(name="Académie de Vendée")
+
             try:
                 department = Department.objects.get(code=42)
-                department_vendee = Department.objects.get(code=85)
             except Department.DoesNotExist:
                 department = DepartmentFactory.create(name="Loire", code=42, academy=academy)
-                department_vendee = DepartmentFactory.create(name="Vendée", code=85, academy=academy_vendee)
+
             try:
                 city = City.objects.get(name="Saint-Étienne")
-                city_lucon = City.objects.get(name="Luçon")
             except City.DoesNotExist:
                 city = CityFactory.create(name="Saint-Étienne", department=department)
-                city_lucon = CityFactory.create(name="Luçon", department=department_vendee)
+
             return {
                 "academy": academy,
                 "department": department,
                 "city": city,
-                "city_lucon": city_lucon,
-                "department_vendee": department_vendee,
-                "academy_vendee": academy_vendee,
             }
 
     def _assert_single_match(self, queryset, expected_name):
@@ -41,7 +35,7 @@ class TestCityFTSSearch:
 
     @pytest.mark.parametrize(
         "query",
-        ["Saint Etienne", "Saint-Etienne", "st etienne", "St-Étienne", "saint-etiest etie"],
+        ["Saint Etienne", "Saint-Etienne", "st etienne", "St-Étienne", "saint-etie", "st etie"],
     )
     def test_city_search_matches_hyphen_space_and_abbrev(self, territory_seed, query):
         result = build_combined_territory_queryset(query)
@@ -91,9 +85,42 @@ class TestCityFTSSearch:
             "LUCON",
         ],
     )
-    def test_city_search_matches_lucon(self, territory_seed, query):
+    def test_city_search_matches_lucon(self, query):
+        try:
+            academy_vendee = Academy.objects.get(name="Académie de Vendée")
+        except Academy.DoesNotExist:
+            academy_vendee = AcademyFactory.create(name="Académie de Vendée")
+        try:
+            department_vendee = Department.objects.get(code=85)
+        except Department.DoesNotExist:
+            department_vendee = DepartmentFactory.create(name="Vendée", code=85, academy=academy_vendee)
+        try:
+            city_lucon = City.objects.get(name="Luçon")
+        except City.DoesNotExist:
+            city_lucon = CityFactory.create(name="Luçon", department=department_vendee)
         result = build_combined_territory_queryset(query)
-        self._assert_single_match(result["cities"], territory_seed["city_lucon"].name)
+        self._assert_single_match(result["cities"], city_lucon.name)
+
+    def test_city_search_filters_all_tokens(self, territory_seed):
+        other_city = CityFactory.create(name="Saint-Malo", department=territory_seed["department"])
+        result = build_combined_territory_queryset("saint etienne")
+        self._assert_single_match(result["cities"], territory_seed["city"].name)
+        assert other_city.name not in result["cities"].values_list("name", flat=True)
+
+    def test_city_search_for_oe_does_not_match_o(self, territory_seed):
+        oeuilly = CityFactory.create(name="Œuilly", department=territory_seed["department"])
+        other_city = CityFactory.create(name="Orléans", department=territory_seed["department"])
+
+        result = build_combined_territory_queryset("oeuilly")
+
+        names = list(result["cities"].values_list("name", flat=True))
+
+        assert names == [oeuilly.name]
+        assert other_city.name not in names
+
+    def test_city_search_whitespace_query_returns_none(self):
+        result = build_combined_territory_queryset("   ")
+        assert list(result["cities"]) == []
 
     @pytest.mark.parametrize(
         "raw_query,expected",

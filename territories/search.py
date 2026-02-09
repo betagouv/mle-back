@@ -1,11 +1,9 @@
-from django.db.models import Func, Case, Value, FloatField, F, Q, When
+from django.db.models import Func, F
 from django.contrib.postgres.search import (
     SearchVector,
     SearchQuery,
     SearchRank,
 )
-from django.db.models.functions import Greatest
-
 import re
 import unicodedata
 from django.db.models import QuerySet
@@ -19,6 +17,8 @@ class ImmutableUnaccent(Func):
 
 
 def normalize_city_search(term: str) -> str:
+    term = term.replace("œ", "oe").replace("æ", "ae")
+
     term = unicodedata.normalize("NFKD", term)
     term = "".join(c for c in term if not unicodedata.combining(c))
     term = term.lower()
@@ -29,38 +29,42 @@ def normalize_city_search(term: str) -> str:
 
 
 def build_city_queryset(raw_query: str) -> QuerySet:
-    normalized = normalize_city_search(raw_query)
+    if not raw_query or not raw_query.strip():
+        return City.objects.none()
 
-    # --- Full-Text Search ---
+    normalized = normalize_city_search(raw_query)
+    tokens = [t for t in normalized.split() if len(t) >= 2]
+
+    if not tokens:
+        return City.objects.none()
+
+    # --- FTS for ranking only ---
     vector = SearchVector(ImmutableUnaccent("name"), config="simple")
     query = SearchQuery(
         normalized,
         config="simple",
-        search_type="websearch",
+        search_type="plain",
     )
 
-    qs = (
-        City.objects.annotate(
-            # FTS rank (réel)
-            fts_rank=SearchRank(vector, query),
-            # icontains rank (artificiel mais contrôlé)
-            icontains_rank=Case(
-                When(name__istartswith=normalized, then=Value(0.3)),
-                When(name__icontains=normalized, then=Value(0.15)),
-                default=Value(0.0),
-                output_field=FloatField(),
-            ),
-            # Rank final
-            rank=Greatest(
-                F("fts_rank"),
-                F("icontains_rank"),
-            ),
-        )
-        .filter(Q(fts_rank__gt=0) | Q(name__icontains=normalized))
-        .order_by("-rank", "name")
+    qs = City.objects.annotate(
+        fts_rank=SearchRank(vector, query),
+        rank=F("fts_rank"),
     )
 
-    return qs
+    # --- Accent-insensitive AND filtering ---
+    where_clauses = []
+    params = []
+
+    for token in tokens:
+        where_clauses.append("immutable_unaccent(name) ILIKE %s")
+        params.append(f"%{token}%")
+
+    qs = qs.extra(
+        where=where_clauses,
+        params=params,
+    )
+
+    return qs.order_by("-rank", "name")
 
 
 def build_combined_territory_queryset(raw_query: str) -> dict[str, QuerySet]:

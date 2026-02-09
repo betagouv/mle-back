@@ -11,20 +11,29 @@ class TestCityFTSSearch:
         with django_db_blocker.unblock():
             try:
                 academy = Academy.objects.get(name="Académie de Lyon")
+                academy_vendee = Academy.objects.get(name="Académie de Vendée")
             except Academy.DoesNotExist:
                 academy = AcademyFactory.create(name="Académie de Lyon")
+                academy_vendee = AcademyFactory.create(name="Académie de Vendée")
             try:
                 department = Department.objects.get(code=42)
+                department_vendee = Department.objects.get(code=85)
             except Department.DoesNotExist:
                 department = DepartmentFactory.create(name="Loire", code=42, academy=academy)
+                department_vendee = DepartmentFactory.create(name="Vendée", code=85, academy=academy_vendee)
             try:
                 city = City.objects.get(name="Saint-Étienne")
+                city_lucon = City.objects.get(name="Luçon")
             except City.DoesNotExist:
                 city = CityFactory.create(name="Saint-Étienne", department=department)
+                city_lucon = CityFactory.create(name="Luçon", department=department_vendee)
             return {
                 "academy": academy,
                 "department": department,
                 "city": city,
+                "city_lucon": city_lucon,
+                "department_vendee": department_vendee,
+                "academy_vendee": academy_vendee,
             }
 
     def _assert_single_match(self, queryset, expected_name):
@@ -73,6 +82,18 @@ class TestCityFTSSearch:
     def test_department_search_is_case_and_accent_insensitive(self, territory_seed, query):
         result = build_combined_territory_queryset(query)
         self._assert_single_match(result["departments"], territory_seed["department"].name)
+
+    @pytest.mark.parametrize(
+        "query",
+        [
+            "lucon",
+            "Luçon",
+            "LUCON",
+        ],
+    )
+    def test_city_search_matches_lucon(self, territory_seed, query):
+        result = build_combined_territory_queryset(query)
+        self._assert_single_match(result["cities"], territory_seed["city_lucon"].name)
 
     @pytest.mark.parametrize(
         "raw_query,expected",

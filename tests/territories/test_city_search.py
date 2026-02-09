@@ -32,12 +32,7 @@ class TestCityFTSSearch:
 
     @pytest.mark.parametrize(
         "query",
-        [
-            "Saint Etienne",
-            "Saint-Etienne",
-            "st etienne",
-            "St-Étienne",
-        ],
+        ["Saint Etienne", "Saint-Etienne", "st etienne", "St-Étienne", "saint-etiest etie"],
     )
     def test_city_search_matches_hyphen_space_and_abbrev(self, territory_seed, query):
         result = build_combined_territory_queryset(query)

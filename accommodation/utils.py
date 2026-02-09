@@ -81,5 +81,7 @@ def compute_model_diff(instance, old_data, *, fields):
             }
 
     return diff
+
+
 def get_geolocator():
-    return BANFrance()
+    return BANFrance(timeout=10)

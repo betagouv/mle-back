@@ -12,6 +12,7 @@ from common.serializers import BinaryToBase64Field
 
 from .models import Accommodation, ExternalSource, FavoriteAccommodation
 from .utils import get_geolocator, upload_image_to_s3
+from territories.services import get_city_manager_service
 
 
 class AccommodationImportSerializer(serializers.ModelSerializer):
@@ -424,6 +425,12 @@ class MyAccommodationSerializer(BaseAccommodationSerialiser, serializers.ModelSe
                 binary_data = image_file.read()
                 image_url = upload_image_to_s3(binary_data)
                 validated_data["images_urls"].append(image_url)
+
+        # create city if not exists
+        city_manager_service = get_city_manager_service()
+        city = city_manager_service.get_or_create_city(validated_data.get("city"), validated_data.get("postal_code"))
+        if not city:
+            raise serializers.ValidationError({"city": "City not found"})
 
         address = validated_data.get("address")
         geolocator = get_geolocator()

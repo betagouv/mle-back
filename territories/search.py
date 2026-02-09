@@ -1,9 +1,11 @@
-from django.db.models import Func, F
+from django.db.models import FloatField, Func, F, Value, When, Case
+from django.db.models.functions import Greatest
 from django.contrib.postgres.search import (
     SearchVector,
     SearchQuery,
     SearchRank,
 )
+
 import re
 import unicodedata
 from django.db.models import QuerySet
@@ -48,7 +50,15 @@ def build_city_queryset(raw_query: str) -> QuerySet:
 
     qs = City.objects.annotate(
         fts_rank=SearchRank(vector, query),
-        rank=F("fts_rank"),
+        prefix_rank=Case(
+            When(name__istartswith=normalized, then=Value(1.0)),
+            default=Value(0.0),
+            output_field=FloatField(),
+        ),
+        rank=Greatest(
+            F("prefix_rank"),
+            F("fts_rank"),
+        ),
     )
 
     # --- Accent-insensitive AND filtering ---

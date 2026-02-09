@@ -134,3 +134,20 @@ class TestCityFTSSearch:
     )
     def test_normalize_city_search(self, raw_query, expected):
         assert normalize_city_search(raw_query) == expected
+
+    def test_city_search_prefix_rank(self, territory_seed):
+        try:
+            City.objects.get(name="Marseille")
+        except City.DoesNotExist:
+            CityFactory.create(name="Marseille", department=territory_seed["department"])
+
+        try:
+            City.objects.get(name="Famars")
+        except City.DoesNotExist:
+            CityFactory.create(name="Famars", department=territory_seed["department"])
+        result = build_combined_territory_queryset("mars")
+
+        assert result["cities"].first().rank == 1.0
+        assert result["cities"].first().name == "Marseille"
+        assert result["cities"].last().rank == 0.0
+        assert result["cities"].last().name == "Famars"

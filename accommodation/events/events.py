@@ -31,12 +31,17 @@ class BaseAccommodationEvent:
             "admin:auth_user_change",
             args=[user.id],
         )
+        owner = accommodation.owner
+        owner_path = reverse(
+            "admin:account_owner_change",
+            args=[accommodation.owner.id],
+        )
 
         user_url = f"{settings.ADMIN_SITE_URL}{user_path}"
-
+        owner_url = f"{settings.ADMIN_SITE_URL}{owner_path}"
         return (
             f"Résidence {self.action_label}: "
-            f"[{accommodation.name}]({accommodation_url}) "
+            f"[{accommodation.name}]({accommodation_url}) de [{owner.name}]({owner_url})"
             f"par [{user.get_full_name()}]({user_url})"
         )
 

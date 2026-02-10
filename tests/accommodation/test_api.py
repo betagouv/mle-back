@@ -118,6 +118,8 @@ class AccommodationListAPITests(APITestCase):
         assert results["count"] == 6
         assert results["page_size"] == 30
         assert results["next"] is None and results["previous"] is None
+        assert results["max_price"] == 800
+        assert results["min_price"] == 300
         assert len(results["results"]["features"]) == 6
         returned_ids = [feature["id"] for feature in results["results"]["features"]]
         assert "slug" in results["results"]["features"][0]["properties"]

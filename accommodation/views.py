@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 
 from accommodation.events.bus import accommodation_event_bus
 from accommodation.events.events import AccommodationCreatedEvent, AccommodationUpdatedEvent
+from accommodation.pagination import AccommodationSearchListPagination
 
 from .filters import AccommodationFilter
 from .models import Accommodation, FavoriteAccommodation
@@ -107,6 +108,7 @@ class AccommodationListView(generics.ListAPIView):
     serializer_class = AccommodationGeoSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = AccommodationFilter
+    pagination_class = AccommodationSearchListPagination
 
 
 @extend_schema(

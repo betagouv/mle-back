@@ -29,6 +29,9 @@ class GeoBaseCommand(BaseCommand):
         if not response:
             return
         city = response["nom"] if response else city
+        postal_codes_from_api = response.get("codesPostaux", [])
+        if postal_code not in postal_codes_from_api:
+            self.stdout.write(self.style.WARNING(f"⚠️ Postal code {postal_code} not found in API for city {city}"))
         city_db = City.objects.filter(name__iexact=city, postal_codes__contains=[postal_code]).first()
         if city_db:
             return city_db
@@ -47,7 +50,8 @@ class GeoBaseCommand(BaseCommand):
                 self.style.WARNING(f"⚠️ Unable to find department {department_code}, cannot create city {city}")
             )
             return
-        city = City.objects.create(name=city, postal_codes=[postal_code], department=department_code)
+        post_codes = [postal_code] + postal_codes_from_api
+        city = City.objects.create(name=city, postal_codes=post_codes, department=department_code)
         return self.fill_city_from_api(city)
 
     @staticmethod

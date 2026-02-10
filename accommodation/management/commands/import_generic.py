@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from django.contrib.gis.geos import Point
 
 from accommodation.serializers import AccommodationImportSerializer
+from accommodation.services import fix_plus_in_url
 from account.models import Owner
 from territories.management.commands.geo_base_command import GeoBaseCommand
 
@@ -75,7 +76,8 @@ class Command(GeoBaseCommand):
                         image_bytes = base64.b64decode(base64_data)
                         images_content.append(image_bytes)
                     elif picture.startswith("http"):
-                        images_urls.append(picture)
+                        picture_url = fix_plus_in_url(picture)
+                        images_urls.append(picture_url)
 
                 city = self._get_or_create_city(row["city"].strip(), row["postal_code"].strip())
                 if not city:

@@ -7,15 +7,22 @@ from accommodation.services import fix_plus_in_url
 class Command(BaseCommand):
     help = "Fix Crous image URLs"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Show what would change without saving",
+        )
+
     def handle(self, *args, **options):
         accs = Accommodation.objects.filter(images_urls__regex=r"\+")
-        self.fix_accommodation_images_urls(accs)
+        self.fix_accommodation_images_urls(accs, dry_run=options["dry_run"])
 
-    def fix_accommodation_images_urls(self, qs: QuerySet[Accommodation]) -> None:
+    def fix_accommodation_images_urls(self, qs: QuerySet[Accommodation], *, dry_run: bool = False) -> None:
         total = qs.count()
         fixed = 0
 
-        print(f"Found {total} accommodations with '+' in image URLs")
+        self.stdout.write(f"Found {total} accommodations with '+' in image URLs")
 
         for acc in qs.iterator():
             new_urls = []
@@ -28,8 +35,12 @@ class Command(BaseCommand):
                 new_urls.append(fixed_url)
 
             if changed:
-                acc.images_urls = new_urls
-                acc.save(update_fields=["images_urls"])
+                if not dry_run:
+                    acc.images_urls = new_urls
+                    acc.save(update_fields=["images_urls"])
                 fixed += 1
 
-        print(f"✔ Fixed {fixed} accommodations")
+        if dry_run:
+            self.stdout.write(self.style.WARNING(f"Dry run: {fixed} accommodations would be fixed"))
+        else:
+            self.stdout.write(self.style.SUCCESS(f"Fixed {fixed} accommodations"))

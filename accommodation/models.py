@@ -270,6 +270,7 @@ class ExternalSource(models.Model):
     SOURCE_ACM_HABITAT = "acm-habitat"
     SOURCE_GROUPE_3F_CVL = "groupe-3f-cvl"
     SOURCE_LOGIS_METROPOLE = "logis-metropole"
+    SOURCE_CARDINAL_CAMPUS = "cardinal-campus"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -309,6 +310,7 @@ class ExternalSource(models.Model):
         (SOURCE_ACM_HABITAT, "ACM Habitat"),
         (SOURCE_GROUPE_3F_CVL, "Groupe 3F CVL"),
         (SOURCE_LOGIS_METROPOLE, "Logis Métropole"),
+        (SOURCE_CARDINAL_CAMPUS, "Cardinal Campus"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

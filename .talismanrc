@@ -60,4 +60,6 @@ fileignoreconfig:
   checksum: 06cba5477ae1a58ad326f57c047133bc7e1936f67eb600ccc4f1a650716b9649
 - filename: tests/accommodation/test_utils.py
   checksum: e8e1d8fb93c0aa1b94a2a8c0c9b312e3e20c9531fabac185d388f16e6fe9cfaa
+- filename: accommodation/management/commands/import_crous_prices.py
+  checksum: f2a164e851a3257738a4c33bc95b48f080c53ddaccb2381553fc9574aee1db67
 version: "1.0"

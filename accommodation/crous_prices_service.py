@@ -63,7 +63,7 @@ def get_data_by_residence(rows: list[dict[str, str]]) -> tuple[dict[str, dict[st
     unmapped_types: list[str] = []
 
     for row in rows:
-        residence_name = row["Residence"].strip()
+        residence_name = row["nom_residence"].strip()
         normalized_type = normalize_type(row["nom_lgt"])
         target_fields = get_target_price_fields(normalized_type)
 
@@ -81,7 +81,7 @@ def get_data_by_residence(rows: list[dict[str, str]]) -> tuple[dict[str, dict[st
 
 def read_csv_rows(csv_file_path: str) -> list[dict[str, str]]:
     with open(csv_file_path, newline="", encoding="utf-8-sig") as csv_file:
-        return list(csv.DictReader(csv_file, delimiter=","))
+        return list(csv.DictReader(csv_file, delimiter=";"))
 
 
 def import_crous_prices(

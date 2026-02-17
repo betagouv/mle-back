@@ -23,6 +23,9 @@ env_vars: &shared_env_vars
   AWS_S3_PUBLIC_BASE_URL: xxx
   BIZDEV_EMAIL: xxx
   MATTERMOST_WEBHOOK_URL: https://fake-webhook-url.com
+  MATOMO_URL=https://your-matomo-instance.com
+  MATOMO_TOKEN=xxx
+  MATOMO_ID_SITE=1
 
 executors:
   for_tests:

@@ -38,10 +38,10 @@ def test_get_target_price_fields(housing_type, expected_fields):
 
 def test_get_data_by_residence_groups_and_applies_defaults():
     rows = [
-        {"Residence": "Residence A", "nom_lgt": "Studio", "loyer_min": "100", "loyer_max": "200"},
-        {"Residence": "Residence A", "nom_lgt": "T2", "loyer_min": "300", "loyer_max": "400"},
-        {"Residence": "Residence B", "nom_lgt": "T9", "loyer_min": "500", "loyer_max": "700"},
-        {"Residence": "Residence B", "nom_lgt": "Loft", "loyer_min": "800", "loyer_max": "1000"},
+        {"nom_residence": "Residence A", "nom_lgt": "Studio", "loyer_min": "100", "loyer_max": "200"},
+        {"nom_residence": "Residence A", "nom_lgt": "T2", "loyer_min": "300", "loyer_max": "400"},
+        {"nom_residence": "Residence B", "nom_lgt": "T9", "loyer_min": "500", "loyer_max": "700"},
+        {"nom_residence": "Residence B", "nom_lgt": "Loft", "loyer_min": "800", "loyer_max": "1000"},
     ]
 
     data_by_residence, unmapped_types = get_data_by_residence(rows)
@@ -61,10 +61,10 @@ def test_get_data_by_residence_groups_and_applies_defaults():
 def test_import_crous_prices_calls_find_and_apply(tmp_path):
     csv_file = tmp_path / "crous_prices.csv"
     csv_file.write_text(
-        "Residence,nom_lgt,loyer_min,loyer_max\n"
-        "Residence A,T1,100,200\n"
-        "Residence B,T2,300,400\n"
-        "Residence C,Loft,500,600\n",
+        "nom_residence;nom_lgt;loyer_min;loyer_max\n"
+        "Residence A;T1;100;200\n"
+        "Residence B;T2;300;400\n"
+        "Residence C;Loft;500;600\n",
         encoding="utf-8",
     )
 

@@ -18,8 +18,15 @@ class Command(BaseCommand):
             help="Show what would change without saving",
         )
 
+        parser.add_argument(
+            "--source",
+            type=str,
+            help="Source of the data",
+            default="crous",
+        )
+
     def handle(self, *args, **options):
-        csv_file_path = "import_crous_prices.csv"
+        csv_file_path = options["source"]
 
         if not os.path.exists(csv_file_path):
             self.stderr.write(self.style.ERROR(f"File not found: {csv_file_path}"))

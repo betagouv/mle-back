@@ -271,6 +271,7 @@ class ExternalSource(models.Model):
     SOURCE_GROUPE_3F_CVL = "groupe-3f-cvl"
     SOURCE_LOGIS_METROPOLE = "logis-metropole"
     SOURCE_CARDINAL_CAMPUS = "cardinal-campus"
+    SOURCE_SAIEM_DRAGUIGNAN = "saiem-draguignan"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -311,6 +312,7 @@ class ExternalSource(models.Model):
         (SOURCE_GROUPE_3F_CVL, "Groupe 3F CVL"),
         (SOURCE_LOGIS_METROPOLE, "Logis Métropole"),
         (SOURCE_CARDINAL_CAMPUS, "Cardinal Campus"),
+        (SOURCE_SAIEM_DRAGUIGNAN, "Saiem Draguignan"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

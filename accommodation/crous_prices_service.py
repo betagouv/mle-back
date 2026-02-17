@@ -80,7 +80,7 @@ def get_data_by_residence(rows: list[dict[str, str]]) -> tuple[dict[str, dict[st
 
 
 def read_csv_rows(csv_file_path: str) -> list[dict[str, str]]:
-    with open(csv_file_path, newline="", encoding="utf-8") as csv_file:
+    with open(csv_file_path, newline="", encoding="utf-8-sig") as csv_file:
         return list(csv.DictReader(csv_file, delimiter=","))
 
 

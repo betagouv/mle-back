@@ -38,12 +38,26 @@ def normalize_type(raw_type: str) -> str:
 
 
 def get_target_price_fields(normalized_type: str) -> tuple[str, str] | None:
-    if "T1 BIS" in normalized_type:
+    if "T1 BIS" in normalized_type or "T 1 BIS" in normalized_type:
         return ("price_min_t1_bis", "price_max_t1_bis")
 
-    if any(token in normalized_type for token in ["T1", "STUDIO", "STUDETTE", "APPART", "CHAMBRE"]):
+    if any(
+        token in normalized_type
+        for token in [
+            "T1",
+            "STUDIO",
+            "STUDETTE",
+            "APPART",
+            "CHAMBRE",
+            "T 1",
+            "CHBRE",
+            "CH.",
+            "TRI-FONCTION",
+            "BI-FONCTION",
+        ]
+    ):
         return ("price_min_t1", "price_max_t1")
-    if "T2" in normalized_type:
+    if "T2" in normalized_type or "T 2" in normalized_type:
         return ("price_min_t2", "price_max_t2")
     if "T3" in normalized_type:
         return ("price_min_t3", "price_max_t3")

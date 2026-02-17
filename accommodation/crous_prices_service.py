@@ -87,8 +87,8 @@ def get_data_by_residence(rows: list[dict[str, str]]) -> tuple[dict[str, dict[st
 
         min_field, max_field = target_fields
         entry = data_by_residence[residence_name]
-        entry[min_field] = int(row["loyer_min"])
-        entry[max_field] = int(row["loyer_max"])
+        entry[min_field] = float(row["loyer_min"].replace(",", "."))
+        entry[max_field] = float(row["loyer_max"].replace(",", "."))
 
     return dict(data_by_residence), unmapped_types
 

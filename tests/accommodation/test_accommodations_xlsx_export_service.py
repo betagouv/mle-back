@@ -1,0 +1,104 @@
+from __future__ import annotations
+
+import pytest
+
+from accommodation.services.accommodations_xlsx_export_service import HEADERS
+from accommodation.services.accommodations_xlsx_export_service import build_accommodation_export_rows
+from accommodation.services.accommodations_xlsx_export_service import build_postal_code_geo_index
+from accommodation.services.accommodations_xlsx_export_service import compute_total_availability
+from accommodation.services.accommodations_xlsx_export_service import department_code_from_postal_code
+from accommodation.services.accommodations_xlsx_export_service import export_accommodations_to_xlsx
+from accommodation.services.accommodations_xlsx_export_service import resolve_department_and_region
+
+try:
+    from openpyxl import load_workbook
+except ImportError as exc:  # pragma: no cover - runtime dependency guard
+    raise ImportError("openpyxl is required for accommodations XLSX export tests") from exc
+
+
+@pytest.fixture(autouse=True)
+def create_owners_group():
+    # Override global DB fixture from conftest for pure unit tests in this module.
+    return None
+
+
+@pytest.mark.parametrize(
+    ("postal_code", "expected"),
+    [
+        ("75011", "75"),
+        ("97100", "971"),
+        ("98845", "988"),
+        ("", ""),
+        ("abcde", ""),
+    ],
+)
+def test_department_code_from_postal_code(postal_code, expected):
+    assert department_code_from_postal_code(postal_code) == expected
+
+
+def test_build_postal_code_geo_index_keeps_first_match():
+    city_rows = [
+        (["75011"], "Paris", "Ile-de-France"),
+        (["75011", "75012"], "Other Department", "Other Region"),
+    ]
+
+    postal_code_to_geo = build_postal_code_geo_index(city_rows)
+
+    assert postal_code_to_geo["75011"] == ("Paris", "Ile-de-France")
+    assert postal_code_to_geo["75012"] == ("Other Department", "Other Region")
+
+
+def test_resolve_department_and_region_with_fallback():
+    postal_code_to_geo = {"75011": ("Paris", "Ile-de-France")}
+    departments_by_code = {"69": ("Rhone", "Auvergne-Rhone-Alpes")}
+
+    assert resolve_department_and_region("75011", postal_code_to_geo, departments_by_code) == (
+        "Paris",
+        "Ile-de-France",
+    )
+    assert resolve_department_and_region("69002", postal_code_to_geo, departments_by_code) == (
+        "Rhone",
+        "Auvergne-Rhone-Alpes",
+    )
+    assert resolve_department_and_region("abc", postal_code_to_geo, departments_by_code) == ("", "")
+
+
+def test_build_accommodation_export_rows():
+    accommodation_rows = [
+        ("Residence A", "Owner A", 120, "75011", 1, 2, 3, 4, 5, 6, 7, 8),
+        ("Residence B", None, None, "69002", None, None, None, None, None, None, None, None),
+    ]
+    postal_code_to_geo = {"75011": ("Paris", "Ile-de-France")}
+    departments_by_code = {"69": ("Rhone", "Auvergne-Rhone-Alpes")}
+
+    rows = build_accommodation_export_rows(accommodation_rows, postal_code_to_geo, departments_by_code)
+
+    assert rows == [
+        ["Residence A", "Owner A", 120, "75011", "Paris", "Ile-de-France", True],
+        ["Residence B", "", None, "69002", "Rhone", "Auvergne-Rhone-Alpes", False],
+    ]
+
+
+def test_compute_total_availability():
+    assert compute_total_availability([None, None, None]) is None
+    assert compute_total_availability([1, None, 2, 0]) == 3
+
+
+def test_export_accommodations_to_xlsx(tmp_path):
+    output_file = tmp_path / "accommodations_export.xlsx"
+    rows = [
+        ["Residence A", "Owner A", 100, "75011", "Paris", "Ile-de-France", True],
+        ["Residence B", "Owner B", 80, "69002", "Rhone", "Auvergne-Rhone-Alpes", False],
+    ]
+
+    exported_count = export_accommodations_to_xlsx(output_file, rows)
+
+    assert exported_count == 2
+    assert output_file.exists()
+
+    workbook = load_workbook(output_file)
+    worksheet = workbook.active
+
+    assert list(worksheet.iter_rows(min_row=1, max_row=1, values_only=True))[0] == tuple(HEADERS)
+    assert list(worksheet.iter_rows(min_row=2, max_row=2, values_only=True))[0] == tuple(rows[0])
+    assert list(worksheet.iter_rows(min_row=3, max_row=3, values_only=True))[0] == tuple(rows[1])

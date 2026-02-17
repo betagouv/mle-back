@@ -30,6 +30,7 @@ Unidecode = "*"
 whitenoise = "*"
 djangorestframework-simplejwt = "*"
 django-extensions = "*"
+openpyxl = "*"
 
 [dev-packages]
 factory-boy = "*"

@@ -46,14 +46,14 @@ def test_get_data_by_residence_groups_and_applies_defaults():
 
     data_by_residence, unmapped_types = get_data_by_residence(rows)
 
-    assert data_by_residence["Residence A"]["price_min_t1"] == "100"
-    assert data_by_residence["Residence A"]["price_max_t1"] == "200"
-    assert data_by_residence["Residence A"]["price_min_t2"] == "300"
-    assert data_by_residence["Residence A"]["price_max_t2"] == "400"
+    assert data_by_residence["Residence A"]["price_min_t1"] == 100
+    assert data_by_residence["Residence A"]["price_max_t1"] == 200
+    assert data_by_residence["Residence A"]["price_min_t2"] == 300
+    assert data_by_residence["Residence A"]["price_max_t2"] == 400
     assert data_by_residence["Residence A"]["price_min_t3"] == 0
 
-    assert data_by_residence["Residence B"]["price_min_t7_more"] == "500"
-    assert data_by_residence["Residence B"]["price_max_t7_more"] == "700"
+    assert data_by_residence["Residence B"]["price_min_t7_more"] == 500
+    assert data_by_residence["Residence B"]["price_max_t7_more"] == 700
 
     assert unmapped_types == ["LOFT"]
 
@@ -90,6 +90,6 @@ def test_import_crous_prices_calls_find_and_apply(tmp_path):
 
     assert len(applied_calls) == 1
     assert applied_calls[0][0] is found["Residence A"]
-    assert applied_calls[0][1]["price_min_t1"] == "100"
-    assert applied_calls[0][1]["price_max_t1"] == "200"
+    assert applied_calls[0][1]["price_min_t1"] == 100
+    assert applied_calls[0][1]["price_max_t1"] == 200
     assert applied_calls[0][2] is True

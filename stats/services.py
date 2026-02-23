@@ -18,19 +18,23 @@ class MatomoAPIService:
     def _make_request(self, method: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Make a request to Matomo API"""
         url = f"{self.base_url}/index.php"
-        
+
         default_params = {
             'module': 'API',
             'method': method,
             'idSite': self.site_id,
-            'token_auth': self.token,
             'format': 'json'
         }
-        
+
         params.update(default_params)
-        
+
         try:
-            response = requests.get(url, params=params, timeout=30)
+            response = requests.post(
+                url,
+                params=params,
+                data={'token_auth': self.token},
+                timeout=30,
+            )
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
@@ -172,43 +176,33 @@ class MatomoAPIService:
                 'page_views_evolution': 0.0
             }
 
-    def get_event_categories(self, date_from: str, date_to: str) -> list:
-        """Get all event categories with stats"""
+    def get_all_events(self, date_from: str, date_to: str) -> list:
+        """Get all events broken down by category > action in a single API call"""
         data = self._make_request(
             'Events.getCategory',
             {
                 'date': f"{date_from},{date_to}",
                 'period': 'range',
+                'secondaryDimension': 'eventAction',
+                'flat': 1,
             }
         )
-        return data if isinstance(data, list) else []
+        if not isinstance(data, list):
+            return []
 
-    def get_event_actions_for_category(self, date_from: str, date_to: str, category: str) -> list:
-        """Get event actions for a specific category"""
-        data = self._make_request(
-            'Events.getActionFromCategoryId',
-            {
-                'date': f"{date_from},{date_to}",
-                'period': 'range',
-                'idSubtable': category,
-            }
-        )
-        return data if isinstance(data, list) else []
-
-    def get_all_events(self, date_from: str, date_to: str) -> list:
-        """Get all events broken down by category > action"""
-        categories = self.get_event_categories(date_from, date_to)
         events = []
-        for cat in categories:
-            actions = self.get_event_actions_for_category(
-                date_from, date_to, str(cat.get('idsubdatatable', ''))
-            )
-            for action in actions:
-                events.append({
-                    'category': cat.get('label', ''),
-                    'action': action.get('label', ''),
-                    'nb_events': action.get('nb_events', 0),
-                    'nb_unique_events': action.get('nb_visits', 0),
-                    'event_value': action.get('sum_event_value', None),
-                })
+        for row in data:
+            # flat mode returns "Category - Action" in label, split it
+            label = row.get('label', '')
+            parts = label.split(' - ', 1)
+            category = parts[0] if parts else label
+            action = parts[1] if len(parts) > 1 else ''
+
+            events.append({
+                'category': category,
+                'action': action,
+                'nb_events': row.get('nb_events', 0),
+                'nb_unique_events': row.get('nb_visits', 0),
+                'event_value': row.get('sum_event_value', None),
+            })
         return events

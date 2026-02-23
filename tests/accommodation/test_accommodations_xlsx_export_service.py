@@ -65,8 +65,8 @@ def test_resolve_department_and_region_with_fallback():
 
 def test_build_accommodation_export_rows():
     accommodation_rows = [
-        ("Residence A", "Owner A", 120, "75011", 1, 2, 3, 4, 5, 6, 7, 8),
-        ("Residence B", None, None, "69002", None, None, None, None, None, None, None, None),
+        ("Residence A", "Owner A", 120, "75011", 1, 2, 3, 4, 5, 6, 7, 8, "crous"),
+        ("Residence B", None, None, "69002", None, None, None, None, None, None, None, None, ""),
     ]
     postal_code_to_geo = {"75011": ("Paris", "Ile-de-France")}
     departments_by_code = {"69": ("Rhone", "Auvergne-Rhone-Alpes")}
@@ -74,8 +74,8 @@ def test_build_accommodation_export_rows():
     rows = build_accommodation_export_rows(accommodation_rows, postal_code_to_geo, departments_by_code)
 
     assert rows == [
-        ["Residence A", "Owner A", 120, "75011", "Paris", "Ile-de-France", True],
-        ["Residence B", "", None, "69002", "Rhone", "Auvergne-Rhone-Alpes", False],
+        ["Residence A", "Owner A", 120, "75011", "Paris", "Ile-de-France", True, "Oui"],
+        ["Residence B", "", None, "69002", "Rhone", "Auvergne-Rhone-Alpes", False, "Non"],
     ]
 
 
@@ -87,8 +87,8 @@ def test_compute_total_availability():
 def test_export_accommodations_to_xlsx(tmp_path):
     output_file = tmp_path / "accommodations_export.xlsx"
     rows = [
-        ["Residence A", "Owner A", 100, "75011", "Paris", "Ile-de-France", True],
-        ["Residence B", "Owner B", 80, "69002", "Rhone", "Auvergne-Rhone-Alpes", False],
+        ["Residence A", "Owner A", 100, "75011", "Paris", "Ile-de-France", True, "Oui"],
+        ["Residence B", "Owner B", 80, "69002", "Rhone", "Auvergne-Rhone-Alpes", False, "Non"],
     ]
 
     exported_count = export_accommodations_to_xlsx(output_file, rows)

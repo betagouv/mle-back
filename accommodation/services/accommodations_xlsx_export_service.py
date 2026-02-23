@@ -17,6 +17,7 @@ HEADERS = [
     "Département",
     "Académie",
     "Disponibilité affichée",
+    "Crous",
 ]
 
 
@@ -69,6 +70,7 @@ def build_accommodation_export_rows(
             int | None,
             int | None,
             int | None,
+            str | None,
         ]
     ],
     postal_code_to_geo: dict[str, tuple[str, str]],
@@ -88,6 +90,7 @@ def build_accommodation_export_rows(
         nb_t5_available,
         nb_t6_available,
         nb_t7_more_available,
+        source,
     ) in accommodation_rows:
         department_name, region_name = resolve_department_and_region(
             postal_code=str(postal_code or ""),
@@ -115,6 +118,7 @@ def build_accommodation_export_rows(
                 department_name,
                 region_name,
                 total_availability is not None,
+                "Oui" if source == "crous" else "Non",
             ]
         )
     return rows

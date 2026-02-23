@@ -3,12 +3,25 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from tests.qa.factories import QuestionAnswerFactory, QuestionAnswerGlobalFactory
-from tests.territories.factories import CityFactory
+from tests.territories.factories import AcademyFactory, CityFactory, DepartmentFactory
+
+from territories.models import Academy, Department, City
 
 
 class QuestionAnswerAPITests(APITestCase):
     def setUp(self):
-        self.city = CityFactory(name="Lyon")
+        if not Academy.objects.filter(name="Académie de Lyon").exists():
+            self.academy = AcademyFactory(name="Académie de Lyon")
+        else:
+            self.academy = Academy.objects.get(name="Académie de Lyon")
+        if not Department.objects.filter(name="Rhône", code=69).exists():
+            self.department = DepartmentFactory(name="Rhône", code=69, academy=self.academy)
+        else:
+            self.department = Department.objects.get(name="Rhône", code=69)
+        if not City.objects.filter(name="Lyon", department=self.department).exists():
+            self.city = CityFactory(name="Lyon", department=self.department)
+        else:
+            self.city = City.objects.get(name="Lyon", department=self.department)
         self.qa1 = QuestionAnswerFactory(content_type=self.city.get_content_type(), object_id=self.city.id)
         self.qa2 = QuestionAnswerFactory(content_type=self.city.get_content_type(), object_id=self.city.id)
         self.qa_global = QuestionAnswerGlobalFactory()

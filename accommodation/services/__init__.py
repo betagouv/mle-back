@@ -17,7 +17,7 @@ from accommodation.services.accommodations_xlsx_export_service import (
     export_accommodations_to_xlsx as export_accommodations_to_xlsx,
 )
 from accommodation.services.accommodations_xlsx_export_service import (
-    resolve_department_and_region as resolve_department_and_region,
+    resolve_department_and_academy as resolve_department_and_academy,
 )
 
 __all__ = [
@@ -28,7 +28,7 @@ __all__ = [
     "department_code_from_postal_code",
     "export_accommodations_to_xlsx",
     "fix_plus_in_url",
-    "resolve_department_and_region",
+    "resolve_department_and_academy",
 ]
 
 

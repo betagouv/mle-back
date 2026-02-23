@@ -147,6 +147,7 @@ class Accommodation(models.Model):
     )
     external_url = models.URLField(max_length=255, null=True, blank=True)
     images_urls = ArrayField(models.URLField(), null=True, blank=True)
+    external_reference = models.CharField(max_length=255, null=True, blank=True)
     images_count = models.PositiveIntegerField(default=0)
 
     published = models.BooleanField(default=True, verbose_name=gettext_lazy("Published"))
@@ -160,6 +161,12 @@ class Accommodation(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["published", "-images_count"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["owner", "external_reference"],
+                name="unique_owner_external_reference",
+            )
         ]
         verbose_name = gettext_lazy("Accommodation")
         verbose_name_plural = gettext_lazy("Accommodations")

@@ -12,7 +12,7 @@ import accommodation.events.bootstrap as bootstrap_module
 from accommodation.events.bus import accommodation_event_bus
 from accommodation.events.events import AccommodationCreatedEvent, AccommodationUpdatedEvent
 from accommodation.models import Accommodation
-from tests.account.factories import OwnerFactory, UserFactory
+from tests.account.factories import OwnerFactory, StudentFactory, UserFactory
 from tests.territories.factories import AcademyFactory
 
 from .factories import AccommodationFactory, ExternalSourceFactory
@@ -838,3 +838,58 @@ class FavoriteAccommodationViewSetTests(APITestCase):
 
         response = self.client.delete(url, format="json")
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+class AccommodationApplicationAPITests(APITestCase):
+    def setUp(self):
+        self.owner = OwnerFactory()
+        self.owner_user = self.owner.users.first()
+        self.accommodation = AccommodationFactory(owner=self.owner, published=True, available=True)
+
+    def test_student_can_apply_with_validated_dossierfacile(self):
+        student = StudentFactory.create(
+            user__is_active=True,
+            user__is_staff=False,
+            dossierfacile_status="VALIDATED",
+            dossierfacile_url="https://dfc.example/dossier/tenant-1",
+            dossierfacile_pdf_url="https://dfc.example/dossier/tenant-1.pdf",
+        )
+        self.client.force_authenticate(user=student.user)
+
+        response = self.client.post(reverse("accommodation-apply", args=[self.accommodation.slug]), {}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["dossierfacile_status"] == "VALIDATED"
+        assert response.json()["dossierfacile_url"] == "https://dfc.example/dossier/tenant-1"
+
+    def test_student_cannot_apply_without_validated_dossierfacile(self):
+        student = StudentFactory.create(
+            user__is_active=True,
+            user__is_staff=False,
+            dossierfacile_status="INCOMPLETE",
+            dossierfacile_url="https://dfc.example/dossier/tenant-2",
+        )
+        self.client.force_authenticate(user=student.user)
+
+        response = self.client.post(reverse("accommodation-apply", args=[self.accommodation.slug]), {}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["type"] == "dossierfacile_not_validated"
+
+    def test_owner_can_list_applications_for_their_accommodations(self):
+        student = StudentFactory.create(
+            user__is_active=True,
+            user__is_staff=False,
+            dossierfacile_status="VALIDATED",
+            dossierfacile_url="https://dfc.example/dossier/tenant-3",
+            dossierfacile_pdf_url="https://dfc.example/dossier/tenant-3.pdf",
+        )
+        self.client.force_authenticate(user=student.user)
+        self.client.post(reverse("accommodation-apply", args=[self.accommodation.slug]), {}, format="json")
+
+        self.client.force_authenticate(user=self.owner_user)
+        response = self.client.get(reverse("my-accommodation-applications"))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 1
+        application = response.json()["results"][0]
+        assert application["accommodation_slug"] == self.accommodation.slug
+        assert application["student_email"] == student.user.email
+        assert application["dossierfacile_url"] == "https://dfc.example/dossier/tenant-3"

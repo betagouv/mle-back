@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils.translation import gettext, gettext_lazy
 
 from account.models import Owner
+from account.models import Student
 
 from .managers import AccommodationManager
 
@@ -341,3 +342,34 @@ class FavoriteAccommodation(models.Model):
 
     def __str__(self):
         return f"{self.user} puts {self.accommodation} on favorites"
+
+
+class AccommodationApplication(models.Model):
+    STATUS_SUBMITTED = "submitted"
+    STATUS_REVIEWED = "reviewed"
+    STATUS_ACCEPTED = "accepted"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = (
+        (STATUS_SUBMITTED, "Submitted"),
+        (STATUS_REVIEWED, "Reviewed"),
+        (STATUS_ACCEPTED, "Accepted"),
+        (STATUS_REJECTED, "Rejected"),
+    )
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="accommodation_applications")
+    accommodation = models.ForeignKey(
+        "accommodation.Accommodation", on_delete=models.CASCADE, related_name="applications"
+    )
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_SUBMITTED)
+    dossierfacile_status = models.CharField(max_length=64)
+    dossierfacile_url = models.URLField(max_length=500)
+    dossierfacile_pdf_url = models.URLField(max_length=500, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("student", "accommodation")
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.student} application for {self.accommodation}"

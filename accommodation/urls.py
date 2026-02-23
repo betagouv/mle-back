@@ -1,9 +1,11 @@
 from django.urls import path
 
 from .views import (
+    AccommodationApplicationCreateView,
     AccommodationDetailView,
     AccommodationListView,
     FavoriteAccommodationViewSet,
+    MyAccommodationApplicationListView,
     MyAccommodationDetailView,
     MyAccommodationImageUploadView,
     MyAccommodationListView,
@@ -13,6 +15,7 @@ urlpatterns = [
     path("my/", MyAccommodationListView.as_view(), name="my-accommodation-list"),
     path("my/<slug:slug>/", MyAccommodationDetailView.as_view(), name="my-accommodation-detail"),
     path("my/<slug:slug>/upload/", MyAccommodationImageUploadView.as_view(), name="my-accommodation-upload"),
+    path("my/applications/", MyAccommodationApplicationListView.as_view(), name="my-accommodation-applications"),
     path(
         "favorites/",
         FavoriteAccommodationViewSet.as_view({"get": "list", "post": "create"}),
@@ -24,5 +27,6 @@ urlpatterns = [
         name="favorite-accommodation-detail",
     ),
     path("<slug:slug>/", AccommodationDetailView.as_view(), name="accommodation-detail"),
+    path("<slug:slug>/apply/", AccommodationApplicationCreateView.as_view(), name="accommodation-apply"),
     path("", AccommodationListView.as_view(), name="accommodation-list"),
 ]

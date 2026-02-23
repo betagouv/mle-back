@@ -10,7 +10,7 @@ from account.models import Owner
 from account.serializers import OwnerSerializer
 from common.serializers import BinaryToBase64Field
 
-from .models import Accommodation, ExternalSource, FavoriteAccommodation
+from .models import Accommodation, AccommodationApplication, ExternalSource, FavoriteAccommodation
 from .utils import get_geolocator, upload_image_to_s3
 from territories.services import get_city_manager_service
 
@@ -543,3 +543,44 @@ class FavoriteAccommodationGeoSerializer(serializers.ModelSerializer):
             user=self.context["request"].user, accommodation=accommodation
         )
         return favorite
+
+
+class AccommodationApplicationSerializer(serializers.ModelSerializer):
+    accommodation_slug = serializers.CharField(source="accommodation.slug", read_only=True)
+
+    class Meta:
+        model = AccommodationApplication
+        fields = (
+            "id",
+            "accommodation_slug",
+            "status",
+            "dossierfacile_status",
+            "dossierfacile_url",
+            "dossierfacile_pdf_url",
+            "created_at",
+        )
+        read_only_fields = fields
+
+
+class OwnerAccommodationApplicationSerializer(serializers.ModelSerializer):
+    accommodation_slug = serializers.CharField(source="accommodation.slug", read_only=True)
+    accommodation_name = serializers.CharField(source="accommodation.name", read_only=True)
+    student_email = serializers.EmailField(source="student.user.email", read_only=True)
+    student_first_name = serializers.CharField(source="student.user.first_name", read_only=True)
+    student_last_name = serializers.CharField(source="student.user.last_name", read_only=True)
+
+    class Meta:
+        model = AccommodationApplication
+        fields = (
+            "id",
+            "status",
+            "accommodation_slug",
+            "accommodation_name",
+            "student_email",
+            "student_first_name",
+            "student_last_name",
+            "dossierfacile_status",
+            "dossierfacile_url",
+            "dossierfacile_pdf_url",
+            "created_at",
+        )

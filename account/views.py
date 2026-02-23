@@ -1,47 +1,55 @@
 import logging
-from drf_spectacular.utils import extend_schema
-from rest_framework import viewsets
-from django.db import transaction
+import secrets
+
 from django.conf import settings
-from django.contrib.auth import authenticate
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core import signing
+from django.core.exceptions import ImproperlyConfigured
+from django.db import transaction
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from django.utils.timezone import now
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from rest_framework import generics, permissions, status, viewsets
+from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
-
-from account.throttles import PasswordResetThrottle
-from notifications.exceptions import EmailDeliveryError
-
-from .models import Owner, StudentRegistrationToken
-from .serializers import (
-    OwnerSerializer,
-    PasswordResetConfirmSerializer,
-    StudentLogoutSerializer,
-    StudentRegistrationValidationSerializer,
-    StudentRequestPasswordResetSerializer,
-    StudentTokenResponseSerializer,
-    StudentGetTokenSerializer,
-)
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from rest_framework import generics
-from rest_framework import permissions
-from rest_framework.response import Response
-from rest_framework import status
-
-from .serializers import StudentRegistrationSerializer
-from .services import request_password_reset
 from account.serializers import UserSerializer
-
-from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.encoding import force_str
-
-from drf_spectacular.utils import OpenApiResponse
-
+from account.throttles import PasswordResetThrottle
+from notifications.exceptions import EmailDeliveryError
 from notifications.factories import get_email_gateway
 from notifications.services import send_account_validation
 
+from .models import Owner, Student, StudentRegistrationToken
+from .serializers import (
+    DossierFacileWebhookSerializer,
+    OwnerSerializer,
+    PasswordResetConfirmSerializer,
+    StudentDossierFacileCompleteConnectSerializer,
+    StudentDossierFacileStartConnectSerializer,
+    StudentDossierFacileStatusSerializer,
+    StudentGetTokenSerializer,
+    StudentLogoutSerializer,
+    StudentRegistrationSerializer,
+    StudentRegistrationValidationSerializer,
+    StudentRequestPasswordResetSerializer,
+    StudentTokenResponseSerializer,
+)
+from .services import (
+    DossierFacileServiceError,
+    build_dossierfacile_authorization_url,
+    exchange_dossierfacile_code_for_token,
+    extract_dossierfacile_sharing_data,
+    extract_dossierfacile_tenant_id,
+    fetch_dossierfacile_tenant_profile,
+    request_password_reset,
+)
+
 User = get_user_model()
 logger = logging.getLogger(__name__)
+DOSSIERFACILE_STATE_SALT = "dossierfacile-oauth-state"
 
 
 class OwnerViewSet(viewsets.ReadOnlyModelViewSet):
@@ -239,3 +247,221 @@ class StudentLogoutView(generics.GenericAPIView):
         except TokenError:
             return Response({"detail": "Invalid token.", "type": "invalid_token"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "Logout successfully"}, status=status.HTTP_200_OK)
+
+
+def _get_student_or_none(user):
+    return Student.objects.filter(user=user).first()
+
+
+@extend_schema(
+    summary="Start DossierFacile link flow",
+    description="Builds the DossierFacile authorization URL and signed state for the authenticated student.",
+    responses={200: StudentDossierFacileStartConnectSerializer},
+)
+class StudentDossierFacileStartConnectView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ["get"]
+
+    def get(self, request, *args, **kwargs):
+        if not _get_student_or_none(request.user):
+            return Response(
+                {"detail": "Only student accounts can link DossierFacile.", "type": "not_student"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        state = signing.dumps(
+            {"user_id": request.user.id, "nonce": secrets.token_urlsafe(16)},
+            salt=DOSSIERFACILE_STATE_SALT,
+            compress=True,
+        )
+
+        try:
+            authorization_url = build_dossierfacile_authorization_url(request.user.email, state)
+        except ImproperlyConfigured:
+            return Response(
+                {"detail": "DossierFacile integration is not configured.", "type": "dossierfacile_not_configured"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return Response({"authorization_url": authorization_url, "state": state}, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    summary="Complete DossierFacile link flow",
+    description="Exchanges the authorization code and links the DossierFacile account to the authenticated student.",
+    request=StudentDossierFacileCompleteConnectSerializer,
+    responses={200: StudentDossierFacileStatusSerializer},
+)
+class StudentDossierFacileCompleteConnectView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = StudentDossierFacileCompleteConnectSerializer
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        student = _get_student_or_none(request.user)
+        if not student:
+            return Response(
+                {"detail": "Only student accounts can link DossierFacile.", "type": "not_student"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            state_payload = signing.loads(
+                serializer.validated_data["state"],
+                salt=DOSSIERFACILE_STATE_SALT,
+                max_age=settings.DOSSIERFACILE_STATE_TTL_SECONDS,
+            )
+        except signing.SignatureExpired:
+            return Response(
+                {"detail": "Expired DossierFacile state parameter.", "type": "expired_state"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except signing.BadSignature:
+            return Response(
+                {"detail": "Invalid DossierFacile state parameter.", "type": "invalid_state"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if state_payload.get("user_id") != request.user.id:
+            return Response(
+                {"detail": "Invalid DossierFacile state parameter.", "type": "invalid_state"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            access_token = exchange_dossierfacile_code_for_token(serializer.validated_data["code"])
+            profile = fetch_dossierfacile_tenant_profile(access_token)
+        except ImproperlyConfigured:
+            return Response(
+                {"detail": "DossierFacile integration is not configured.", "type": "dossierfacile_not_configured"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        except DossierFacileServiceError as exc:
+            return Response({"detail": exc.message, "type": exc.error_type}, status=exc.status_code)
+
+        student.dossierfacile_linked_at = now()
+        student.dossierfacile_tenant_id = extract_dossierfacile_tenant_id(profile)
+        sharing_data = extract_dossierfacile_sharing_data(profile)
+        student.dossierfacile_status = sharing_data["status"]
+        student.dossierfacile_url = sharing_data["dossier_url"]
+        student.dossierfacile_pdf_url = sharing_data["dossier_pdf_url"]
+        student.dossierfacile_last_synced_at = now()
+        student.save(
+            update_fields=[
+                "dossierfacile_linked_at",
+                "dossierfacile_tenant_id",
+                "dossierfacile_status",
+                "dossierfacile_url",
+                "dossierfacile_pdf_url",
+                "dossierfacile_last_synced_at",
+            ]
+        )
+
+        return Response(
+            {
+                "is_linked": True,
+                "linked_at": student.dossierfacile_linked_at,
+                "tenant_id": student.dossierfacile_tenant_id,
+                "dossier_status": student.dossierfacile_status,
+                "dossier_url": student.dossierfacile_url,
+                "dossier_pdf_url": student.dossierfacile_pdf_url,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(
+    summary="Get DossierFacile link status",
+    description="Returns the DossierFacile link status for the authenticated student account.",
+    responses={200: StudentDossierFacileStatusSerializer},
+)
+class StudentDossierFacileStatusView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ["get"]
+
+    def get(self, request, *args, **kwargs):
+        student = _get_student_or_none(request.user)
+        if not student:
+            return Response(
+                {"detail": "Only student accounts can access this endpoint.", "type": "not_student"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return Response(
+            {
+                "is_linked": bool(student.dossierfacile_linked_at),
+                "linked_at": student.dossierfacile_linked_at,
+                "tenant_id": student.dossierfacile_tenant_id,
+                "dossier_status": student.dossierfacile_status,
+                "dossier_url": student.dossierfacile_url,
+                "dossier_pdf_url": student.dossierfacile_pdf_url,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(
+    summary="DossierFacile webhook",
+    description="Receives DossierFacile updates and syncs dossier status/URLs for the related student.",
+    request=DossierFacileWebhookSerializer,
+    responses={200: {"message": "Webhook processed"}},
+)
+class StudentDossierFacileWebhookView(generics.GenericAPIView):
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    serializer_class = DossierFacileWebhookSerializer
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        configured_key = settings.DOSSIERFACILE_WEBHOOK_API_KEY
+        if not configured_key:
+            return Response(
+                {"detail": "DossierFacile webhook is not configured.", "type": "dossierfacile_not_configured"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        provided_key = request.headers.get("X-Api-Key") or request.headers.get("X-API-KEY")
+        if provided_key != configured_key:
+            return Response(
+                {"detail": "Unauthorized webhook request.", "type": "unauthorized_webhook"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tenant_id = serializer.validated_data["tenant_id"]
+
+        student = Student.objects.filter(dossierfacile_tenant_id=tenant_id).first()
+        if not student:
+            return Response({"message": "Webhook processed"}, status=status.HTTP_200_OK)
+
+        status_value = serializer.validated_data.get("status")
+        status_upper = status_value.upper() if status_value else None
+
+        if status_upper in {"ACCESS_REVOKED", "DELETED_ACCOUNT"}:
+            student.dossierfacile_linked_at = None
+            student.dossierfacile_status = status_upper
+            student.dossierfacile_url = None
+            student.dossierfacile_pdf_url = None
+        else:
+            student.dossierfacile_status = status_value
+            student.dossierfacile_url = serializer.validated_data.get("dossierUrl")
+            student.dossierfacile_pdf_url = serializer.validated_data.get("dossierPdfUrl")
+            if not student.dossierfacile_linked_at:
+                student.dossierfacile_linked_at = now()
+
+        student.dossierfacile_last_synced_at = now()
+        student.save(
+            update_fields=[
+                "dossierfacile_linked_at",
+                "dossierfacile_status",
+                "dossierfacile_url",
+                "dossierfacile_pdf_url",
+                "dossierfacile_last_synced_at",
+            ]
+        )
+
+        return Response({"message": "Webhook processed"}, status=status.HTTP_200_OK)

@@ -54,6 +54,7 @@ class Command(BaseCommand):
                 "nb_t5_available",
                 "nb_t6_available",
                 "nb_t7_more_available",
+                "sources__source",
             ),
             postal_code_to_geo=postal_code_to_geo,
             departments_by_code=departments_by_code,

@@ -4,6 +4,9 @@ from dataclasses import dataclass
 from io import BytesIO
 from typing import Iterable, Optional
 
+from django.db.models import F, IntegerField
+from django.db.models.functions import Coalesce, Greatest
+
 from accommodation.models import Accommodation
 from territories.models import City, Department
 
@@ -22,6 +25,8 @@ HEADERS: tuple[str, ...] = (
     "Académie",
     "Disponibilité affichée",
     "Type de résidence",
+    "Prix minimum",
+    "Prix maximum",
 )
 
 
@@ -35,6 +40,8 @@ class AccommodationExportRow:
     academy_name: str
     has_availability: bool
     residence_type: str
+    price_min: Optional[int]
+    price_max: Optional[int]
 
     def as_xlsx_row(self) -> list[str | int | bool | None]:
         # Important: exactement 8 colonnes, dans le même ordre que HEADERS
@@ -47,6 +54,8 @@ class AccommodationExportRow:
             self.academy_name,
             self.has_availability,
             self.residence_type,
+            self.price_min,
+            self.price_max,
         ]
 
 
@@ -124,6 +133,8 @@ AccommodationRawRow = tuple[
     Optional[int],  # nb_t6_available
     Optional[int],  # nb_t7_more_available
     Optional[str],  # residence_type
+    Optional[int],  # price_min
+    Optional[int],  # price_max
 ]
 
 
@@ -148,6 +159,8 @@ def build_accommodation_export_rows(
         nb_t6_av,
         nb_t7_more_av,
         residence_type,
+        price_min,
+        price_max,
     ) in accommodation_rows:
         postal_code_str = (postal_code or "").strip()
         department_name, academy_name = resolve_department_and_academy(
@@ -179,6 +192,8 @@ def build_accommodation_export_rows(
                 academy_name=academy_name,
                 has_availability=(total_availability is not None and total_availability > 0),
                 residence_type=(residence_type or "").strip(),
+                price_min=price_min,
+                price_max=price_max,
             )
         )
 
@@ -223,20 +238,38 @@ def build_rows_for_export() -> list[AccommodationExportRow]:
     # IMPORTANT:
     # - évite sources__source ici: ça duplique les lignes si plusieurs sources
     # - si tu veux le type de résidence: utilise residence_type (déjà présent)
-    raw_rows: Iterable[AccommodationRawRow] = Accommodation.objects.order_by("id").values_list(
-        "name",
-        "owner__name",
-        "nb_total_apartments",
-        "postal_code",
-        "nb_t1_available",
-        "nb_t1_bis_available",
-        "nb_t2_available",
-        "nb_t3_available",
-        "nb_t4_available",
-        "nb_t5_available",
-        "nb_t6_available",
-        "nb_t7_more_available",
-        "residence_type",
+    raw_rows: Iterable[AccommodationRawRow] = (
+        Accommodation.objects.annotate(
+            price_max=Greatest(
+                Coalesce(F("price_max_t1"), 0),
+                Coalesce(F("price_max_t1_bis"), 0),
+                Coalesce(F("price_max_t2"), 0),
+                Coalesce(F("price_max_t3"), 0),
+                Coalesce(F("price_max_t4"), 0),
+                Coalesce(F("price_max_t5"), 0),
+                Coalesce(F("price_max_t6"), 0),
+                Coalesce(F("price_max_t7_more"), 0),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by("id")
+        .values_list(
+            "name",
+            "owner__name",
+            "nb_total_apartments",
+            "postal_code",
+            "nb_t1_available",
+            "nb_t1_bis_available",
+            "nb_t2_available",
+            "nb_t3_available",
+            "nb_t4_available",
+            "nb_t5_available",
+            "nb_t6_available",
+            "nb_t7_more_available",
+            "residence_type",
+            "price_min",
+            "price_max",
+        )
     )
 
     return build_accommodation_export_rows(

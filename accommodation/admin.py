@@ -1,12 +1,17 @@
+from datetime import datetime
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
+from django.core.exceptions import PermissionDenied
 from django.db import models
+from django.http import HttpResponse
+from django.urls import path
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy
 from django_summernote.widgets import SummernoteWidget
 
 from accommodation.models import Accommodation, ExternalSource
+from accommodation.services.accommodations_xlsx_export_service import export_accommodations_to_xlsx_for_admin
 from account.helpers import is_superuser_or_bizdev
 
 
@@ -186,6 +191,33 @@ class AccommodationAdmin(OSMGeoAdmin):
     formfield_overrides = {
         models.TextField: {"widget": SummernoteWidget},
     }
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context["can_export"] = is_superuser_or_bizdev(request.user)
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "export-xlsx/",
+                self.admin_site.admin_view(self.export_xlsx),
+                name="accommodation_export_xlsx",
+            ),
+        ]
+        return custom_urls + urls
+
+    def export_xlsx(self, request):
+        if not is_superuser_or_bizdev(request.user):
+            raise PermissionDenied()
+        file_content, _ = export_accommodations_to_xlsx_for_admin()
+        response = HttpResponse(
+            file_content,
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="accommodations_{datetime.now().date()}.xlsx"'
+        return response
 
     def get_readonly_fields(self, request, obj=None):
         if is_superuser_or_bizdev(request.user):

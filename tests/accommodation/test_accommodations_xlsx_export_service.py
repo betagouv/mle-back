@@ -66,7 +66,23 @@ def test_resolve_department_and_academy_with_fallback():
 
 def test_build_accommodation_export_rows():
     accommodation_rows = [
-        ("Residence A", "Owner A", 120, "75011", 1, 2, 3, 4, 5, 6, 7, 8, "Résidence Universitaire conventionnée"),
+        (
+            "Residence A",
+            "Owner A",
+            120,
+            "75011",
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            "Résidence Universitaire conventionnée",
+            100000,
+            150000,
+        ),
         (
             "Residence B",
             None,
@@ -81,6 +97,8 @@ def test_build_accommodation_export_rows():
             None,
             None,
             "Résidence Hôtelière à vocation sociale",
+            100000,
+            150000,
         ),
     ]
     postal_code_to_geo = {"75011": ("Paris", "Ile-de-France")}
@@ -98,6 +116,8 @@ def test_build_accommodation_export_rows():
             academy_name="Ile-de-France",
             has_availability=True,
             residence_type="Résidence Universitaire conventionnée",
+            price_min=100000,
+            price_max=150000,
         ),
         AccommodationExportRow(
             name="Residence B",
@@ -108,6 +128,8 @@ def test_build_accommodation_export_rows():
             academy_name="Auvergne-Rhone-Alpes",
             has_availability=False,
             residence_type="Résidence Hôtelière à vocation sociale",
+            price_min=100000,
+            price_max=150000,
         ),
     ]
 
@@ -128,6 +150,8 @@ def test_export_accommodations_to_xlsx():
             academy_name="Ile-de-France",
             has_availability=True,
             residence_type="Résidence Universitaire conventionnée",
+            price_min=100000,
+            price_max=150000,
         ),
         AccommodationExportRow(
             name="Residence B",
@@ -138,6 +162,8 @@ def test_export_accommodations_to_xlsx():
             academy_name="Auvergne-Rhone-Alpes",
             has_availability=False,
             residence_type="Résidence Hôtelière à vocation sociale",
+            price_min=100000,
+            price_max=150000,
         ),
     ]
 

@@ -1,7 +1,7 @@
 from functools import reduce
 from operator import or_
-from django.db.models import Max, IntegerField, Min, Q, F
-from django.db.models.functions import Greatest, Coalesce, Least
+from django.db.models import Case, Max, IntegerField, Min, Q, F, When, Value
+from django.db.models.functions import Greatest, Least
 
 
 PRICE_MIN_FIELDS = [
@@ -32,7 +32,7 @@ ALL_PRICE_FIELDS = PRICE_MIN_FIELDS + PRICE_MAX_FIELDS
 def _has_any_price_q():
     return reduce(
         or_,
-        (Q(**{f"{field}__isnull": False}) for field in ALL_PRICE_FIELDS),
+        (Q(**{f"{field}__isnull": False}) & Q(**{f"{field}__gt": 0}) for field in ALL_PRICE_FIELDS),
     )
 
 
@@ -42,14 +42,28 @@ SENTINEL_MIN = 10**9
 
 def _greatest_price_expr(fields):
     return Greatest(
-        *[Coalesce(F(field), SENTINEL_MAX) for field in fields],
+        *[
+            Case(
+                When(**{f"{field}__gt": 0}, then=F(field)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+            for field in fields
+        ],
         output_field=IntegerField(),
     )
 
 
 def _least_price_expr(fields):
     return Least(
-        *[Coalesce(F(field), SENTINEL_MIN) for field in fields],
+        *[
+            Case(
+                When(**{f"{field}__gt": 0}, then=F(field)),
+                default=Value(SENTINEL_MIN),
+                output_field=IntegerField(),
+            )
+            for field in fields
+        ],
         output_field=IntegerField(),
     )
 

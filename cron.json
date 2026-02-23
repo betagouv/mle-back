@@ -20,6 +20,9 @@
         },
         {
             "command": "0 9 1 * * python manage.py collect_monthly_stats"
+        },
+        {
+            "command": "0 3 * * 1 python manage.py collect_event_stats"
         }
     ]
 }

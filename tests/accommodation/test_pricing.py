@@ -38,3 +38,20 @@ def test_price_bounds_returns_none_when_no_prices():
 
     assert bounds["min_price"] is None
     assert bounds["max_price"] is None
+
+
+@pytest.mark.django_db
+def test_price_bounds_returns_none_when_prices_are_zero():
+    AccommodationFactory(price_min_t1=0, price_max_t1=0)
+    AccommodationFactory(price_min_t2=0, price_max_t2=0)
+    AccommodationFactory(price_min_t3=0, price_max_t3=0)
+    AccommodationFactory(price_min_t4=0, price_max_t4=0)
+    AccommodationFactory(price_min_t5=0, price_max_t5=0)
+    AccommodationFactory(price_min_t6=0, price_max_t6=0)
+    AccommodationFactory(price_min_t7_more=0, price_max_t7_more=0)
+
+    aggregates = PricingAggregates(AccommodationFactory._meta.model.objects.all())
+    bounds = aggregates.price_bounds()
+
+    assert bounds["min_price"] is None
+    assert bounds["max_price"] is None

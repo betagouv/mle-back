@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Stats
+from .models import Stats, EventStats
 
 
 @admin.register(Stats)
@@ -34,3 +34,15 @@ class StatsAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(EventStats)
+class EventStatsAdmin(admin.ModelAdmin):
+    list_display = [
+        'category', 'action', 'nb_events', 'nb_unique_events',
+        'period', 'date_from', 'date_to', 'created_at'
+    ]
+    list_filter = ['period', 'category', 'date_from']
+    search_fields = ['category', 'action']
+    readonly_fields = ['created_at']
+    date_hierarchy = 'date_from'

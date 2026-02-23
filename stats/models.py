@@ -63,3 +63,35 @@ class Stats(models.Model):
     
     def __str__(self):
         return f"{self.get_period_display()} stats - {self.date_from} to {self.date_to}"
+
+
+class EventStats(models.Model):
+    """Stores Matomo custom event statistics"""
+
+    PERIOD_CHOICES = [
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+    ]
+
+    period = models.CharField(max_length=10, choices=PERIOD_CHOICES)
+    date_from = models.DateField()
+    date_to = models.DateField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    category = models.CharField(max_length=100)
+    action = models.CharField(max_length=200)
+    nb_events = models.IntegerField(default=0)
+    nb_unique_events = models.IntegerField(default=0)
+    event_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Event Statistics"
+        verbose_name_plural = "Event Statistics"
+        ordering = ['-date_from', '-nb_events']
+        indexes = [
+            models.Index(fields=['period', 'date_from']),
+            models.Index(fields=['category', 'action']),
+        ]
+
+    def __str__(self):
+        return f"{self.category} > {self.action} ({self.nb_events}) - {self.date_from}"

@@ -171,3 +171,44 @@ class MatomoAPIService:
                 'bounce_rate_evolution': 0.0,
                 'page_views_evolution': 0.0
             }
+
+    def get_event_categories(self, date_from: str, date_to: str) -> list:
+        """Get all event categories with stats"""
+        data = self._make_request(
+            'Events.getCategory',
+            {
+                'date': f"{date_from},{date_to}",
+                'period': 'range',
+            }
+        )
+        return data if isinstance(data, list) else []
+
+    def get_event_actions_for_category(self, date_from: str, date_to: str, category: str) -> list:
+        """Get event actions for a specific category"""
+        data = self._make_request(
+            'Events.getActionFromCategoryId',
+            {
+                'date': f"{date_from},{date_to}",
+                'period': 'range',
+                'idSubtable': category,
+            }
+        )
+        return data if isinstance(data, list) else []
+
+    def get_all_events(self, date_from: str, date_to: str) -> list:
+        """Get all events broken down by category > action"""
+        categories = self.get_event_categories(date_from, date_to)
+        events = []
+        for cat in categories:
+            actions = self.get_event_actions_for_category(
+                date_from, date_to, str(cat.get('idsubdatatable', ''))
+            )
+            for action in actions:
+                events.append({
+                    'category': cat.get('label', ''),
+                    'action': action.get('label', ''),
+                    'nb_events': action.get('nb_events', 0),
+                    'nb_unique_events': action.get('nb_visits', 0),
+                    'event_value': action.get('sum_event_value', None),
+                })
+        return events

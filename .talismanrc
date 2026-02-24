@@ -52,8 +52,6 @@ fileignoreconfig:
   checksum: 7a6e03db089f2955590c85e74fe536272d9477df59388311f723eba073f40dac
 - filename: .env.sample
   checksum: c86f2b4a0a9badff1b8e5ec304314793ae16a5eb12b0cd685807e75adf127489
-- filename: accommodation/migrations/0050_accommodationapplication.py
-  checksum: 35493d3cf180ae875484134d14ef7c6540507a940cd203155d4ed840d6eb682a
 - filename: config/settings/base.py
   checksum: 652bf216724e3a3bdf29a39b3323b3c3375f160169ff26de048680fade6e5f67
 - filename: accommodation/models.py
@@ -64,4 +62,12 @@ fileignoreconfig:
   checksum: ad467f79dee606fb86dea7af7947a5abef55feac3b42116a3a41bf5485152beb
 - filename: account/views.py
   checksum: f26e22f0e4e21cc751f9df7c08def692a71b2a160810841c8ceff6e5480ef32c
+- filename: dossier_facile/models.py
+  checksum: 5744652134a1274bfb4ad19f390467e820f7607ad04d90777a3ca8cad9c2f06f
+- filename: dossier_facile/serializers.py
+  checksum: 6ff14082a961477d27ddd38afc6dd63e97ef05e8bcf26f6382342e4b5e4a86ec
+- filename: dossier_facile/views.py
+  checksum: 829c050e63dae4bafa2ad2395bca0415014d6623ffb5168ad33404c836641c49
+- filename: dossier_facile/migrations/0001_initial.py
+  checksum: a94e9ca0c6588027119cd94a1d02e95b62acb2205e66db64a6f1b293d2671794
 version: "1.0"

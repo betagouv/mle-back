@@ -14,6 +14,16 @@ from .managers import AccommodationManager
 
 
 class Accommodation(models.Model):
+    class APARTMENT_TYPE_CHOICES(models.TextChoices):
+        T1 = "t1"
+        T1_BIS = "t1_bis"
+        T2 = "t2"
+        T3 = "t3"
+        T4 = "t4"
+        T5 = "t5"
+        T6 = "t6"
+        T7_MORE = "t7_more"
+
     RESIDENCE_TYPE_CHOICES = (
         ("universitaire-conventionnee", "Résidence Universitaire conventionnée"),
         ("sociale-jeunes-actifs", "Résidence sociale Jeunes Actifs"),
@@ -230,6 +240,24 @@ class Accommodation(models.Model):
             ]
         )
         super().save(*args, **kwargs)
+
+    def get_number_of_appartment_by_type(self, appartment_type: APARTMENT_TYPE_CHOICES) -> int:
+        field_by_type = {
+            self.APARTMENT_TYPE_CHOICES.T1: "nb_t1",
+            self.APARTMENT_TYPE_CHOICES.T1_BIS: "nb_t1_bis",
+            self.APARTMENT_TYPE_CHOICES.T2: "nb_t2",
+            self.APARTMENT_TYPE_CHOICES.T3: "nb_t3",
+            self.APARTMENT_TYPE_CHOICES.T4: "nb_t4",
+            self.APARTMENT_TYPE_CHOICES.T5: "nb_t5",
+            self.APARTMENT_TYPE_CHOICES.T6: "nb_t6",
+            self.APARTMENT_TYPE_CHOICES.T7_MORE: "nb_t7_more",
+        }
+
+        field_name = field_by_type.get(appartment_type)
+        if not field_name:
+            raise ValueError(f"Invalid appartment type: {appartment_type}")
+
+        return getattr(self, field_name) or 0
 
 
 class ExternalSource(models.Model):

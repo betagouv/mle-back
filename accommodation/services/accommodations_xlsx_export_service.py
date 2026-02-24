@@ -190,7 +190,7 @@ def build_accommodation_export_rows(
                 postal_code=postal_code_str,
                 department_name=department_name,
                 academy_name=academy_name,
-                has_availability=(total_availability is not None and total_availability > 0),
+                has_availability=(total_availability is not None),
                 residence_type=(residence_type or "").strip(),
                 price_min=price_min,
                 price_max=price_max,

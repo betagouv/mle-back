@@ -35,6 +35,14 @@ class UserSerializer(serializers.ModelSerializer):
         return "admin" if is_superuser_or_bizdev(obj) else "owner" if is_owner(obj) else "user"
 
 
+class StudentSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = Student
+        fields = ("id", "user")
+
+
 class StudentTokenResponseSerializer(serializers.Serializer):
     access = serializers.CharField()
     refresh = serializers.CharField()
@@ -94,3 +102,38 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 class StudentLogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
+
+
+class StudentDossierFacileStartConnectSerializer(serializers.Serializer):
+    authorization_url = serializers.URLField()
+    state = serializers.CharField()
+
+
+class StudentDossierFacileCompleteConnectSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    state = serializers.CharField()
+
+
+class StudentDossierFacileStatusSerializer(serializers.Serializer):
+    is_linked = serializers.BooleanField()
+    linked_at = serializers.DateTimeField(allow_null=True)
+    tenant_id = serializers.CharField(allow_null=True, allow_blank=True)
+    dossier_status = serializers.CharField(allow_null=True, allow_blank=True)
+    dossier_url = serializers.URLField(allow_null=True)
+    dossier_pdf_url = serializers.URLField(allow_null=True)
+
+
+class DossierFacileWebhookSerializer(serializers.Serializer):
+    onTenantId = serializers.CharField(required=False, allow_blank=False)
+    connectedTenantId = serializers.CharField(required=False, allow_blank=False)
+    tenantId = serializers.CharField(required=False, allow_blank=False)
+    status = serializers.CharField(required=False, allow_blank=True)
+    dossierUrl = serializers.URLField(required=False, allow_null=True)
+    dossierPdfUrl = serializers.URLField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        tenant_id = attrs.get("onTenantId") or attrs.get("connectedTenantId") or attrs.get("tenantId")
+        if not tenant_id:
+            raise serializers.ValidationError({"detail": "Missing tenant identifier in webhook payload."})
+        attrs["tenant_id"] = tenant_id
+        return attrs

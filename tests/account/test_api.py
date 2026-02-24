@@ -1,6 +1,8 @@
-from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
+from unittest.mock import Mock, patch
 
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -315,3 +317,155 @@ class StudentLogoutAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.json()["detail"], "Invalid token.")
         self.assertEqual(response.json()["type"], "invalid_token")
+
+
+@override_settings(
+    DOSSIERFACILE_CLIENT_ID="dfc-client",
+    DOSSIERFACILE_CLIENT_SECRET="dfc-secret",
+    DOSSIERFACILE_AUTHORIZE_URL="https://dfc.example/auth",
+    DOSSIERFACILE_TOKEN_URL="https://dfc.example/token",
+    DOSSIERFACILE_TENANT_PROFILE_URL="https://dfc.example/profile",
+    DOSSIERFACILE_REDIRECT_URI="https://mle.example/callback",
+    DOSSIERFACILE_SCOPE="openid profile",
+    DOSSIERFACILE_TIMEOUT_SECONDS=5,
+    DOSSIERFACILE_STATE_TTL_SECONDS=600,
+    DOSSIERFACILE_WEBHOOK_API_KEY="webhook-secret",
+)
+class StudentDossierFacileAPITests(APITestCase):
+    def test_start_connect_returns_authorization_url_and_state(self):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        self.client.force_authenticate(user=student.user)
+
+        response = self.client.get(reverse("student-dossierfacile-connect-start"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertIn("authorization_url", data)
+        self.assertIn("state", data)
+
+        parsed = urlparse(data["authorization_url"])
+        params = parse_qs(parsed.query)
+        self.assertEqual(parsed.scheme, "https")
+        self.assertEqual(params["client_id"], ["dfc-client"])
+        self.assertEqual(params["response_type"], ["code"])
+        self.assertEqual(params["redirect_uri"], ["https://mle.example/callback"])
+        self.assertEqual(params["scope"], ["openid profile"])
+        self.assertEqual(params["state"], [data["state"]])
+        self.assertEqual(params["login_hint"], [student.user.email])
+
+    @patch("account.services.requests.get")
+    @patch("account.services.requests.post")
+    def test_complete_connect_links_student(self, mock_post, mock_get):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        self.client.force_authenticate(user=student.user)
+
+        start_response = self.client.get(reverse("student-dossierfacile-connect-start"))
+        state = start_response.json()["state"]
+
+        token_response = Mock()
+        token_response.status_code = 200
+        token_response.json.return_value = {"access_token": "access-token"}
+        mock_post.return_value = token_response
+
+        profile_response = Mock()
+        profile_response.status_code = 200
+        profile_response.json.return_value = {
+            "connectedTenantId": "tenant-123",
+            "apartmentSharing": {
+                "status": "VALIDATED",
+                "dossierUrl": "https://dfc.example/dossier/tenant-123",
+                "dossierPdfUrl": "https://dfc.example/dossier/tenant-123.pdf",
+            },
+        }
+        mock_get.return_value = profile_response
+
+        response = self.client.post(
+            reverse("student-dossierfacile-connect-complete"),
+            {"code": "auth-code", "state": state},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["is_linked"], True)
+        self.assertEqual(response.json()["tenant_id"], "tenant-123")
+        self.assertEqual(response.json()["dossier_status"], "VALIDATED")
+        self.assertEqual(response.json()["dossier_url"], "https://dfc.example/dossier/tenant-123")
+        self.assertEqual(response.json()["dossier_pdf_url"], "https://dfc.example/dossier/tenant-123.pdf")
+
+        student.refresh_from_db()
+        self.assertEqual(student.dossierfacile_tenant_id, "tenant-123")
+        self.assertEqual(student.dossierfacile_status, "VALIDATED")
+        self.assertEqual(student.dossierfacile_url, "https://dfc.example/dossier/tenant-123")
+        self.assertIsNotNone(student.dossierfacile_linked_at)
+
+        mock_post.assert_called_once_with(
+            "https://dfc.example/token",
+            data={
+                "grant_type": "authorization_code",
+                "code": "auth-code",
+                "redirect_uri": "https://mle.example/callback",
+            },
+            auth=("dfc-client", "dfc-secret"),
+            timeout=5,
+        )
+        mock_get.assert_called_once_with(
+            "https://dfc.example/profile",
+            headers={"Authorization": "Bearer access-token"},
+            timeout=5,
+        )
+
+    def test_complete_connect_with_invalid_state(self):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        self.client.force_authenticate(user=student.user)
+
+        response = self.client.post(
+            reverse("student-dossierfacile-connect-complete"),
+            {"code": "auth-code", "state": "invalid-state"},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["type"], "invalid_state")
+
+    def test_status_returns_link_state(self):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False, user__is_superuser=False)
+        self.client.force_authenticate(user=student.user)
+
+        response = self.client.get(reverse("student-dossierfacile-status"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["is_linked"], False)
+        self.assertIsNone(response.json()["linked_at"])
+        self.assertIsNone(response.json()["dossier_status"])
+
+    def test_webhook_updates_student_dossier_metadata(self):
+        student = StudentFactory.create(
+            user__is_active=True,
+            dossierfacile_tenant_id="tenant-456",
+            dossierfacile_linked_at=None,
+        )
+
+        response = self.client.post(
+            reverse("student-dossierfacile-webhook"),
+            {
+                "onTenantId": "tenant-456",
+                "status": "VALIDATED",
+                "dossierUrl": "https://dfc.example/dossier/tenant-456",
+                "dossierPdfUrl": "https://dfc.example/dossier/tenant-456.pdf",
+            },
+            format="json",
+            HTTP_X_API_KEY="webhook-secret",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        student.refresh_from_db()
+        self.assertEqual(student.dossierfacile_status, "VALIDATED")
+        self.assertEqual(student.dossierfacile_url, "https://dfc.example/dossier/tenant-456")
+        self.assertIsNotNone(student.dossierfacile_linked_at)
+
+    def test_webhook_rejects_invalid_api_key(self):
+        response = self.client.post(
+            reverse("student-dossierfacile-webhook"),
+            {"onTenantId": "tenant-456", "status": "VALIDATED"},
+            format="json",
+            HTTP_X_API_KEY="wrong-secret",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

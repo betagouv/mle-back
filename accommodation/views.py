@@ -19,13 +19,17 @@ from accommodation.events.events import AccommodationCreatedEvent, Accommodation
 from accommodation.pagination import AccommodationSearchListPagination
 
 from .filters import AccommodationFilter
-from .models import Accommodation, FavoriteAccommodation
+from account.models import Student
+
+from .models import Accommodation, AccommodationApplication, FavoriteAccommodation
 from .serializers import (
     AccommodationDetailSerializer,
+    AccommodationApplicationSerializer,
     AccommodationGeoSerializer,
     FavoriteAccommodationGeoSerializer,
     MyAccommodationGeoSerializer,
     MyAccommodationSerializer,
+    OwnerAccommodationApplicationSerializer,
 )
 from .utils import compute_model_diff, snapshot_model, upload_image_to_s3
 
@@ -356,3 +360,73 @@ class FavoriteAccommodationViewSet(
         favorite = get_object_or_404(FavoriteAccommodation, user=request.user, accommodation__slug=slug)
         favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema(
+    summary="Apply to an accommodation",
+    description="Creates (or returns) a student application and shares the student's validated DossierFacile dossier links with the accommodation manager.",
+    responses={
+        201: AccommodationApplicationSerializer,
+        200: AccommodationApplicationSerializer,
+        400: OpenApiResponse(description="DossierFacile dossier is not validated"),
+        403: OpenApiResponse(description="Student account required"),
+    },
+)
+class AccommodationApplicationCreateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, slug):
+        student = Student.objects.filter(user=request.user).first()
+        if not student:
+            return Response(
+                {"detail": "Only student accounts can apply to accommodations.", "type": "not_student"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if student.dossierfacile_status != "VALIDATED" or not student.dossierfacile_url:
+            return Response(
+                {
+                    "detail": "A validated DossierFacile dossier is required before applying.",
+                    "type": "dossierfacile_not_validated",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        accommodation = get_object_or_404(Accommodation.objects.online(), slug=slug)
+
+        application, created = AccommodationApplication.objects.get_or_create(
+            student=student,
+            accommodation=accommodation,
+            defaults={
+                "dossierfacile_status": student.dossierfacile_status,
+                "dossierfacile_url": student.dossierfacile_url,
+                "dossierfacile_pdf_url": student.dossierfacile_pdf_url,
+            },
+        )
+
+        if not created:
+            application.dossierfacile_status = student.dossierfacile_status
+            application.dossierfacile_url = student.dossierfacile_url
+            application.dossierfacile_pdf_url = student.dossierfacile_pdf_url
+            application.save(update_fields=["dossierfacile_status", "dossierfacile_url", "dossierfacile_pdf_url"])
+
+        serializer = AccommodationApplicationSerializer(application, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+
+@extend_schema(
+    summary="List applications received for my accommodations",
+    description="Returns applications for accommodations owned by the authenticated owner, including shared DossierFacile links.",
+    responses=OwnerAccommodationApplicationSerializer(many=True),
+)
+class MyAccommodationApplicationListView(generics.ListAPIView):
+    serializer_class = OwnerAccommodationApplicationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        owners = getattr(self.request.user, "owners", None)
+        if not (owners and owners.exists()):
+            return AccommodationApplication.objects.none()
+        return AccommodationApplication.objects.filter(accommodation__owner__in=owners.all()).select_related(
+            "accommodation", "student", "student__user"
+        )

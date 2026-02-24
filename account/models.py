@@ -12,6 +12,7 @@ class Owner(models.Model):
     url = models.URLField(max_length=500, blank=True, null=True)
     users = models.ManyToManyField(User, blank=True, related_name="owners")
     image = models.BinaryField(null=True, blank=True)
+    accept_dossier_facile_applications = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = gettext_lazy("Owner")

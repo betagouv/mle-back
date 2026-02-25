@@ -114,6 +114,23 @@ class CheckMagicLinkAPIView(APIView):
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
 
+        # Update Django's built-in last_login
+        from django.utils import timezone as tz
+
+        user.last_login = tz.now()
+        user.save(update_fields=["last_login"])
+
+        # Track login event for gestionnaires
+        from account.helpers import is_owner
+
+        if is_owner(user):
+            from stats.models import GestionnaireLoginEvent
+
+            GestionnaireLoginEvent.objects.create(
+                user=user,
+                owner=user.owners.first(),
+            )
+
         return Response(
             {
                 "access": access_token,

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -95,3 +96,67 @@ class EventStats(models.Model):
 
     def __str__(self):
         return f"{self.category} > {self.action} ({self.nb_events}) - {self.date_from}"
+
+
+class GestionnaireLoginEvent(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="login_events",
+    )
+    owner = models.ForeignKey(
+        "account.Owner",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="login_events",
+    )
+    logged_in_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-logged_in_at"]
+        indexes = [
+            models.Index(fields=["owner", "-logged_in_at"]),
+            models.Index(fields=["user", "-logged_in_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.logged_in_at}"
+
+
+class AccommodationChangeLog(models.Model):
+    ACTION_CHOICES = [
+        ("created", "Created"),
+        ("updated", "Updated"),
+    ]
+
+    accommodation = models.ForeignKey(
+        "accommodation.Accommodation",
+        on_delete=models.CASCADE,
+        related_name="change_logs",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="accommodation_change_logs",
+    )
+    owner = models.ForeignKey(
+        "account.Owner",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="accommodation_change_logs",
+    )
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    data_diff = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["owner", "-created_at"]),
+            models.Index(fields=["accommodation", "-created_at"]),
+            models.Index(fields=["action", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.action} - {self.accommodation} - {self.created_at}"

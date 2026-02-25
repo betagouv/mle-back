@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Stats, EventStats
+
+from .models import AccommodationChangeLog, EventStats, GestionnaireLoginEvent, Stats
 
 
 @admin.register(Stats)
@@ -46,3 +47,21 @@ class EventStatsAdmin(admin.ModelAdmin):
     search_fields = ['category', 'action']
     readonly_fields = ['created_at']
     date_hierarchy = 'date_from'
+
+
+@admin.register(GestionnaireLoginEvent)
+class GestionnaireLoginEventAdmin(admin.ModelAdmin):
+    list_display = ["user", "owner", "logged_in_at"]
+    list_filter = ["owner", "logged_in_at"]
+    search_fields = ["user__email", "owner__name"]
+    readonly_fields = ["user", "owner", "logged_in_at"]
+    date_hierarchy = "logged_in_at"
+
+
+@admin.register(AccommodationChangeLog)
+class AccommodationChangeLogAdmin(admin.ModelAdmin):
+    list_display = ["accommodation", "user", "owner", "action", "created_at"]
+    list_filter = ["action", "owner", "created_at"]
+    search_fields = ["accommodation__name", "user__email", "owner__name"]
+    readonly_fields = ["accommodation", "user", "owner", "action", "data_diff", "created_at"]
+    date_hierarchy = "created_at"

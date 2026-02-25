@@ -45,6 +45,29 @@ class MattermostNotifier:
             logger.exception("Mattermost notification failed.")
 
 
+class DatabaseNotifier:
+    def notify(self, event: AccommodationEvent) -> None:
+        from stats.models import AccommodationChangeLog
+        from accommodation.models import Accommodation
+
+        accommodation = Accommodation.objects.select_related("owner").get(
+            id=event.accommodation_id
+        )
+
+        from .events import AccommodationCreatedEvent
+
+        action = "created" if isinstance(event, AccommodationCreatedEvent) else "updated"
+        data_diff = getattr(event, "data_diff", {})
+
+        AccommodationChangeLog.objects.create(
+            accommodation=accommodation,
+            user_id=event.user_id,
+            owner=accommodation.owner,
+            action=action,
+            data_diff=data_diff,
+        )
+
+
 def get_notifier() -> Notifier:
     if settings.ENVIRONMENT == "production":
         if not settings.MATTERMOST_WEBHOOK_URL:

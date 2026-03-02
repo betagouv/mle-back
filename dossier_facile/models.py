@@ -24,6 +24,11 @@ class DossierFacileTenant(models.Model):
     pdf_url = models.URLField(max_length=500, null=True, blank=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["student", "tenant_id"], name="unique_dossier_facile_tenant_per_student")
+        ]
+
     def __str__(self):
         return self.name
 

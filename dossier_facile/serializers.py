@@ -10,6 +10,10 @@ class ApplyForHousingSerializer(serializers.Serializer):
     appartment_type = serializers.ChoiceField(choices=Accommodation.APARTMENT_TYPE_CHOICES)
 
 
+class DossierFacileSyncSerializer(serializers.Serializer):
+    code = serializers.CharField()
+
+
 class TenantSerializer(serializers.ModelSerializer):
     student = StudentSerializer()
 

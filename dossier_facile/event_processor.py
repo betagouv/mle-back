@@ -7,7 +7,8 @@ logger = logging.getLogger(__name__)
 
 class DossierFacileEventRuleDispatcher:
     def __init__(self, event: dict, rules: list[DossierFacileEventRule]):
-        pass
+        self.event = event
+        self.rules = rules
 
     def dispatch(self):
         for rule in self.rules:
@@ -34,7 +35,8 @@ class DossierFacileWebhookEventProcessor:
                 continue
 
     @transaction.atomic
-    def process_event(self, event):
+    def process_event(self, event=None):
+        event = event or self.event
         dispatcher = DossierFacileEventRuleDispatcher(event, self.rules)
         handled = dispatcher.dispatch()
         if not handled:

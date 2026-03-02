@@ -68,8 +68,12 @@ fileignoreconfig:
   checksum: 5744652134a1274bfb4ad19f390467e820f7607ad04d90777a3ca8cad9c2f06f
 - filename: dossier_facile/serializers.py
   checksum: 6ff14082a961477d27ddd38afc6dd63e97ef05e8bcf26f6382342e4b5e4a86ec
-- filename: dossier_facile/views.py
-  checksum: 829c050e63dae4bafa2ad2395bca0415014d6623ffb5168ad33404c836641c49
 - filename: dossier_facile/migrations/0001_initial.py
   checksum: a94e9ca0c6588027119cd94a1d02e95b62acb2205e66db64a6f1b293d2671794
+- filename: dossier_facile/tests.py
+  checksum: 783fc002442fefb1d29fdcf2100ebf59859c3378e348f897adc76342cf6c1989
+- filename: dossier_facile/migrations/0002_dossierfacileoauthstate.py
+  checksum: 058c72c130196d528f02a80e0e800f06ed8e16cfbad3395b36330eb280589634
+- filename: dossier_facile/views.py
+  checksum: d2aa746ee46a0dbc55d8cd359a4b5af0ae13921273d0a924e4603b127fe0f824
 version: "1.0"

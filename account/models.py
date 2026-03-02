@@ -54,6 +54,39 @@ class Student(models.Model):
     def __str__(self):
         return self.user.username
 
+    def _get_dossierfacile_tenant(self):
+        return self.dossier_facile_tenants.order_by("-updated_at", "-created_at").first()
+
+    @property
+    def dossierfacile_tenant_id(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.tenant_id if tenant else None
+
+    @property
+    def dossierfacile_status(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.status if tenant else None
+
+    @property
+    def dossierfacile_url(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.url if tenant else None
+
+    @property
+    def dossierfacile_pdf_url(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.pdf_url if tenant else None
+
+    @property
+    def dossierfacile_linked_at(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.created_at if tenant else None
+
+    @property
+    def dossierfacile_last_synced_at(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.last_synced_at if tenant else None
+
 
 class StudentRegistrationToken(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="registration_tokens")

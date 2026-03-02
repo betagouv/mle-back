@@ -13,9 +13,9 @@ from .views import (
 
 urlpatterns = [
     path("my/", MyAccommodationListView.as_view(), name="my-accommodation-list"),
+    path("my/applications/", MyAccommodationApplicationListView.as_view(), name="my-accommodation-applications"),
     path("my/<slug:slug>/", MyAccommodationDetailView.as_view(), name="my-accommodation-detail"),
     path("my/<slug:slug>/upload/", MyAccommodationImageUploadView.as_view(), name="my-accommodation-upload"),
-    path("my/applications/", MyAccommodationApplicationListView.as_view(), name="my-accommodation-applications"),
     path(
         "favorites/",
         FavoriteAccommodationViewSet.as_view({"get": "list", "post": "create"}),

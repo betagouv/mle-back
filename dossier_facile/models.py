@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.db import models
+from django.utils import timezone
 from accommodation.models import Accommodation
 from account.models import Student
 
@@ -24,6 +26,20 @@ class DossierFacileTenant(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class DossierFacileOAuthState(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="dossier_facile_oauth_states",
+    )
+    state = models.CharField(max_length=255, unique=True, db_index=True)
+    expires_at = models.DateTimeField(db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self) -> bool:
+        return timezone.now() >= self.expires_at
 
 
 class DossierFacileApplication(models.Model):

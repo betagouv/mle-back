@@ -21,6 +21,7 @@ from account.throttles import PasswordResetThrottle
 from notifications.exceptions import EmailDeliveryError
 from notifications.factories import get_email_gateway
 from notifications.services import send_account_validation
+from dossier_facile.models import DossierFacileTenant
 
 from .models import Owner, Student, StudentRegistrationToken
 from .serializers import (
@@ -253,6 +254,13 @@ def _get_student_or_none(user):
     return Student.objects.filter(user=user).first()
 
 
+def _get_dossierfacile_tenant_or_none(student):
+    if not student:
+        return None
+
+    return student.dossier_facile_tenants.order_by("-updated_at", "-created_at").first()
+
+
 @extend_schema(
     summary="Start DossierFacile link flow",
     description="Builds the DossierFacile authorization URL and signed state for the authenticated student.",
@@ -342,32 +350,28 @@ class StudentDossierFacileCompleteConnectView(generics.GenericAPIView):
         except DossierFacileServiceError as exc:
             return Response({"detail": exc.message, "type": exc.error_type}, status=exc.status_code)
 
-        student.dossierfacile_linked_at = now()
-        student.dossierfacile_tenant_id = extract_dossierfacile_tenant_id(profile)
+        tenant_id = extract_dossierfacile_tenant_id(profile) or ""
         sharing_data = extract_dossierfacile_sharing_data(profile)
-        student.dossierfacile_status = sharing_data["status"]
-        student.dossierfacile_url = sharing_data["dossier_url"]
-        student.dossierfacile_pdf_url = sharing_data["dossier_pdf_url"]
-        student.dossierfacile_last_synced_at = now()
-        student.save(
-            update_fields=[
-                "dossierfacile_linked_at",
-                "dossierfacile_tenant_id",
-                "dossierfacile_status",
-                "dossierfacile_url",
-                "dossierfacile_pdf_url",
-                "dossierfacile_last_synced_at",
-            ]
+        tenant, _ = DossierFacileTenant.objects.update_or_create(
+            student=student,
+            tenant_id=tenant_id,
+            defaults={
+                "name": student.user.get_full_name().strip() or student.user.email or student.user.username,
+                "status": sharing_data["status"],
+                "url": sharing_data["dossier_url"],
+                "pdf_url": sharing_data["dossier_pdf_url"],
+                "last_synced_at": now(),
+            },
         )
 
         return Response(
             {
                 "is_linked": True,
-                "linked_at": student.dossierfacile_linked_at,
-                "tenant_id": student.dossierfacile_tenant_id,
-                "dossier_status": student.dossierfacile_status,
-                "dossier_url": student.dossierfacile_url,
-                "dossier_pdf_url": student.dossierfacile_pdf_url,
+                "linked_at": tenant.created_at,
+                "tenant_id": tenant.tenant_id,
+                "dossier_status": tenant.status,
+                "dossier_url": tenant.url,
+                "dossier_pdf_url": tenant.pdf_url,
             },
             status=status.HTTP_200_OK,
         )
@@ -389,15 +393,16 @@ class StudentDossierFacileStatusView(generics.GenericAPIView):
                 {"detail": "Only student accounts can access this endpoint.", "type": "not_student"},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        tenant = _get_dossierfacile_tenant_or_none(student)
 
         return Response(
             {
-                "is_linked": bool(student.dossierfacile_linked_at),
-                "linked_at": student.dossierfacile_linked_at,
-                "tenant_id": student.dossierfacile_tenant_id,
-                "dossier_status": student.dossierfacile_status,
-                "dossier_url": student.dossierfacile_url,
-                "dossier_pdf_url": student.dossierfacile_pdf_url,
+                "is_linked": bool(tenant),
+                "linked_at": tenant.created_at if tenant else None,
+                "tenant_id": tenant.tenant_id if tenant else None,
+                "dossier_status": tenant.status if tenant else None,
+                "dossier_url": tenant.url if tenant else None,
+                "dossier_pdf_url": tenant.pdf_url if tenant else None,
             },
             status=status.HTTP_200_OK,
         )
@@ -434,33 +439,29 @@ class StudentDossierFacileWebhookView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         tenant_id = serializer.validated_data["tenant_id"]
 
-        student = Student.objects.filter(dossierfacile_tenant_id=tenant_id).first()
-        if not student:
+        tenant = DossierFacileTenant.objects.filter(tenant_id=tenant_id).order_by("-updated_at", "-created_at").first()
+        if not tenant:
             return Response({"message": "Webhook processed"}, status=status.HTTP_200_OK)
 
         status_value = serializer.validated_data.get("status")
         status_upper = status_value.upper() if status_value else None
 
         if status_upper in {"ACCESS_REVOKED", "DELETED_ACCOUNT"}:
-            student.dossierfacile_linked_at = None
-            student.dossierfacile_status = status_upper
-            student.dossierfacile_url = None
-            student.dossierfacile_pdf_url = None
+            tenant.status = status_upper
+            tenant.url = None
+            tenant.pdf_url = None
         else:
-            student.dossierfacile_status = status_value
-            student.dossierfacile_url = serializer.validated_data.get("dossierUrl")
-            student.dossierfacile_pdf_url = serializer.validated_data.get("dossierPdfUrl")
-            if not student.dossierfacile_linked_at:
-                student.dossierfacile_linked_at = now()
+            tenant.status = status_value
+            tenant.url = serializer.validated_data.get("dossierUrl")
+            tenant.pdf_url = serializer.validated_data.get("dossierPdfUrl")
 
-        student.dossierfacile_last_synced_at = now()
-        student.save(
+        tenant.last_synced_at = now()
+        tenant.save(
             update_fields=[
-                "dossierfacile_linked_at",
-                "dossierfacile_status",
-                "dossierfacile_url",
-                "dossierfacile_pdf_url",
-                "dossierfacile_last_synced_at",
+                "status",
+                "url",
+                "pdf_url",
+                "last_synced_at",
             ]
         )
 

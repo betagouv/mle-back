@@ -20,7 +20,6 @@ from accommodation.pagination import AccommodationSearchListPagination
 
 from .filters import AccommodationFilter
 from account.models import Student
-
 from .models import Accommodation, AccommodationApplication, FavoriteAccommodation
 from .serializers import (
     AccommodationDetailSerializer,
@@ -383,7 +382,8 @@ class AccommodationApplicationCreateView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if student.dossierfacile_status != "VALIDATED" or not student.dossierfacile_url:
+        tenant = student.dossier_facile_tenants.order_by("-updated_at", "-created_at").first()
+        if not tenant or tenant.status != "VALIDATED" or not tenant.url:
             return Response(
                 {
                     "detail": "A validated DossierFacile dossier is required before applying.",
@@ -398,16 +398,16 @@ class AccommodationApplicationCreateView(APIView):
             student=student,
             accommodation=accommodation,
             defaults={
-                "dossierfacile_status": student.dossierfacile_status,
-                "dossierfacile_url": student.dossierfacile_url,
-                "dossierfacile_pdf_url": student.dossierfacile_pdf_url,
+                "dossierfacile_status": tenant.status,
+                "dossierfacile_url": tenant.url,
+                "dossierfacile_pdf_url": tenant.pdf_url,
             },
         )
 
         if not created:
-            application.dossierfacile_status = student.dossierfacile_status
-            application.dossierfacile_url = student.dossierfacile_url
-            application.dossierfacile_pdf_url = student.dossierfacile_pdf_url
+            application.dossierfacile_status = tenant.status
+            application.dossierfacile_url = tenant.url
+            application.dossierfacile_pdf_url = tenant.pdf_url
             application.save(update_fields=["dossierfacile_status", "dossierfacile_url", "dossierfacile_pdf_url"])
 
         serializer = AccommodationApplicationSerializer(application, context={"request": request})

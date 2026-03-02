@@ -20,6 +20,7 @@ from accommodation.pagination import AccommodationSearchListPagination
 
 from .filters import AccommodationFilter
 from account.models import Student
+from dossier_facile.models import DossierFacileTenant
 from .models import Accommodation, AccommodationApplication, FavoriteAccommodation
 from .serializers import (
     AccommodationDetailSerializer,
@@ -383,7 +384,7 @@ class AccommodationApplicationCreateView(APIView):
             )
 
         tenant = student.dossier_facile_tenants.order_by("-updated_at", "-created_at").first()
-        if not tenant or tenant.status != "VALIDATED" or not tenant.url:
+        if not tenant or tenant.status != DossierFacileTenant.DossierFacileTenantStatus.VERIFIED or not tenant.url:
             return Response(
                 {
                     "detail": "A validated DossierFacile dossier is required before applying.",

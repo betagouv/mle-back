@@ -1,15 +1,11 @@
 import logging
-import secrets
 
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.core import signing
-from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
-from django.utils.timezone import now
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.response import Response
@@ -21,16 +17,11 @@ from account.throttles import PasswordResetThrottle
 from notifications.exceptions import EmailDeliveryError
 from notifications.factories import get_email_gateway
 from notifications.services import send_account_validation
-from dossier_facile.models import DossierFacileTenant
 
-from .models import Owner, Student, StudentRegistrationToken
+from .models import Owner, StudentRegistrationToken
 from .serializers import (
-    DossierFacileWebhookSerializer,
     OwnerSerializer,
     PasswordResetConfirmSerializer,
-    StudentDossierFacileCompleteConnectSerializer,
-    StudentDossierFacileStartConnectSerializer,
-    StudentDossierFacileStatusSerializer,
     StudentGetTokenSerializer,
     StudentLogoutSerializer,
     StudentRegistrationSerializer,
@@ -38,19 +29,10 @@ from .serializers import (
     StudentRequestPasswordResetSerializer,
     StudentTokenResponseSerializer,
 )
-from .services import (
-    DossierFacileServiceError,
-    build_dossierfacile_authorization_url,
-    exchange_dossierfacile_code_for_token,
-    extract_dossierfacile_sharing_data,
-    extract_dossierfacile_tenant_id,
-    fetch_dossierfacile_tenant_profile,
-    request_password_reset,
-)
+from .services import request_password_reset
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
-DOSSIERFACILE_STATE_SALT = "dossierfacile-oauth-state"
 
 
 class OwnerViewSet(viewsets.ReadOnlyModelViewSet):
@@ -248,221 +230,3 @@ class StudentLogoutView(generics.GenericAPIView):
         except TokenError:
             return Response({"detail": "Invalid token.", "type": "invalid_token"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "Logout successfully"}, status=status.HTTP_200_OK)
-
-
-def _get_student_or_none(user):
-    return Student.objects.filter(user=user).first()
-
-
-def _get_dossierfacile_tenant_or_none(student):
-    if not student:
-        return None
-
-    return student.dossier_facile_tenants.order_by("-updated_at", "-created_at").first()
-
-
-@extend_schema(
-    summary="Start DossierFacile link flow",
-    description="Builds the DossierFacile authorization URL and signed state for the authenticated student.",
-    responses={200: StudentDossierFacileStartConnectSerializer},
-)
-class StudentDossierFacileStartConnectView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ["get"]
-
-    def get(self, request, *args, **kwargs):
-        if not _get_student_or_none(request.user):
-            return Response(
-                {"detail": "Only student accounts can link DossierFacile.", "type": "not_student"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        state = signing.dumps(
-            {"user_id": request.user.id, "nonce": secrets.token_urlsafe(16)},
-            salt=DOSSIERFACILE_STATE_SALT,
-            compress=True,
-        )
-
-        try:
-            authorization_url = build_dossierfacile_authorization_url(request.user.email, state)
-        except ImproperlyConfigured:
-            return Response(
-                {"detail": "DossierFacile integration is not configured.", "type": "dossierfacile_not_configured"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-
-        return Response({"authorization_url": authorization_url, "state": state}, status=status.HTTP_200_OK)
-
-
-@extend_schema(
-    summary="Complete DossierFacile link flow",
-    description="Exchanges the authorization code and links the DossierFacile account to the authenticated student.",
-    request=StudentDossierFacileCompleteConnectSerializer,
-    responses={200: StudentDossierFacileStatusSerializer},
-)
-class StudentDossierFacileCompleteConnectView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = StudentDossierFacileCompleteConnectSerializer
-    http_method_names = ["post"]
-
-    def post(self, request, *args, **kwargs):
-        student = _get_student_or_none(request.user)
-        if not student:
-            return Response(
-                {"detail": "Only student accounts can link DossierFacile.", "type": "not_student"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            state_payload = signing.loads(
-                serializer.validated_data["state"],
-                salt=DOSSIERFACILE_STATE_SALT,
-                max_age=settings.DOSSIERFACILE_STATE_TTL_SECONDS,
-            )
-        except signing.SignatureExpired:
-            return Response(
-                {"detail": "Expired DossierFacile state parameter.", "type": "expired_state"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except signing.BadSignature:
-            return Response(
-                {"detail": "Invalid DossierFacile state parameter.", "type": "invalid_state"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if state_payload.get("user_id") != request.user.id:
-            return Response(
-                {"detail": "Invalid DossierFacile state parameter.", "type": "invalid_state"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            access_token = exchange_dossierfacile_code_for_token(serializer.validated_data["code"])
-            profile = fetch_dossierfacile_tenant_profile(access_token)
-        except ImproperlyConfigured:
-            return Response(
-                {"detail": "DossierFacile integration is not configured.", "type": "dossierfacile_not_configured"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-        except DossierFacileServiceError as exc:
-            return Response({"detail": exc.message, "type": exc.error_type}, status=exc.status_code)
-
-        tenant_id = extract_dossierfacile_tenant_id(profile) or ""
-        sharing_data = extract_dossierfacile_sharing_data(profile)
-        tenant, _ = DossierFacileTenant.objects.update_or_create(
-            student=student,
-            tenant_id=tenant_id,
-            defaults={
-                "name": student.user.get_full_name().strip() or student.user.email or student.user.username,
-                "status": sharing_data["status"],
-                "url": sharing_data["dossier_url"],
-                "pdf_url": sharing_data["dossier_pdf_url"],
-                "last_synced_at": now(),
-            },
-        )
-
-        return Response(
-            {
-                "is_linked": True,
-                "linked_at": tenant.created_at,
-                "tenant_id": tenant.tenant_id,
-                "dossier_status": tenant.status,
-                "dossier_url": tenant.url,
-                "dossier_pdf_url": tenant.pdf_url,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
-@extend_schema(
-    summary="Get DossierFacile link status",
-    description="Returns the DossierFacile link status for the authenticated student account.",
-    responses={200: StudentDossierFacileStatusSerializer},
-)
-class StudentDossierFacileStatusView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ["get"]
-
-    def get(self, request, *args, **kwargs):
-        student = _get_student_or_none(request.user)
-        if not student:
-            return Response(
-                {"detail": "Only student accounts can access this endpoint.", "type": "not_student"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        tenant = _get_dossierfacile_tenant_or_none(student)
-
-        return Response(
-            {
-                "is_linked": bool(tenant),
-                "linked_at": tenant.created_at if tenant else None,
-                "tenant_id": tenant.tenant_id if tenant else None,
-                "dossier_status": tenant.status if tenant else None,
-                "dossier_url": tenant.url if tenant else None,
-                "dossier_pdf_url": tenant.pdf_url if tenant else None,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
-@extend_schema(
-    summary="DossierFacile webhook",
-    description="Receives DossierFacile updates and syncs dossier status/URLs for the related student.",
-    request=DossierFacileWebhookSerializer,
-    responses={200: {"message": "Webhook processed"}},
-)
-class StudentDossierFacileWebhookView(generics.GenericAPIView):
-    authentication_classes = []
-    permission_classes = [permissions.AllowAny]
-    serializer_class = DossierFacileWebhookSerializer
-    http_method_names = ["post"]
-
-    def post(self, request, *args, **kwargs):
-        configured_key = settings.DOSSIERFACILE_WEBHOOK_API_KEY
-        if not configured_key:
-            return Response(
-                {"detail": "DossierFacile webhook is not configured.", "type": "dossierfacile_not_configured"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-
-        provided_key = request.headers.get("X-Api-Key") or request.headers.get("X-API-KEY")
-        if provided_key != configured_key:
-            return Response(
-                {"detail": "Unauthorized webhook request.", "type": "unauthorized_webhook"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        tenant_id = serializer.validated_data["tenant_id"]
-
-        tenant = DossierFacileTenant.objects.filter(tenant_id=tenant_id).order_by("-updated_at", "-created_at").first()
-        if not tenant:
-            return Response({"message": "Webhook processed"}, status=status.HTTP_200_OK)
-
-        status_value = serializer.validated_data.get("status")
-        status_upper = status_value.upper() if status_value else None
-
-        if status_upper in {"ACCESS_REVOKED", "DELETED_ACCOUNT"}:
-            tenant.status = status_upper
-            tenant.url = None
-            tenant.pdf_url = None
-        else:
-            tenant.status = status_value
-            tenant.url = serializer.validated_data.get("dossierUrl")
-            tenant.pdf_url = serializer.validated_data.get("dossierPdfUrl")
-
-        tenant.last_synced_at = now()
-        tenant.save(
-            update_fields=[
-                "status",
-                "url",
-                "pdf_url",
-                "last_synced_at",
-            ]
-        )
-
-        return Response({"message": "Webhook processed"}, status=status.HTTP_200_OK)

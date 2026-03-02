@@ -80,4 +80,8 @@ fileignoreconfig:
   checksum: 57b15b506c857f9407712d860d9dfbca2153631c47da3222bdcab0e6d3d222eb
 - filename: tests/dossier_facile/test_webhook.py
   checksum: 2252743e9168eba32797c00158fedbaae02a559576f66871ddf9018fb2d64e07
+- filename: dossier_facile/services.py
+  checksum: 768002b7463203e7845a923ea899d1895c135d1125b6453869d9db2da5deeb06
+- filename: tests/dossier_facile/test_oauth.py
+  checksum: bf7da58faeb91c20bbc68edbf13cd7a4027f999cfa3fd6d660b71eb59a32ed33
 version: "1.0"

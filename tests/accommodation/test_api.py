@@ -898,7 +898,7 @@ class AccommodationApplicationAPITests(APITestCase):
 
         response = self.client.post(reverse("accommodation-apply", args=[self.accommodation.slug]), {}, format="json")
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.json()["dossierfacile_status"] == "VALIDATED"
+        assert response.json()["dossierfacile_status"] == "verified"
         assert response.json()["dossierfacile_url"] == "https://dfc.example/dossier/tenant-1"
 
     def test_student_cannot_apply_without_validated_dossierfacile(self):

@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group
 
 from account.models import Owner, Student
 from dossier_facile.models import DossierFacileTenant
+from dossier_facile.services import normalize_tenant_status
 
 User = get_user_model()
 
@@ -73,7 +74,7 @@ class StudentFactory(factory.django.DjangoModelFactory):
                 student=student,
                 tenant_id=tenant_id or f"tenant-{student.pk}",
                 name=student.user.get_full_name().strip() or student.user.email or student.user.username,
-                status=dossier_status,
+                status=normalize_tenant_status(dossier_status),
                 url=dossier_url,
                 pdf_url=dossier_pdf_url,
                 last_synced_at=linked_at,

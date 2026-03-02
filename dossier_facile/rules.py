@@ -20,7 +20,7 @@ class DeletedAccountRule(DossierFacileEventRule):
     def handle(self, event: dict):
         # delete the tenant and the application
         DossierFacileTenant.objects.filter(tenant_id=event.get("tenantId")).delete()
-        DossierFacileApplication.objects.filter(tenant_id=event.get("tenantId")).delete()
+        DossierFacileApplication.objects.filter(tenant__tenant_id=event.get("tenantId")).delete()
 
 
 class AccessRevokedRule(DossierFacileEventRule):
@@ -28,9 +28,8 @@ class AccessRevokedRule(DossierFacileEventRule):
         return event.get("partnerCallBackType") == "ACCESS_REVOKED"
 
     def handle(self, event: dict):
-        # revoke the access to the tenant and the application
+        # revoke the access to the tenant, applications stay but the tenant is no longer usable
         DossierFacileTenant.objects.filter(tenant_id=event.get("tenantId")).update(status="access_revoked")
-        DossierFacileApplication.objects.filter(tenant_id=event.get("tenantId")).update(status="access_revoked")
 
 
 class VerifiedAccountRule(DossierFacileEventRule):
@@ -49,7 +48,7 @@ class DeniedAccountRule(DossierFacileEventRule):
     def handle(self, event: dict):
         # refuse the access to the tenant and the application
         DossierFacileTenant.objects.filter(tenant_id=event.get("tenantId")).update(status="denied")
-        DossierFacileApplication.objects.filter(tenant_id=event.get("tenantId")).delete()
+        DossierFacileApplication.objects.filter(tenant__tenant_id=event.get("tenantId")).delete()
 
 
 RULES = [DeletedAccountRule, AccessRevokedRule, VerifiedAccountRule, DeniedAccountRule]

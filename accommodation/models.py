@@ -280,7 +280,7 @@ class ExternalSource(models.Model):
     SOURCE_CARDINAL_CAMPUS = "cardinal-campus"
     SOURCE_SAIEM_DRAGUIGNAN = "saiem-draguignan"
     SOURCE_ACLEF = "aclef"
-    SOURCE_AJLT = "ajlt"
+    SOURCE_ALJT = "aljt"
     SOURCE_AVEYRON_HABITAT = "aveyron-habitat"
     SOURCE_ORYON = "oryon"
     SOURCE_CHOICES = (
@@ -325,7 +325,7 @@ class ExternalSource(models.Model):
         (SOURCE_CARDINAL_CAMPUS, "Cardinal Campus"),
         (SOURCE_SAIEM_DRAGUIGNAN, "Saiem Draguignan"),
         (SOURCE_ACLEF, "ACLEF"),
-        (SOURCE_AJLT, "AJLT"),
+        (SOURCE_ALJT, "ALJT"),
         (SOURCE_AVEYRON_HABITAT, "Aveyron Habitat"),
         (SOURCE_ORYON, "Oryon"),
     )

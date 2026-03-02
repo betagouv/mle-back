@@ -15,22 +15,26 @@ from .managers import AccommodationManager
 class Accommodation(models.Model):
     RESIDENCE_TYPE_CHOICES = (
         ("universitaire-conventionnee", "Résidence Universitaire conventionnée"),
-        ("sociale-jeunes-actifs", "Résidence sociale Jeunes Actifs"),
-        ("intergenerationnelle", "Résidence intergénérationnelle"),
-        ("autre", "Autre"),
-        ("jeunes-travailleurs", "Foyer Jeunes Travailleurs"),
-        ("service-universitaire-privee", "Résidence service / Résidence universitaire privée"),
-        ("mixte-actifs-etudiants", "Résidence mixte jeunes actifs/étudiants"),
-        ("u-crous", "Cité U / résidence traditionnelle CROUS"),
-        ("hoteliere-sociale", "Résidence Hôtelière à vocation sociale"),
-        ("ecole", "Résidence d'école"),
-        ("service-logement", "Service Logement"),
-        ("internat", "Internat"),
-        ("foyer-soleil", "Foyer soleil"),
+        ("sociale-jeunes-actifs", "Résidence sociale Jeunes Actifs (RSJA, Habitat Jeunes)"),
+        ("intergenerationnelle", "Cohabitation intergénérationnelle"),
+        ("jeunes-travailleurs", "Foyer Jeunes Travailleurs (FJT)"),
+        ("social-fleche-jeune", "Logement social fléché vers les jeunes (loi ELAN – article 109)"),
+        ("social-classique", "Logement social classique commercialisé en partie aux étudiants"),
+        ("ecole", "Résidence d’école ou d’établissement d’enseignement"),
+        ("residence-etudiante", "Résidence étudiante"),
+        (
+            "sous-location",
+            "Logements sociaux sous-loués aux étudiants par une association via une convention ou un contrat spécifique",
+        ),
     )
     SHARED_OR_PRIVATE = (
         ("shared", "Shared"),
         ("private", "Private"),
+    )
+
+    TARGET_AUDIENCE_CHOICES = (
+        ("etudiants", "Etudiants"),
+        ("mixte-etudiants-jeunes-actifs", "Mixte étudiants/jeunes actifs"),
     )
 
     name = models.CharField(max_length=200, verbose_name=gettext_lazy("Name"))
@@ -46,6 +50,13 @@ class Accommodation(models.Model):
         null=True,
         blank=True,
         verbose_name=gettext_lazy("Residence type"),
+    )
+    target_audience = models.CharField(
+        max_length=100,
+        choices=TARGET_AUDIENCE_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name=gettext_lazy("Target audience"),
     )
     owner = models.ForeignKey(Owner, on_delete=models.SET_NULL, null=True, blank=True, related_name="accommodations")
     nb_total_apartments = models.PositiveIntegerField(

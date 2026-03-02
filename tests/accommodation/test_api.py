@@ -583,6 +583,8 @@ class MyAccommodationDetailAPITests(APITestCase):
             "postal_code": "75008",
             "published": True,
             "images_files": [SimpleUploadedFile("file.jpg", b"file_content", content_type="image/jpeg")],
+            "residence_type": "universitaire-conventionnee",
+            "target_audience": "etudiants",
         }
 
         response = self.client.post(url, payload, format="multipart")
@@ -629,6 +631,8 @@ class MyAccommodationDetailAPITests(APITestCase):
             "nb_t2": 16,
             "price_min_t1": 300,
             "price_max_t1": 450,
+            "target_audience": "etudiants",
+            "residence_type": "universitaire-conventionnee",
         }
 
         response = self.client.patch(url, payload, format="json")

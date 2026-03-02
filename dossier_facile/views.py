@@ -1,3 +1,4 @@
+import logging
 import secrets
 from datetime import timedelta
 
@@ -18,7 +19,7 @@ from dossier_facile.serializers import ApplicationSerializer, ApplyForHousingSer
 from dossier_facile.services import DossierFacileClient, DossierFacileClientError
 from dossier_facile.use_cases import apply_for_housing
 
-# Create your views here.
+logger = logging.getLogger(__name__)
 
 
 class DossierFacileWebhookView(APIView):
@@ -62,8 +63,12 @@ class ApplyForHousingView(APIView):
                     request.user.student, validated_data["accommodation"], validated_data["appartment_type"]
                 )
                 return Response(ApplicationSerializer(application).data, status=status.HTTP_201_CREATED)
-        except ValueError as e:
-            return Response({"detail": str(e), "type": "invalid_data"}, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
+            logger.exception("Invalid Dossier Facile housing application payload.")
+            return Response(
+                {"detail": "Invalid data provided.", "type": "invalid_data"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class ApplicationsPerOwnerListView(ListAPIView):

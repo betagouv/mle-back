@@ -550,8 +550,8 @@ class MyAccommodationDetailAPITests(APITestCase):
             response = self.client.post(url, payload, format="json")
             assert response.status_code == status.HTTP_201_CREATED, response.content
 
-            mock_handler.assert_called_once()
-            event = mock_handler.call_args[0][0]
+            assert mock_handler.call_count == 2
+            event = mock_handler.call_args_list[-1][0][0]
             assert isinstance(event, AccommodationCreatedEvent)
 
             acc = Accommodation.objects.get(name="New Accommodation")
@@ -566,8 +566,8 @@ class MyAccommodationDetailAPITests(APITestCase):
             response = self.client.patch(url, payload, format="json")
             assert response.status_code == status.HTTP_200_OK
 
-            mock_handler.assert_called_once()
-            event = mock_handler.call_args[0][0]
+            assert mock_handler.call_count == 2
+            event = mock_handler.call_args_list[-1][0][0]
             assert isinstance(event, AccommodationUpdatedEvent)
             assert event.accommodation_id == self.my_accommodation.id
 

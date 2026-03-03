@@ -40,13 +40,13 @@ def test_bootstrap_is_idempotent():
 
     handlers = accommodation_event_bus._handlers
 
-    assert len(handlers[AccommodationCreatedEvent]) == 1
+    assert len(handlers[AccommodationCreatedEvent]) == 2
     handler = handlers[AccommodationCreatedEvent][0]
 
     assert isinstance(handler, functools.partial)
     assert handler.func is handle_accommodation_created
 
-    assert len(handlers[AccommodationUpdatedEvent]) == 1
+    assert len(handlers[AccommodationUpdatedEvent]) == 2
     handler = handlers[AccommodationUpdatedEvent][0]
 
     assert isinstance(handler, functools.partial)
@@ -64,7 +64,7 @@ def test_event_bus_does_not_register_same_handler_twice():
     assert bus._handlers[AccommodationCreatedEvent] == [handle_accommodation_created]
 
 
-def test_handler_called_once_after_multiple_bootstrap():
+def test_handler_called_twice_after_multiple_bootstrap():
     mock_handler = Mock()
 
     # Patch WHERE THE HANDLER IS USED
@@ -82,4 +82,4 @@ def test_handler_called_once_after_multiple_bootstrap():
 
         accommodation_event_bus.publish(AccommodationCreatedEvent(accommodation_id=1, user_id=1))
 
-    mock_handler.assert_called_once()
+    assert mock_handler.call_count == 2

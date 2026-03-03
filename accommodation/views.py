@@ -213,7 +213,7 @@ class MyAccommodationDetailView(generics.GenericAPIView):
 
     @extend_schema(
         summary="Partially update an accommodation belonging to the authenticated owner",
-        request=MyAccommodationGeoSerializer,
+        request=MyAccommodationSerializer,
         responses=MyAccommodationGeoSerializer,
     )
     def patch(self, request, *args, **kwargs):
@@ -221,7 +221,7 @@ class MyAccommodationDetailView(generics.GenericAPIView):
 
         old_data = snapshot_model(accommodation)
 
-        serializer = self.get_serializer(
+        serializer = MyAccommodationSerializer(
             accommodation,
             data=request.data,
             partial=True,
@@ -243,7 +243,7 @@ class MyAccommodationDetailView(generics.GenericAPIView):
             )
         )
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(MyAccommodationGeoSerializer(accommodation).data, status=status.HTTP_200_OK)
 
 
 @extend_schema(

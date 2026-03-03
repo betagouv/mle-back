@@ -664,6 +664,33 @@ class MyAccommodationDetailAPITests(APITestCase):
         self.my_accommodation.refresh_from_db()
         assert self.my_accommodation.published is False
 
+    @patch("accommodation.serializers.get_geolocator")
+    def test_patch_updates_geom_when_address_changes(self, mock_get_geolocator):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+        mock_get_geolocator.return_value.geocode.return_value = type(
+            "Location", (), {"longitude": 3.1415, "latitude": 48.9876}
+        )()
+
+        response = self.client.patch(url, {"address": "12 rue de la Paix"}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["geometry"]["coordinates"] == [3.1415, 48.9876]
+
+        self.my_accommodation.refresh_from_db()
+        assert self.my_accommodation.address == "12 rue de la Paix"
+        assert self.my_accommodation.geom.x == 3.1415
+        assert self.my_accommodation.geom.y == 48.9876
+
+    @patch("accommodation.serializers.get_geolocator")
+    def test_patch_returns_400_when_new_address_cannot_be_geocoded(self, mock_get_geolocator):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+        mock_get_geolocator.return_value.geocode.return_value = None
+
+        response = self.client.patch(url, {"address": "Unknown address"}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["address"] == ["Unable to geocode this address."]
+
     def test_patch_cannot_update_others_accommodation(self):
         url = reverse("my-accommodation-detail", args=[self.other_accommodation.slug])
 

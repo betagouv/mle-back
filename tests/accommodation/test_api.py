@@ -635,6 +635,9 @@ class MyAccommodationDetailAPITests(APITestCase):
             "price_max_t1": 450,
             "target_audience": "etudiants",
             "residence_type": "universitaire-conventionnee",
+            "address": "123 Rue de Paris",
+            "city": "Paris",
+            "postal_code": "75001",
         }
 
         response = self.client.patch(url, payload, format="json")
@@ -652,6 +655,10 @@ class MyAccommodationDetailAPITests(APITestCase):
         assert data["nb_t1_available"] == 10
         assert data["price_min_t1"] == 300
         assert data["price_max_t1"] == 450
+
+        geometry = response.json()["geometry"]
+        assert geometry["type"] == "Point"
+        assert geometry["coordinates"] == [2.35, 48.85]
 
         self.my_accommodation.refresh_from_db()
         assert self.my_accommodation.name == "Updated Accommodation Name"

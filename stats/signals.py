@@ -3,13 +3,13 @@ from django.dispatch import receiver
 
 from account.helpers import is_owner
 
+from stats.models import GestionnaireLoginEvent
+
 
 @receiver(user_logged_in)
 def track_gestionnaire_login(sender, request, user, **kwargs):
     if not is_owner(user):
         return
-
-    from stats.models import GestionnaireLoginEvent
 
     GestionnaireLoginEvent.objects.create(
         user=user,

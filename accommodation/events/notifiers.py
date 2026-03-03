@@ -1,7 +1,9 @@
 from typing import Protocol
 import requests
 from django.conf import settings
-from .events import AccommodationEvent
+from .events import AccommodationEvent, AccommodationCreatedEvent
+from stats.models import AccommodationChangeLog
+from accommodation.models import Accommodation
 import logging
 
 logger = logging.getLogger(__name__)
@@ -47,14 +49,7 @@ class MattermostNotifier:
 
 class DatabaseNotifier:
     def notify(self, event: AccommodationEvent) -> None:
-        from stats.models import AccommodationChangeLog
-        from accommodation.models import Accommodation
-
-        accommodation = Accommodation.objects.select_related("owner").get(
-            id=event.accommodation_id
-        )
-
-        from .events import AccommodationCreatedEvent
+        accommodation = Accommodation.objects.select_related("owner").get(id=event.accommodation_id)
 
         action = "created" if isinstance(event, AccommodationCreatedEvent) else "updated"
         data_diff = getattr(event, "data_diff", {})

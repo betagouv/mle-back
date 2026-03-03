@@ -19,6 +19,7 @@ class AccommodationFactory(factory.django.DjangoModelFactory):
     residence_type = factory.fuzzy.FuzzyChoice([choice[0] for choice in Accommodation.RESIDENCE_TYPE_CHOICES])
     nb_total_apartments = factory.Faker("random_int", min=10, max=100)
     published = True
+    target_audience = Accommodation.TARGET_AUDIENCE_CHOICES[0][0]
 
     @factory.lazy_attribute
     def nb_accessible_apartments(self):

@@ -151,6 +151,8 @@ class AccommodationListAPITests(APITestCase):
                 "slug": self.accommodation_nantes_accessible_w_coliving_cheap.slug,
                 "city": self.accommodation_nantes_accessible_w_coliving_cheap.city,
                 "postal_code": self.accommodation_nantes_accessible_w_coliving_cheap.postal_code,
+                "target_audience": "etudiants",
+                "residence_type": ANY,
                 "nb_total_apartments": ANY,
                 "nb_accessible_apartments": 2,
                 "nb_coliving_apartments": 5,

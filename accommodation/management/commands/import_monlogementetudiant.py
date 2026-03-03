@@ -128,7 +128,7 @@ class Command(BaseCommand):
             "nb_total_apartments": self._to_int(item.get("nb_total_apartments")),
             "external_reference": external_reference,
             "owner_id": owner.pk,
-            "source": ExternalSource.SOURCE_MON_LOGEMENT_ETUDIANT,
+            "source": ExternalSource.SOURCE_FAC_HABITAT,
             "source_id": external_reference,
             **self._build_typology_values(item),
         }

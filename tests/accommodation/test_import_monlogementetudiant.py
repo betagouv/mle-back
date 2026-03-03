@@ -85,7 +85,7 @@ def test_import_monlogementetudiant_uses_external_reference_for_idempotence(tmp_
     assert accommodation.nb_t5 == 1
     assert accommodation.nb_total_apartments == 102
     assert accommodation.sources.filter(
-        source=ExternalSource.SOURCE_MON_LOGEMENT_ETUDIANT,
+        source=ExternalSource.SOURCE_FAC_HABITAT,
         source_id="10771003",
     ).exists()
 

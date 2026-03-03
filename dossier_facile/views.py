@@ -19,11 +19,12 @@ from dossier_facile.services import (
     DossierFacileOAuthStateError,
     build_frontend_callback_url,
     consume_oauth_state,
+    consume_oauth_state_for_user,
     create_oauth_state_for_user,
     get_student_for_user,
     sync_tenant_from_code,
 )
-from dossier_facile.use_cases import apply_for_housing
+from dossier_facile.use_cases.apply_for_housing import apply_for_housing
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +59,9 @@ class ApplyForHousingView(APIView):
     authentication_classes = [permissions.IsAuthenticated]
     serializer_class = ApplyForHousingSerializer
     permission_classes = [StudentPermission]
+
+    def get_serializer(self, *args, **kwargs):
+        return self.serializer_class(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -171,6 +175,11 @@ class DossierFacileSyncView(APIView):
 
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        try:
+            consume_oauth_state_for_user(request.user, serializer.validated_data["state"])
+        except DossierFacileOAuthStateError as exc:
+            return Response({"detail": exc.message, "type": exc.error_type}, status=exc.status_code)
 
         try:
             tenant = sync_tenant_from_code(student, serializer.validated_data["code"])

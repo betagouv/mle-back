@@ -11,6 +11,7 @@ from rest_framework.test import APITestCase
 
 from account.models import Student
 from dossier_facile.models import DossierFacileOAuthState, DossierFacileTenant
+from dossier_facile.services import DossierFacileClientError
 
 
 @override_settings(
@@ -19,7 +20,7 @@ from dossier_facile.models import DossierFacileOAuthState, DossierFacileTenant
     DOSSIERFACILE_AUTHORIZE_URL="https://example.com/oauth/authorize",
     DOSSIERFACILE_TOKEN_URL="https://example.com/oauth/token",
     DOSSIERFACILE_TENANT_PROFILE_URL="https://example.com/api/me",
-    DOSSIERFACILE_REDIRECT_URI="https://api.example.com/api/dossier-facile/callback/",
+    DOSSIERFACILE_REDIRECT_URI="https://frontend.example.com/dossier-facile/callback/",
     DOSSIERFACILE_SCOPE="openid",
     DOSSIERFACILE_TIMEOUT_SECONDS=10,
     DOSSIERFACILE_STATE_TTL_SECONDS=600,
@@ -63,7 +64,7 @@ class DossierFacileOAuthAPITests(APITestCase):
         query = parse_qs(urlparse(authorization_url).query)
         self.assertEqual(query["state"][0], oauth_state.state)
         self.assertEqual(query["client_id"][0], "client-id")
-        self.assertEqual(query["redirect_uri"][0], "https://api.example.com/api/dossier-facile/callback/")
+        self.assertEqual(query["redirect_uri"][0], "https://frontend.example.com/dossier-facile/callback/")
 
     def test_connect_url_rejects_non_student(self):
         user = self.user_model.objects.create_user(
@@ -137,6 +138,11 @@ class DossierFacileOAuthAPITests(APITestCase):
     def test_sync_returns_tenant_payload(self, mock_sync_tenant_from_code):
         user, student = self._create_student_user()
         self.client.force_authenticate(user=user)
+        DossierFacileOAuthState.objects.create(
+            user=user,
+            state="valid-state",
+            expires_at=timezone.now() + timedelta(minutes=10),
+        )
         tenant = DossierFacileTenant.objects.create(
             student=student,
             tenant_id="tenant-123",
@@ -147,9 +153,61 @@ class DossierFacileOAuthAPITests(APITestCase):
         )
         mock_sync_tenant_from_code.return_value = tenant
 
-        response = self.client.post(self.sync_url, {"code": "fresh-code"}, format="json")
+        response = self.client.post(self.sync_url, {"code": "fresh-code", "state": "valid-state"}, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["tenant_id"], "tenant-123")
         self.assertEqual(response.json()["status"], "verified")
         mock_sync_tenant_from_code.assert_called_once_with(student, "fresh-code")
+        self.assertFalse(DossierFacileOAuthState.objects.filter(state="valid-state").exists())
+
+    def test_sync_rejects_invalid_state(self):
+        user, _student = self._create_student_user()
+        self.client.force_authenticate(user=user)
+
+        response = self.client.post(self.sync_url, {"code": "fresh-code", "state": "missing-state"}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["type"], "invalid_state")
+
+    def test_sync_rejects_state_owned_by_another_user(self):
+        user, _student = self._create_student_user("first@example.com")
+        other_user, _other_student = self._create_student_user("second@example.com")
+        self.client.force_authenticate(user=user)
+        DossierFacileOAuthState.objects.create(
+            user=other_user,
+            state="other-users-state",
+            expires_at=timezone.now() + timedelta(minutes=10),
+        )
+
+        response = self.client.post(
+            self.sync_url,
+            {"code": "fresh-code", "state": "other-users-state"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["type"], "invalid_state")
+        self.assertTrue(DossierFacileOAuthState.objects.filter(state="other-users-state").exists())
+
+    @patch("dossier_facile.views.sync_tenant_from_code")
+    def test_sync_returns_client_error_payload(self, mock_sync_tenant_from_code):
+        user, _student = self._create_student_user()
+        self.client.force_authenticate(user=user)
+        DossierFacileOAuthState.objects.create(
+            user=user,
+            state="valid-state",
+            expires_at=timezone.now() + timedelta(minutes=10),
+        )
+        mock_sync_tenant_from_code.side_effect = DossierFacileClientError(
+            "Token exchange failed",
+            error_type="dossier_facile_token_exchange_failed",
+            status_code=400,
+        )
+
+        response = self.client.post(self.sync_url, {"code": "fresh-code", "state": "valid-state"}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.json()["type"], "dossier_facile_token_exchange_failed")
+        self.assertEqual(response.json()["detail"], "Token exchange failed")
+        self.assertFalse(DossierFacileOAuthState.objects.filter(state="valid-state").exists())

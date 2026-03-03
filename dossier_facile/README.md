@@ -88,35 +88,31 @@ The frontend must redirect the browser to `authorization_url`.
 
 This is a browser redirect, not a backend-to-backend call.
 
-### 3. Dossier Facile redirects back to the backend
+### 3. Dossier Facile redirects back to the frontend
 
 Callback URL:
 
 ```http
-GET /api/dossier-facile/callback/?code=<code>&state=<state>
+GET <DOSSIERFACILE_REDIRECT_URI>?code=<code>&state=<state>
 ```
 
-Backend behavior:
+Frontend behavior:
+
+- reads `code` and `state` from the callback URL
+- calls the authenticated `POST /api/dossier-facile/sync/` endpoint with both values
+
+Backend behavior during `sync`:
 
 - validates presence of `code` and `state`
 - loads the stored `DossierFacileOAuthState`
 - rejects invalid or expired states
+- ensures the `state` belongs to the authenticated user
 - deletes the state before calling external APIs (one-time use)
 - exchanges the `code` for an access token
 - fetches the user dossier/profile from Dossier Facile
 - extracts `tenant_id`, status, URLs, and display name
 - upserts `DossierFacileTenant`
-- redirects the browser to a frontend success or error URL
-
-Success redirect:
-
-- default target: `<FRONT_SITE_URL>/dossier-facile/success`
-- query params: `tenant_id`, `status`
-
-Error redirect:
-
-- default target: `<FRONT_SITE_URL>/dossier-facile/error`
-- query param: `error_type`
+- returns JSON to the frontend
 
 ## Frontend Integration Guide
 
@@ -128,31 +124,23 @@ Recommended flow:
 2. Frontend calls `GET /api/dossier-facile/connect-url/` with the current JWT.
 3. Frontend reads `authorization_url`.
 4. Frontend redirects `window.location` to that URL.
-5. Dossier Facile redirects to the backend callback URL configured in settings.
-6. The backend completes the link and redirects the browser back to a frontend success or error route.
+5. Dossier Facile redirects to the frontend callback URL configured in `DOSSIERFACILE_REDIRECT_URI`.
+6. Frontend reads `code` and `state` from the callback URL.
+7. Frontend calls `POST /api/dossier-facile/sync/` with the current JWT and the callback payload.
+8. Frontend handles success or error locally.
 
 ### Important frontend note
 
-The callback endpoint is a backend endpoint. Dossier Facile calls it directly in the browser redirect.
+The callback endpoint is now a frontend route. Dossier Facile redirects the browser there directly.
 
 That means:
 
-- the frontend does not send the JWT on the callback
-- the callback works because the backend resolves the user from the stored server-side `state`
+- the frontend must keep the user authenticated until it calls `sync`
+- the backend still validates the server-side `state` before exchanging the code
 
 ### Callback UX
 
-The callback is now browser-friendly.
-
-By default it redirects to:
-
-- `FRONT_SITE_URL/dossier-facile/success`
-- `FRONT_SITE_URL/dossier-facile/error`
-
-You can override these defaults with:
-
-- `DOSSIERFACILE_FRONTEND_SUCCESS_URL`
-- `DOSSIERFACILE_FRONTEND_ERROR_URL`
+The frontend owns the callback route and the success/error UX.
 
 ## Authenticated Resync
 
@@ -168,11 +156,12 @@ Payload:
 
 ```json
 {
-  "code": "<fresh_authorization_code>"
+  "code": "<fresh_authorization_code>",
+  "state": "<state_from_connect_url>"
 }
 ```
 
-Use this when the frontend wants to refresh the tenant metadata for an already authenticated student with a new authorization code, without relying on the browser callback flow.
+Use this when the frontend receives the Dossier Facile callback and needs the API to complete the OAuth exchange for the authenticated student.
 
 Success response:
 
@@ -193,7 +182,7 @@ Common error `type` values returned by the API:
 
 - `not_student`: authenticated user is not a student
 - `dossier_facile_not_configured`: required settings are missing
-- `missing_oauth_parameters`: `code` or `state` missing on callback
+- `missing_oauth_parameters`: `code` or `state` missing on the legacy backend callback
 - `invalid_state`: unknown or already-used state
 - `expired_state`: state expired
 - `invalid_profile`: Dossier Facile response did not contain a usable tenant identifier
@@ -218,8 +207,8 @@ The integration depends on these Django settings:
 - `DOSSIERFACILE_TIMEOUT_SECONDS`
 - `DOSSIERFACILE_STATE_TTL_SECONDS`
 - `DOSSIERFACILE_WEBHOOK_API_KEY`
-- `DOSSIERFACILE_FRONTEND_SUCCESS_URL` (optional)
-- `DOSSIERFACILE_FRONTEND_ERROR_URL` (optional)
+- `DOSSIERFACILE_FRONTEND_SUCCESS_URL` (optional, legacy backend callback only)
+- `DOSSIERFACILE_FRONTEND_ERROR_URL` (optional, legacy backend callback only)
 
 Recommended defaults already used in code:
 
@@ -262,7 +251,7 @@ Webhook behavior summary:
 - This app is now the only public API surface for Dossier Facile.
 - `Student` exposes compatibility properties like `student.dossierfacile_status`, but the source of truth is `DossierFacileTenant`.
 - If you need to check whether a student has a valid dossier, read the latest `DossierFacileTenant` for that student.
-- The callback intentionally does not trust client state beyond the opaque `state` token stored in DB.
+- The authenticated `sync` flow intentionally does not trust client state beyond the opaque `state` token stored in DB.
 - External calls use `requests` with a timeout through `DossierFacileClient`.
 - The canonical "validated dossier" status stored in DB is `verified`.
 - The legacy Dossier Facile routes in `account` have been removed.

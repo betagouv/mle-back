@@ -12,6 +12,7 @@ class ApplyForHousingSerializer(serializers.Serializer):
 
 class DossierFacileSyncSerializer(serializers.Serializer):
     code = serializers.CharField()
+    state = serializers.CharField()
 
 
 class TenantSerializer(serializers.ModelSerializer):

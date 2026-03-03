@@ -68,8 +68,6 @@ fileignoreconfig:
   checksum: 5744652134a1274bfb4ad19f390467e820f7607ad04d90777a3ca8cad9c2f06f
 - filename: dossier_facile/serializers.py
   checksum: 6ff14082a961477d27ddd38afc6dd63e97ef05e8bcf26f6382342e4b5e4a86ec
-- filename: dossier_facile/migrations/0001_initial.py
-  checksum: a94e9ca0c6588027119cd94a1d02e95b62acb2205e66db64a6f1b293d2671794
 - filename: dossier_facile/tests.py
   checksum: 783fc002442fefb1d29fdcf2100ebf59859c3378e348f897adc76342cf6c1989
 - filename: dossier_facile/migrations/0002_dossierfacileoauthstate.py
@@ -84,4 +82,8 @@ fileignoreconfig:
   checksum: 768002b7463203e7845a923ea899d1895c135d1125b6453869d9db2da5deeb06
 - filename: tests/dossier_facile/test_oauth.py
   checksum: bf7da58faeb91c20bbc68edbf13cd7a4027f999cfa3fd6d660b71eb59a32ed33
+- filename: accommodation/migrations/0053_accommodationapplication.py
+  checksum: 85cdc1ba05934eef29bca87dcd68b2052591df99570aef0194d87e452a656fd1
+- filename: dossier_facile/migrations/0001_initial.py
+  checksum: 0460726d2632c75429124dcc60d025824f22403bdeb1ef834318e3103b1e494f
 version: "1.0"

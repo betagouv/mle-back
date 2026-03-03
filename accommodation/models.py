@@ -15,11 +15,11 @@ from .managers import AccommodationManager
 class Accommodation(models.Model):
     RESIDENCE_TYPE_CHOICES = (
         ("universitaire-conventionnee", "Résidence Universitaire conventionnée"),
-        ("sociale-jeunes-actifs", "Résidence sociale Jeunes Actifs (RSJA, Habitat Jeunes)"),
+        ("residence-sociale-jeunes-actifs", "Résidence sociale Jeunes Actifs (RSJA, Habitat Jeunes)"),
         ("intergenerationnelle", "Cohabitation intergénérationnelle"),
-        ("jeunes-travailleurs", "Foyer Jeunes Travailleurs (FJT)"),
-        ("social-fleche-jeune", "Logement social fléché vers les jeunes (loi ELAN – article 109)"),
-        ("social-classique", "Logement social classique commercialisé en partie aux étudiants"),
+        ("foyer-jeunes-travailleurs", "Foyer Jeunes Travailleurs (FJT)"),
+        ("loi-elan-article-109", "Logement social fléché vers les jeunes (loi ELAN – article 109)"),
+        ("logement-social-classique", "Logement social classique commercialisé en partie aux étudiants"),
         ("ecole", "Résidence d’école ou d’établissement d’enseignement"),
         ("residence-etudiante", "Résidence étudiante"),
         (

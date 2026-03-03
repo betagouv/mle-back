@@ -294,6 +294,7 @@ class ExternalSource(models.Model):
     SOURCE_ALJT = "aljt"
     SOURCE_AVEYRON_HABITAT = "aveyron-habitat"
     SOURCE_ORYON = "oryon"
+    SOURCE_CAMPUS_ET_TOITS = "campus-et-toits"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -339,6 +340,7 @@ class ExternalSource(models.Model):
         (SOURCE_ALJT, "ALJT"),
         (SOURCE_AVEYRON_HABITAT, "Aveyron Habitat"),
         (SOURCE_ORYON, "Oryon"),
+        (SOURCE_CAMPUS_ET_TOITS, "Campus et Toits"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")

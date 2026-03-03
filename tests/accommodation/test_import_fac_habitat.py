@@ -5,11 +5,11 @@ import pytest
 from django.core.management import call_command
 
 from accommodation.models import Accommodation, ExternalSource
-from accommodation.management.commands.import_monlogementetudiant import Command
+from accommodation.management.commands.import_fac_habitat import Command
 
 
 @pytest.mark.django_db
-def test_import_monlogementetudiant_uses_external_reference_for_idempotence(tmp_path):
+def test_import_fac_habitat_uses_external_reference_for_idempotence(tmp_path):
     initial_payload = [
         {
             "id": "10771003",
@@ -64,10 +64,10 @@ def test_import_monlogementetudiant_uses_external_reference_for_idempotence(tmp_
         }
     ]
 
-    json_file = tmp_path / "monlogementetudiant.json"
+    json_file = tmp_path / "fac_habitat.json"
     json_file.write_text(json.dumps(initial_payload), encoding="utf-8")
 
-    call_command("import_monlogementetudiant", file=str(json_file))
+    call_command("import_fac_habitat", file=str(json_file))
 
     accommodation = Accommodation.objects.get(external_reference="10771003")
 
@@ -92,7 +92,7 @@ def test_import_monlogementetudiant_uses_external_reference_for_idempotence(tmp_
     updated_payload = [dict(initial_payload[0], name="Abelard Updated", parking=False, nb_t1=80)]
     json_file.write_text(json.dumps(updated_payload), encoding="utf-8")
 
-    call_command("import_monlogementetudiant", file=str(json_file))
+    call_command("import_fac_habitat", file=str(json_file))
 
     accommodation.refresh_from_db()
 
@@ -103,7 +103,7 @@ def test_import_monlogementetudiant_uses_external_reference_for_idempotence(tmp_
 
 
 @pytest.mark.django_db
-def test_import_monlogementetudiant_uses_injected_sftp_downloader(tmp_path):
+def test_import_fac_habitat_uses_injected_sftp_downloader(tmp_path):
     downloaded_file = tmp_path / "downloaded.json"
     downloaded_file.write_text("[]", encoding="utf-8")
     calls = {}
@@ -123,12 +123,12 @@ def test_import_monlogementetudiant_uses_injected_sftp_downloader(tmp_path):
     command.handle(
         file=None,
         sftp_mode="fake",
-        fixture_file="~/Downloads/monlogementetudiant.json",
-        remote_path="/remote/monlogementetudiant.json",
+        fixture_file="~/Downloads/fac_habitat.json",
+        remote_path="/remote/fac_habitat.json",
     )
 
     assert calls == {
         "mode": "fake",
-        "fixture_file": "~/Downloads/monlogementetudiant.json",
-        "remote_path": "/remote/monlogementetudiant.json",
+        "fixture_file": "~/Downloads/fac_habitat.json",
+        "remote_path": "/remote/fac_habitat.json",
     }

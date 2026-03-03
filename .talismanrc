@@ -76,8 +76,6 @@ fileignoreconfig:
   checksum: d2aa746ee46a0dbc55d8cd359a4b5af0ae13921273d0a924e4603b127fe0f824
 - filename: dossier_facile/README.md
   checksum: 57b15b506c857f9407712d860d9dfbca2153631c47da3222bdcab0e6d3d222eb
-- filename: tests/dossier_facile/test_webhook.py
-  checksum: 2252743e9168eba32797c00158fedbaae02a559576f66871ddf9018fb2d64e07
 - filename: dossier_facile/services.py
   checksum: 768002b7463203e7845a923ea899d1895c135d1125b6453869d9db2da5deeb06
 - filename: tests/dossier_facile/test_oauth.py
@@ -86,4 +84,8 @@ fileignoreconfig:
   checksum: 85cdc1ba05934eef29bca87dcd68b2052591df99570aef0194d87e452a656fd1
 - filename: dossier_facile/migrations/0001_initial.py
   checksum: 0460726d2632c75429124dcc60d025824f22403bdeb1ef834318e3103b1e494f
+- filename: tests/dossier_facile/test_webhook.py
+  checksum: 347abd51efb2dc16c0d22c688bb0180048bc4fcf5b72bc6156b01ef6dcd79978
+- filename: tests/dossier_facile/test_views.py
+  checksum: 3ccceef0fa9fa394261e2bdfb45a48d0447786c3c2aa72f8d61df551a2bf6098
 version: "1.0"

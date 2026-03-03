@@ -62,6 +62,16 @@ class DossierFacileWebhookAPITests(DossierFacileTestMixin, APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_webhook_returns_bad_request_when_no_rule_matches(self):
+        response = self.client.post(
+            self.url,
+            {"partnerCallBackType": "UNKNOWN_EVENT", "tenantId": "tenant-123"},
+            format="json",
+            HTTP_X_API_KEY="webhook-secret",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 class DossierFacileRulesTests(DossierFacileTestMixin, TestCase):
     def test_deleted_account_rule_deletes_tenant_and_related_applications(self):

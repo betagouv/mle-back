@@ -187,6 +187,35 @@ def consume_oauth_state(state: str):
     return user
 
 
+def consume_oauth_state_for_user(user, state: str):
+    try:
+        with transaction.atomic():
+            oauth_state = DossierFacileOAuthState.objects.select_related("user").select_for_update().get(state=state)
+            if oauth_state.is_expired():
+                oauth_state.delete()
+                expired = True
+            else:
+                expired = False
+                if oauth_state.user_id != user.id:
+                    raise DossierFacileOAuthState.DoesNotExist()
+
+                oauth_state.delete()
+
+    except DossierFacileOAuthState.DoesNotExist as exc:
+        raise DossierFacileOAuthStateError(
+            "Invalid Dossier Facile state parameter.",
+            error_type="invalid_state",
+            status_code=400,
+        ) from exc
+
+    if expired:
+        raise DossierFacileOAuthStateError(
+            "Expired Dossier Facile state parameter.",
+            error_type="expired_state",
+            status_code=400,
+        )
+
+
 def cleanup_expired_oauth_states() -> int:
     return DossierFacileOAuthState.objects.filter(expires_at__lte=timezone.now()).delete()[0]
 

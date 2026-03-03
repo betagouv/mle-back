@@ -21,7 +21,6 @@ def apply_for_housing(
 
     # apply for the housing
     dossier_facile_application = DossierFacileApplication.objects.create(
-        student=student,
         tenant=dossier_facile_tenant,
         appartment_type=appartment_type,
         accommodation=accommodation,

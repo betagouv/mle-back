@@ -61,7 +61,8 @@ class ParamikoSFTPDownloader:
             local_path = Path(temp_file.name)
 
         client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.RejectPolicy())
 
         try:
             client.connect(**self._build_connect_kwargs())

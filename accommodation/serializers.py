@@ -115,6 +115,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "accept_waiting_list",
             "scholarship_holders_priority",
             "external_url",
+            "external_reference",
             "source_id",
             "source",
             "images_urls",
@@ -147,7 +148,14 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         owner_id = validated_data.pop("owner_id", None)
 
         accommodation = None
-        if source_id and source:
+        external_reference = validated_data.get("external_reference")
+        if external_reference:
+            queryset = Accommodation.objects.all()
+            if owner_id:
+                queryset = queryset.filter(owner_id=owner_id)
+            accommodation = queryset.filter(external_reference=external_reference).first()
+
+        if not accommodation and source_id and source:
             accommodation = Accommodation.objects.filter(sources__source_id=source_id, sources__source=source).first()
 
         if not accommodation:

@@ -90,4 +90,6 @@ fileignoreconfig:
   checksum: 27ba36fde1ca17f10a103f5eeb7611644f86cbb2d56fcc49cc42f5ac61fa717a
 - filename: dossier_facile/migrations/0001_initial.py
   checksum: 1eb8aabfd7b1793c7f8029104c68008099c935546da96abad7249e723d552e1c
+- filename: accommodation/management/commands/import_monlogementetudiant.py
+  checksum: d20e1af56480c30eb1d0828842a7519c83c3321959af2fbcd7c1fb163f8088c5
 version: "1.0"

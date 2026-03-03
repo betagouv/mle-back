@@ -1,29 +1,12 @@
 import json
-import shutil
-import tempfile
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
 
+from accommodation.factories import get_sftp_downloader
 from accommodation.models import Accommodation, ExternalSource
 from accommodation.serializers import AccommodationImportSerializer
 from account.models import Owner
-
-
-class FakeSFTPDownloader:
-    def __init__(self, stdout, fixture_file):
-        self.stdout = stdout
-        self.fixture_file = Path(fixture_file).expanduser()
-
-    def download(self, remote_path):
-        if not self.fixture_file.exists():
-            raise FileNotFoundError(f"Fixture file not found: {self.fixture_file}")
-
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
-            shutil.copyfile(self.fixture_file, temp_file.name)
-
-        self.stdout.write(f"Fake SFTP download from {remote_path} completed using local fixture {self.fixture_file}.")
-        return Path(temp_file.name)
 
 
 class Command(BaseCommand):
@@ -34,19 +17,30 @@ class Command(BaseCommand):
     }
     residence_type = "residence-etudiante"
 
+    def __init__(self, *args, sftp_downloader_factory=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.sftp_downloader_factory = sftp_downloader_factory or get_sftp_downloader
+
     def add_arguments(self, parser):
         parser.add_argument("--file", type=str, help="Local JSON file path to import directly.")
+        parser.add_argument(
+            "--sftp-mode",
+            type=str,
+            choices=("fake", "real"),
+            default="fake",
+            help="Select the SFTP downloader implementation.",
+        )
         parser.add_argument(
             "--fixture-file",
             type=str,
             default="~/Downloads/monlogementetudiant.json",
-            help="Local file used by the fake SFTP downloader.",
+            help="Local file used by the fake SFTP downloader implementation.",
         )
         parser.add_argument(
             "--remote-path",
             type=str,
             default="/exports/monlogementetudiant.json",
-            help="Remote SFTP path used by the fake downloader for logging.",
+            help="Remote SFTP path used by the selected downloader.",
         )
 
     @staticmethod
@@ -148,6 +142,13 @@ class Command(BaseCommand):
 
         return data
 
+    def _get_sftp_downloader(self, options):
+        return self.sftp_downloader_factory(
+            stdout=self.stdout,
+            mode=options["sftp_mode"],
+            fixture_file=options["fixture_file"],
+        )
+
     def handle(self, *args, **options):
         json_path = options.get("file")
         should_cleanup = False
@@ -155,7 +156,7 @@ class Command(BaseCommand):
         if json_path:
             source_path = Path(json_path).expanduser()
         else:
-            downloader = FakeSFTPDownloader(self.stdout, options["fixture_file"])
+            downloader = self._get_sftp_downloader(options)
             source_path = downloader.download(options["remote_path"])
             should_cleanup = True
 

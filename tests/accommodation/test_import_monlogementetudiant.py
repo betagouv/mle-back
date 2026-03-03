@@ -1,9 +1,11 @@
 import json
+from io import StringIO
 
 import pytest
 from django.core.management import call_command
 
 from accommodation.models import Accommodation, ExternalSource
+from accommodation.management.commands.import_monlogementetudiant import Command
 
 
 @pytest.mark.django_db
@@ -98,3 +100,35 @@ def test_import_monlogementetudiant_uses_external_reference_for_idempotence(tmp_
     assert accommodation.name == "Abelard Updated"
     assert accommodation.parking is False
     assert accommodation.nb_t1 == 80
+
+
+@pytest.mark.django_db
+def test_import_monlogementetudiant_uses_injected_sftp_downloader(tmp_path):
+    downloaded_file = tmp_path / "downloaded.json"
+    downloaded_file.write_text("[]", encoding="utf-8")
+    calls = {}
+
+    class StubDownloader:
+        def download(self, remote_path):
+            calls["remote_path"] = remote_path
+            return downloaded_file
+
+    def stub_factory(*, stdout, mode, fixture_file):
+        calls["mode"] = mode
+        calls["fixture_file"] = fixture_file
+        return StubDownloader()
+
+    command = Command(sftp_downloader_factory=stub_factory)
+    command.stdout = StringIO()
+    command.handle(
+        file=None,
+        sftp_mode="fake",
+        fixture_file="~/Downloads/monlogementetudiant.json",
+        remote_path="/remote/monlogementetudiant.json",
+    )
+
+    assert calls == {
+        "mode": "fake",
+        "fixture_file": "~/Downloads/monlogementetudiant.json",
+        "remote_path": "/remote/monlogementetudiant.json",
+    }

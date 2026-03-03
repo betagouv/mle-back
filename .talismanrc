@@ -82,10 +82,12 @@ fileignoreconfig:
   checksum: bf7da58faeb91c20bbc68edbf13cd7a4027f999cfa3fd6d660b71eb59a32ed33
 - filename: accommodation/migrations/0053_accommodationapplication.py
   checksum: 85cdc1ba05934eef29bca87dcd68b2052591df99570aef0194d87e452a656fd1
-- filename: dossier_facile/migrations/0001_initial.py
-  checksum: 0460726d2632c75429124dcc60d025824f22403bdeb1ef834318e3103b1e494f
 - filename: tests/dossier_facile/test_webhook.py
   checksum: 347abd51efb2dc16c0d22c688bb0180048bc4fcf5b72bc6156b01ef6dcd79978
 - filename: tests/dossier_facile/test_views.py
   checksum: 3ccceef0fa9fa394261e2bdfb45a48d0447786c3c2aa72f8d61df551a2bf6098
+- filename: accommodation/migrations/0056_accommodationapplication.py
+  checksum: 27ba36fde1ca17f10a103f5eeb7611644f86cbb2d56fcc49cc42f5ac61fa717a
+- filename: dossier_facile/migrations/0001_initial.py
+  checksum: 1eb8aabfd7b1793c7f8029104c68008099c935546da96abad7249e723d552e1c
 version: "1.0"

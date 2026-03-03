@@ -62,4 +62,6 @@ fileignoreconfig:
   checksum: e8e1d8fb93c0aa1b94a2a8c0c9b312e3e20c9531fabac185d388f16e6fe9cfaa
 - filename: accommodation/management/commands/import_crous_prices.py
   checksum: 7a6e03db089f2955590c85e74fe536272d9477df59388311f723eba073f40dac
+- filename: stats/migrations/0004_gestionnaireloginevent_accommodationchangelog.py
+  checksum: 8160c8b4df08faefad360dac395b5e48f3c9cd92e86366eebd4d4acba8c6127d
 version: "1.0"

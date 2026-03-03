@@ -318,6 +318,8 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
             "slug",
             "city",
             "postal_code",
+            "target_audience",
+            "residence_type",
             "nb_total_apartments",
             "nb_accessible_apartments",
             "nb_coliving_apartments",

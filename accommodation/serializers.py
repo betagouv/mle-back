@@ -15,6 +15,37 @@ from .utils import get_geolocator, upload_image_to_s3
 from territories.services import get_city_manager_service
 
 
+class AccommodationAddressMixin:
+    def _ensure_city_exists(self, city_name: str, postal_code: str) -> None:
+        city_manager_service = get_city_manager_service()
+        city = city_manager_service.get_or_create_city(city_name, postal_code)
+        if not city:
+            raise serializers.ValidationError({"city": "City not found"})
+
+    def _get_address_components(self, validated_data):
+        address = validated_data.get("address", getattr(self.instance, "address", None))
+        city = validated_data.get("city", getattr(self.instance, "city", None))
+        postal_code = validated_data.get("postal_code", getattr(self.instance, "postal_code", None))
+        return address, city, postal_code
+
+    def _set_geom_from_address(self, validated_data, *, require_location: bool) -> None:
+        address, city, postal_code = self._get_address_components(validated_data)
+        if not address or not city or not postal_code:
+            return
+
+        self._ensure_city_exists(city, postal_code)
+
+        geolocator = get_geolocator()
+        full_address = f"{address}, {city}, {postal_code}"
+        coordinates = geolocator.geocode(full_address)
+        if not coordinates:
+            if require_location:
+                raise serializers.ValidationError({"address": ["Unable to geocode this address."]})
+            return
+
+        validated_data["geom"] = Point(float(coordinates.longitude), float(coordinates.latitude), srid=4326)
+
+
 class AccommodationImportSerializer(serializers.ModelSerializer):
     source_id = serializers.CharField(write_only=True, required=False, default=None, allow_null=True)
     source = serializers.CharField(write_only=True)
@@ -349,7 +380,7 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
         read_only_fields = ("id", "slug", "owner")
 
 
-class MyAccommodationSerializer(BaseAccommodationSerialiser, serializers.ModelSerializer):
+class MyAccommodationSerializer(AccommodationAddressMixin, BaseAccommodationSerialiser, serializers.ModelSerializer):
     images_files = serializers.ListField(child=serializers.FileField(), required=False, default=None, write_only=True)
 
     class Meta:
@@ -421,36 +452,7 @@ class MyAccommodationSerializer(BaseAccommodationSerialiser, serializers.ModelSe
             "published",
             "images_files",
         )
-        read_only_fields = ("id", "slug", "owner", "price_min", "updated_at")
-
-    def _ensure_city_exists(self, city_name: str, postal_code: str) -> None:
-        city_manager_service = get_city_manager_service()
-        city = city_manager_service.get_or_create_city(city_name, postal_code)
-        if not city:
-            raise serializers.ValidationError({"city": "City not found"})
-
-    def _get_address_components(self, validated_data):
-        address = validated_data.get("address", getattr(self.instance, "address", None))
-        city = validated_data.get("city", getattr(self.instance, "city", None))
-        postal_code = validated_data.get("postal_code", getattr(self.instance, "postal_code", None))
-        return address, city, postal_code
-
-    def _set_geom_from_address(self, validated_data, *, require_location: bool) -> None:
-        address, city, postal_code = self._get_address_components(validated_data)
-        if not address or not city or not postal_code:
-            return
-
-        self._ensure_city_exists(city, postal_code)
-
-        geolocator = get_geolocator()
-        full_address = f"{address}, {city}, {postal_code}"
-        coordinates = geolocator.geocode(full_address)
-        if not coordinates:
-            if require_location:
-                raise serializers.ValidationError({"address": ["Unable to geocode this address."]})
-            return
-
-        validated_data["geom"] = Point(float(coordinates.longitude), float(coordinates.latitude), srid=4326)
+        read_only_fields = ("id", "slug", "owner", "price_min", "updated_at", "images_urls")
 
     def create(self, validated_data):
         images_files = validated_data.pop("images_files") or None
@@ -469,15 +471,8 @@ class MyAccommodationSerializer(BaseAccommodationSerialiser, serializers.ModelSe
         self._set_geom_from_address(validated_data, require_location=False)
         return super().create(validated_data)
 
-    def update(self, instance, validated_data):
-        address_fields = {"address", "city", "postal_code"}
-        if address_fields.intersection(validated_data.keys()):
-            self._set_geom_from_address(validated_data, require_location=True)
 
-        return super().update(instance, validated_data)
-
-
-class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSerializer):
+class MyAccommodationGeoSerializer(AccommodationAddressMixin, BaseAccommodationSerialiser, GeoFeatureModelSerializer):
     class Meta:
         model = Accommodation
         geo_field = "geom"
@@ -548,6 +543,13 @@ class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelS
             "published",
         )
         read_only_fields = ("id", "slug", "owner", "price_min", "updated_at")
+
+    def update(self, instance, validated_data):
+        address_fields = {"address", "city", "postal_code"}
+        if address_fields.intersection(validated_data.keys()):
+            self._set_geom_from_address(validated_data, require_location=True)
+
+        return super().update(instance, validated_data)
 
 
 class FavoriteAccommodationGeoSerializer(serializers.ModelSerializer):

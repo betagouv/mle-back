@@ -1,5 +1,6 @@
 import json
 from io import StringIO
+from types import SimpleNamespace
 
 import pytest
 from django.core.management import call_command
@@ -9,7 +10,7 @@ from accommodation.management.commands.import_fac_habitat import Command
 
 
 @pytest.mark.django_db
-def test_import_fac_habitat_uses_external_reference_for_idempotence(tmp_path):
+def test_import_fac_habitat_uses_external_reference_for_idempotence(tmp_path, mock_requests, monkeypatch):
     initial_payload = [
         {
             "id": "10771003",
@@ -66,6 +67,29 @@ def test_import_fac_habitat_uses_external_reference_for_idempotence(tmp_path):
 
     json_file = tmp_path / "fac_habitat.json"
     json_file.write_text(json.dumps(initial_payload), encoding="utf-8")
+    mock_requests.get(
+        "https://api-adresse.data.gouv.fr/search?q=53+Rue+Louis+Charles+Vernin%2C+Melun%2C+77000",
+        json={
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [2.6604, 48.5396]},
+                    "properties": {
+                        "label": "53 Rue Louis Charles Vernin 77000 Melun",
+                        "score": 0.9,
+                        "name": "53 Rue Louis Charles Vernin",
+                        "postcode": "77000",
+                        "city": "Melun",
+                    },
+                }
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        "accommodation.management.commands.import_fac_habitat.Command._get_or_create_city",
+        lambda _self, city_name, _postal_code: SimpleNamespace(name=city_name),
+    )
 
     call_command("import_fac_habitat", file=str(json_file))
 

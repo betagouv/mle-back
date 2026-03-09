@@ -96,4 +96,6 @@ fileignoreconfig:
   checksum: f6f107330ae6070d475a686f2124f521e3fa4a45c7fa6cb6b34e54e8efb13215
 - filename: tests/dossier_facile/test_views.py
   checksum: 805b47a1ad8022eca7a64ac994e69e3304e6b01174cf5ff11571e2451fb6b04a
+- filename: tests/territories/test_geo_base_command.py
+  checksum: 67bdd51b4283912a6bca2a244b0205fd50dc450728825cb0654bcdce54503bf6
 version: "1.0"

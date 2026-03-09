@@ -1,9 +1,10 @@
 import json
+from time import sleep
 
 import requests
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
 from django.core.management.base import BaseCommand
-from geopy.exc import GeocoderQueryError
+from geopy.exc import GeocoderQueryError, GeocoderServiceError, GeocoderTimedOut, GeocoderUnavailable
 from geopy.geocoders import BANFrance
 
 from territories.models import City, Department
@@ -17,11 +18,20 @@ class GeoBaseCommand(BaseCommand):
 
         self.geolocator = BANFrance(timeout=10)
 
-    def _geocode(self, address):
-        try:
-            return self.geolocator.geocode(address)
-        except GeocoderQueryError:
-            return None
+    def _geocode(self, address, retries=2, retry_delay=1):
+        for attempt in range(retries + 1):
+            try:
+                return self.geolocator.geocode(address)
+            except GeocoderQueryError:
+                return None
+            except (GeocoderTimedOut, GeocoderUnavailable, GeocoderServiceError) as exc:
+                if attempt >= retries:
+                    self.stderr.write(
+                        self.style.WARNING(f"Geocoding failed for '{address}' after {retries + 1} attempts: {exc}")
+                    )
+                    return None
+                sleep(retry_delay * (attempt + 1))
+        return None
 
     def _get_or_create_city(self, city, postal_code):
         # normalize city name

@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from accommodation.factories import get_sftp_downloader
@@ -39,7 +40,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--remote-path",
             type=str,
-            default="/exports/monlogementetudiant.json",
+            default=getattr(settings, "FAC_HABITAT_SFTP_REMOTE_PATH", "/export/monlogementetudiant.json"),
             help="Remote SFTP path used by the selected downloader.",
         )
 

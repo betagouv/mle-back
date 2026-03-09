@@ -2,15 +2,16 @@ import json
 from pathlib import Path
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
+from territories.management.commands.geo_base_command import GeoBaseCommand
 
 from accommodation.factories import get_sftp_downloader
 from accommodation.models import Accommodation, ExternalSource
 from accommodation.serializers import AccommodationImportSerializer
+from django.contrib.gis.geos import Point
 from account.models import Owner
 
 
-class Command(BaseCommand):
+class Command(GeoBaseCommand):
     help = "Import Mon Logement Etudiant accommodations from a JSON file downloaded from SFTP."
 
     owner_name_by_brand = {
@@ -108,12 +109,37 @@ class Command(BaseCommand):
 
         return values
 
+    def _fix_city_name(self, city_name):
+        if city_name == "Montfavet":
+            return "Avignon"
+        if city_name == "Pierrefitte-sur-Seine":
+            return "Saint-Denis"
+        if city_name == "Toulon - la valette":
+            return "La Valette-du-Var"
+        return city_name
+
     def _build_payload(self, item, owner):
         external_reference = str(item["id"])
+
+        item["city"] = self._fix_city_name(item["city"])
+
+        point = self._geocode(f"{item['address']}, {item['city']}, {item['postal_code']}")
+
+        if not point:
+            self.stderr.write(f"Could not geocode address: {item['address']}, {item['city']}, {item['postal_code']}")
+            return None
+
+        geom = Point(point.longitude, point.latitude, srid=4326)
+
+        city = self._get_or_create_city(item["city"].strip(), item["postal_code"].strip())
+        if not city:
+            self.stderr.write(f"Could not get or create city {item['city']} for postal code {item['postal_code']}")
+            return None
+
         return {
             "name": item["name"].strip(),
             "address": item["address"].strip(),
-            "city": item["city"].strip(),
+            "city": city.name,
             "postal_code": str(item["postal_code"]).strip(),
             "residence_type": self.residence_type,
             "target_audience": "etudiants",
@@ -131,6 +157,7 @@ class Command(BaseCommand):
             "owner_id": owner.pk,
             "source": ExternalSource.SOURCE_FAC_HABITAT,
             "source_id": external_reference,
+            "geom": geom,
             **self._build_typology_values(item),
         }
 
@@ -173,6 +200,8 @@ class Command(BaseCommand):
         for item in records:
             owner = self._get_owner(item.get("marque"))
             payload = self._build_payload(item, owner)
+            if not payload:
+                continue
             accommodation = Accommodation.objects.filter(
                 owner=owner,
                 external_reference=payload["external_reference"],

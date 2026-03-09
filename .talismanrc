@@ -52,10 +52,6 @@ fileignoreconfig:
   checksum: 7a6e03db089f2955590c85e74fe536272d9477df59388311f723eba073f40dac
 - filename: stats/migrations/0004_gestionnaireloginevent_accommodationchangelog.py
   checksum: 8160c8b4df08faefad360dac395b5e48f3c9cd92e86366eebd4d4acba8c6127d
-- filename: .env.sample
-  checksum: c86f2b4a0a9badff1b8e5ec304314793ae16a5eb12b0cd685807e75adf127489
-- filename: config/settings/base.py
-  checksum: 652bf216724e3a3bdf29a39b3323b3c3375f160169ff26de048680fade6e5f67
 - filename: accommodation/models.py
   checksum: d7e4eea96137c51aba3694bd1996087c633871e02b054ce787a8208f95572b58
 - filename: account/services.py
@@ -92,8 +88,12 @@ fileignoreconfig:
   checksum: 1eb8aabfd7b1793c7f8029104c68008099c935546da96abad7249e723d552e1c
 - filename: accommodation/management/commands/import_monlogementetudiant.py
   checksum: d20e1af56480c30eb1d0828842a7519c83c3321959af2fbcd7c1fb163f8088c5
+- filename: .env.sample
+  checksum: 5afca252acf6c7173091ada6eda2c0ae3d5a2340e8fe71a6cf37b18057304129
+- filename: config/settings/base.py
+  checksum: e1b2eab700a5b4cbc13e03c8351bf48a180755b68ec0e8155f56827ba4bfd9d5
 - filename: accommodation/factories.py
-  checksum: 2fe82ebccbcfda26c7c011e80ec2d476f006cadcd1f6bf8c3055f17d6ff4ffe6
+  checksum: db8c3a20354a6955c8a471fc86f361d5f7afdcadeaafcf4096620787b9f4ddad
 - filename: accommodation/gateways/sftp_downloaders.py
-  checksum: e3f4f178ef32a675b128d63b6b42ded2b7de110a5cc0271092984523385bb145
+  checksum: f6f107330ae6070d475a686f2124f521e3fa4a45c7fa6cb6b34e54e8efb13215
 version: "1.0"

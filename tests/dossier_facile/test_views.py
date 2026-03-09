@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIRequestFactory, force_authenticate
+from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
 
 from accommodation.models import Accommodation
 from dossier_facile.models import DossierFacileApplication, DossierFacileTenant
@@ -124,3 +125,76 @@ class DossierFacileViewsTests(TestCase):
         response = ApplicationsPerOwnerListView.as_view()(request)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class DossierFacileViewsURLTests(APITestCase):
+    def test_apply_for_housing_url_happy_path(self):
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False)
+        DossierFacileTenant.objects.create(
+            student=student,
+            tenant_id="tenant-123",
+            name="Jane Doe",
+            status=DossierFacileTenant.DossierFacileTenantStatus.VERIFIED,
+            url="https://example.com/dossier",
+            pdf_url="https://example.com/dossier.pdf",
+        )
+        accommodation = AccommodationFactory(nb_t1=1)
+        self.client.force_authenticate(user=student.user)
+
+        response = self.client.post(
+            reverse("dossier-facile-apply-for-housing"),
+            {
+                "accommodation": accommodation.pk,
+                "appartment_type": Accommodation.APARTMENT_TYPE_CHOICES.T1,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(DossierFacileApplication.objects.count(), 1)
+        self.assertEqual(response.json()["accommodation"], accommodation.pk)
+        self.assertEqual(response.json()["appartment_type"], Accommodation.APARTMENT_TYPE_CHOICES.T1)
+
+    def test_applications_per_owner_url_happy_path(self):
+        owner_user = get_user_model().objects.create_user(
+            username="owner-user-url",
+            email="owner-url@example.com",
+            password="testpassword123",
+            is_active=True,
+        )
+        owner = OwnerFactory(users=[owner_user])
+        other_owner = OwnerFactory()
+        accommodation = AccommodationFactory(owner=owner)
+        other_accommodation = AccommodationFactory(owner=other_owner)
+
+        student = StudentFactory.create(user__is_active=True, user__is_staff=False)
+        tenant = DossierFacileTenant.objects.create(
+            student=student,
+            tenant_id="tenant-123",
+            name="Jane Doe",
+            status=DossierFacileTenant.DossierFacileTenantStatus.VERIFIED,
+        )
+        other_student = StudentFactory.create(user__is_active=True, user__is_staff=False)
+        other_tenant = DossierFacileTenant.objects.create(
+            student=other_student,
+            tenant_id="tenant-456",
+            name="John Doe",
+            status=DossierFacileTenant.DossierFacileTenantStatus.VERIFIED,
+        )
+        DossierFacileApplication.objects.create(
+            tenant=tenant,
+            accommodation=accommodation,
+            appartment_type=Accommodation.APARTMENT_TYPE_CHOICES.T1,
+        )
+        DossierFacileApplication.objects.create(
+            tenant=other_tenant,
+            accommodation=other_accommodation,
+            appartment_type=Accommodation.APARTMENT_TYPE_CHOICES.T2,
+        )
+        self.client.force_authenticate(user=owner_user)
+
+        response = self.client.get(reverse("dossier-facile-applications-per-owner"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["count"], 1)
+        self.assertEqual(response.json()["results"][0]["accommodation"], accommodation.pk)

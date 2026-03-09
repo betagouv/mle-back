@@ -27,7 +27,7 @@ class Command(BaseCommand):
             "--sftp-mode",
             type=str,
             choices=("fake", "real"),
-            default="fake",
+            default="real",
             help="Select the SFTP downloader implementation.",
         )
         parser.add_argument(

@@ -136,6 +136,23 @@ class ParamikoSFTPDownloader:
             client.connect(**self._build_connect_kwargs())
             self._assert_expected_fingerprint(client, paramiko)
             with client.open_sftp() as sftp:
+                try:
+                    sftp.stat(remote_path)
+                except FileNotFoundError as exc:
+                    cwd = sftp.normalize(".")
+                    sample_entries = []
+                    try:
+                        sample_entries = sorted(sftp.listdir(cwd))[:20]
+                    except Exception:
+                        sample_entries = []
+                    entries_hint = (
+                        f" Available entries in '{cwd}' (first 20): {', '.join(sample_entries)}."
+                        if sample_entries
+                        else ""
+                    )
+                    raise FileNotFoundError(
+                        f"SFTP remote file not found: '{remote_path}'. Current remote directory: '{cwd}'.{entries_hint}"
+                    ) from exc
                 sftp.get(remote_path, str(local_path))
         except paramiko.SSHException as exc:
             if local_path.exists():
@@ -144,6 +161,10 @@ class ParamikoSFTPDownloader:
                 f"{exc}. For non-standard ports, known_hosts must contain '[{self.host}]:{self.port}', "
                 "or configure FAC_HABITAT_SFTP_HOST_KEY_SHA256 to pin the server key."
             ) from exc
+        except FileNotFoundError:
+            if local_path.exists():
+                local_path.unlink()
+            raise
         except Exception:
             if local_path.exists():
                 local_path.unlink()

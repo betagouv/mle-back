@@ -10,9 +10,40 @@ from account.models import Owner
 from account.serializers import OwnerSerializer
 from common.serializers import BinaryToBase64Field
 
-from .models import Accommodation, ExternalSource, FavoriteAccommodation
+from .models import Accommodation, AccommodationApplication, ExternalSource, FavoriteAccommodation
 from .utils import get_geolocator, upload_image_to_s3
 from territories.services import get_city_manager_service
+
+
+class AccommodationAddressMixin:
+    def _ensure_city_exists(self, city_name: str, postal_code: str) -> None:
+        city_manager_service = get_city_manager_service()
+        city = city_manager_service.get_or_create_city(city_name, postal_code)
+        if not city:
+            raise serializers.ValidationError({"city": "City not found"})
+
+    def _get_address_components(self, validated_data):
+        address = validated_data.get("address", getattr(self.instance, "address", None))
+        city = validated_data.get("city", getattr(self.instance, "city", None))
+        postal_code = validated_data.get("postal_code", getattr(self.instance, "postal_code", None))
+        return address, city, postal_code
+
+    def _set_geom_from_address(self, validated_data, *, require_location: bool) -> None:
+        address, city, postal_code = self._get_address_components(validated_data)
+        if not address or not city or not postal_code:
+            return
+
+        self._ensure_city_exists(city, postal_code)
+
+        geolocator = get_geolocator()
+        full_address = f"{address}, {city}, {postal_code}"
+        coordinates = geolocator.geocode(full_address)
+        if not coordinates:
+            if require_location:
+                raise serializers.ValidationError({"address": ["Unable to geocode this address."]})
+            return
+
+        validated_data["geom"] = Point(float(coordinates.longitude), float(coordinates.latitude), srid=4326)
 
 
 class AccommodationImportSerializer(serializers.ModelSerializer):
@@ -32,6 +63,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "city",
             "postal_code",
             "residence_type",
+            "target_audience",
             "nb_total_apartments",
             "nb_accessible_apartments",
             "nb_coliving_apartments",
@@ -83,6 +115,7 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
             "accept_waiting_list",
             "scholarship_holders_priority",
             "external_url",
+            "external_reference",
             "source_id",
             "source",
             "images_urls",
@@ -115,7 +148,14 @@ class AccommodationImportSerializer(serializers.ModelSerializer):
         owner_id = validated_data.pop("owner_id", None)
 
         accommodation = None
-        if source_id and source:
+        external_reference = validated_data.get("external_reference")
+        if external_reference:
+            queryset = Accommodation.objects.all()
+            if owner_id:
+                queryset = queryset.filter(owner_id=owner_id)
+            accommodation = queryset.filter(external_reference=external_reference).first()
+
+        if not accommodation and source_id and source:
             accommodation = Accommodation.objects.filter(sources__source_id=source_id, sources__source=source).first()
 
         if not accommodation:
@@ -246,6 +286,7 @@ class AccommodationDetailSerializer(BaseAccommodationSerialiser, serializers.Mod
             "city",
             "postal_code",
             "residence_type",
+            "target_audience",
             "nb_total_apartments",
             "nb_accessible_apartments",
             "nb_coliving_apartments",
@@ -316,6 +357,8 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
             "slug",
             "city",
             "postal_code",
+            "target_audience",
+            "residence_type",
             "nb_total_apartments",
             "nb_accessible_apartments",
             "nb_coliving_apartments",
@@ -345,7 +388,7 @@ class AccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSer
         read_only_fields = ("id", "slug", "owner")
 
 
-class MyAccommodationSerializer(BaseAccommodationSerialiser, serializers.ModelSerializer):
+class MyAccommodationSerializer(AccommodationAddressMixin, BaseAccommodationSerialiser, serializers.ModelSerializer):
     images_files = serializers.ListField(child=serializers.FileField(), required=False, default=None, write_only=True)
 
     class Meta:
@@ -361,6 +404,8 @@ class MyAccommodationSerializer(BaseAccommodationSerialiser, serializers.ModelSe
             "nb_total_apartments",
             "nb_accessible_apartments",
             "nb_coliving_apartments",
+            "target_audience",
+            "residence_type",
             "images_urls",
             "available",
             "nb_t1",
@@ -431,22 +476,11 @@ class MyAccommodationSerializer(BaseAccommodationSerialiser, serializers.ModelSe
             raise serializers.ValidationError({"owner": "Owner not found"})
         validated_data["owner"] = owner
 
-        # create city if not exists
-        city_manager_service = get_city_manager_service()
-        city = city_manager_service.get_or_create_city(validated_data.get("city"), validated_data.get("postal_code"))
-        if not city:
-            raise serializers.ValidationError({"city": "City not found"})
-
-        address = validated_data.get("address")
-        geolocator = get_geolocator()
-        full_address = f"{address}, {validated_data.get('city')}, {validated_data.get('postal_code')}"
-        coordinates = geolocator.geocode(full_address)
-        if coordinates:
-            validated_data["geom"] = Point(float(coordinates.longitude), float(coordinates.latitude), srid=4326)
+        self._set_geom_from_address(validated_data, require_location=False)
         return super().create(validated_data)
 
 
-class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelSerializer):
+class MyAccommodationGeoSerializer(AccommodationAddressMixin, BaseAccommodationSerialiser, GeoFeatureModelSerializer):
     class Meta:
         model = Accommodation
         geo_field = "geom"
@@ -461,6 +495,8 @@ class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelS
             "nb_total_apartments",
             "nb_accessible_apartments",
             "nb_coliving_apartments",
+            "target_audience",
+            "residence_type",
             "images_urls",
             "available",
             "nb_t1",
@@ -516,6 +552,13 @@ class MyAccommodationGeoSerializer(BaseAccommodationSerialiser, GeoFeatureModelS
         )
         read_only_fields = ("id", "slug", "owner", "price_min", "updated_at")
 
+    def update(self, instance, validated_data):
+        address_fields = {"address", "city", "postal_code"}
+        if address_fields.intersection(validated_data.keys()):
+            self._set_geom_from_address(validated_data, require_location=True)
+
+        return super().update(instance, validated_data)
+
 
 class FavoriteAccommodationGeoSerializer(serializers.ModelSerializer):
     geom = serializers.SerializerMethodField()
@@ -543,3 +586,44 @@ class FavoriteAccommodationGeoSerializer(serializers.ModelSerializer):
             user=self.context["request"].user, accommodation=accommodation
         )
         return favorite
+
+
+class AccommodationApplicationSerializer(serializers.ModelSerializer):
+    accommodation_slug = serializers.CharField(source="accommodation.slug", read_only=True)
+
+    class Meta:
+        model = AccommodationApplication
+        fields = (
+            "id",
+            "accommodation_slug",
+            "status",
+            "dossierfacile_status",
+            "dossierfacile_url",
+            "dossierfacile_pdf_url",
+            "created_at",
+        )
+        read_only_fields = fields
+
+
+class OwnerAccommodationApplicationSerializer(serializers.ModelSerializer):
+    accommodation_slug = serializers.CharField(source="accommodation.slug", read_only=True)
+    accommodation_name = serializers.CharField(source="accommodation.name", read_only=True)
+    student_email = serializers.EmailField(source="student.user.email", read_only=True)
+    student_first_name = serializers.CharField(source="student.user.first_name", read_only=True)
+    student_last_name = serializers.CharField(source="student.user.last_name", read_only=True)
+
+    class Meta:
+        model = AccommodationApplication
+        fields = (
+            "id",
+            "status",
+            "accommodation_slug",
+            "accommodation_name",
+            "student_email",
+            "student_first_name",
+            "student_last_name",
+            "dossierfacile_status",
+            "dossierfacile_url",
+            "dossierfacile_pdf_url",
+            "created_at",
+        )

@@ -1,44 +1,35 @@
 import logging
-from drf_spectacular.utils import extend_schema
-from rest_framework import viewsets
-from django.db import transaction
-from django.conf import settings
-from django.contrib.auth import authenticate
-from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.exceptions import TokenError
 
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.db import transaction
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from rest_framework import generics, permissions, status, viewsets
+from rest_framework.response import Response
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from account.serializers import UserSerializer
 from account.throttles import PasswordResetThrottle
 from notifications.exceptions import EmailDeliveryError
+from notifications.factories import get_email_gateway
+from notifications.services import send_account_validation
 
 from .models import Owner, StudentRegistrationToken
 from .serializers import (
     OwnerSerializer,
     PasswordResetConfirmSerializer,
+    StudentGetTokenSerializer,
     StudentLogoutSerializer,
+    StudentRegistrationSerializer,
     StudentRegistrationValidationSerializer,
     StudentRequestPasswordResetSerializer,
     StudentTokenResponseSerializer,
-    StudentGetTokenSerializer,
 )
-from rest_framework_simplejwt.tokens import RefreshToken
-
-from rest_framework import generics
-from rest_framework import permissions
-from rest_framework.response import Response
-from rest_framework import status
-
-from .serializers import StudentRegistrationSerializer
 from .services import request_password_reset
-from account.serializers import UserSerializer
-
-from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.encoding import force_str
-
-from drf_spectacular.utils import OpenApiResponse
-
-from notifications.factories import get_email_gateway
-from notifications.services import send_account_validation
 
 User = get_user_model()
 logger = logging.getLogger(__name__)

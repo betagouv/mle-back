@@ -18,6 +18,12 @@ from notifications.exceptions import EmailDeliveryError
 from notifications.factories import get_email_gateway
 from notifications.services import send_magic_link
 
+from stats.models import GestionnaireLoginEvent
+
+from account.helpers import is_owner
+
+from django.utils import timezone as tz
+
 User = get_user_model()
 
 logger = logging.getLogger(__name__)
@@ -113,6 +119,16 @@ class CheckMagicLinkAPIView(APIView):
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
+
+        user.last_login = tz.now()
+        user.save(update_fields=["last_login"])
+
+        # Track login event for gestionnaires
+        if is_owner(user):
+            GestionnaireLoginEvent.objects.create(
+                user=user,
+                owner=user.owners.first(),
+            )
 
         return Response(
             {

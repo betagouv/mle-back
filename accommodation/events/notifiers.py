@@ -1,7 +1,9 @@
 from typing import Protocol
 import requests
 from django.conf import settings
-from .events import AccommodationEvent
+from .events import AccommodationEvent, AccommodationCreatedEvent
+from stats.models import AccommodationChangeLog
+from accommodation.models import Accommodation
 import logging
 
 logger = logging.getLogger(__name__)
@@ -43,6 +45,22 @@ class MattermostNotifier:
                 )
         except requests.RequestException:
             logger.exception("Mattermost notification failed.")
+
+
+class DatabaseNotifier:
+    def notify(self, event: AccommodationEvent) -> None:
+        accommodation = Accommodation.objects.select_related("owner").get(id=event.accommodation_id)
+
+        action = "created" if isinstance(event, AccommodationCreatedEvent) else "updated"
+        data_diff = getattr(event, "data_diff", {})
+
+        AccommodationChangeLog.objects.create(
+            accommodation=accommodation,
+            user_id=event.user_id,
+            owner=accommodation.owner,
+            action=action,
+            data_diff=data_diff,
+        )
 
 
 def get_notifier() -> Notifier:

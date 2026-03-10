@@ -8,29 +8,44 @@ from django.urls import reverse
 from django.utils.translation import gettext, gettext_lazy
 
 from account.models import Owner
+from account.models import Student
 
 from .managers import AccommodationManager
 
 
 class Accommodation(models.Model):
+    class APARTMENT_TYPE_CHOICES(models.TextChoices):
+        T1 = "t1"
+        T1_BIS = "t1_bis"
+        T2 = "t2"
+        T3 = "t3"
+        T4 = "t4"
+        T5 = "t5"
+        T6 = "t6"
+        T7_MORE = "t7_more"
+
     RESIDENCE_TYPE_CHOICES = (
         ("universitaire-conventionnee", "Résidence Universitaire conventionnée"),
-        ("sociale-jeunes-actifs", "Résidence sociale Jeunes Actifs"),
-        ("intergenerationnelle", "Résidence intergénérationnelle"),
-        ("autre", "Autre"),
-        ("jeunes-travailleurs", "Foyer Jeunes Travailleurs"),
-        ("service-universitaire-privee", "Résidence service / Résidence universitaire privée"),
-        ("mixte-actifs-etudiants", "Résidence mixte jeunes actifs/étudiants"),
-        ("u-crous", "Cité U / résidence traditionnelle CROUS"),
-        ("hoteliere-sociale", "Résidence Hôtelière à vocation sociale"),
-        ("ecole", "Résidence d'école"),
-        ("service-logement", "Service Logement"),
-        ("internat", "Internat"),
-        ("foyer-soleil", "Foyer soleil"),
+        ("residence-sociale-jeunes-actifs", "Résidence sociale Jeunes Actifs (RSJA, Habitat Jeunes)"),
+        ("intergenerationnelle", "Cohabitation intergénérationnelle"),
+        ("foyer-jeunes-travailleurs", "Foyer Jeunes Travailleurs (FJT)"),
+        ("loi-elan-article-109", "Logement social fléché vers les jeunes (loi ELAN – article 109)"),
+        ("logement-social-classique", "Logement social classique commercialisé en partie aux étudiants"),
+        ("ecole", "Résidence d’école ou d’établissement d’enseignement"),
+        ("residence-etudiante", "Résidence étudiante"),
+        (
+            "sous-location",
+            "Logements sociaux sous-loués aux étudiants par une association via une convention ou un contrat spécifique",
+        ),
     )
     SHARED_OR_PRIVATE = (
         ("shared", "Shared"),
         ("private", "Private"),
+    )
+
+    TARGET_AUDIENCE_CHOICES = (
+        ("etudiants", "Etudiants"),
+        ("mixte-etudiants-jeunes-actifs", "Mixte étudiants/jeunes actifs"),
     )
 
     name = models.CharField(max_length=200, verbose_name=gettext_lazy("Name"))
@@ -46,6 +61,13 @@ class Accommodation(models.Model):
         null=True,
         blank=True,
         verbose_name=gettext_lazy("Residence type"),
+    )
+    target_audience = models.CharField(
+        max_length=100,
+        choices=TARGET_AUDIENCE_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name=gettext_lazy("Target audience"),
     )
     owner = models.ForeignKey(Owner, on_delete=models.SET_NULL, null=True, blank=True, related_name="accommodations")
     nb_total_apartments = models.PositiveIntegerField(
@@ -237,6 +259,24 @@ class Accommodation(models.Model):
         )
         super().save(*args, **kwargs)
 
+    def get_number_of_appartment_by_type(self, appartment_type: APARTMENT_TYPE_CHOICES) -> int:
+        field_by_type = {
+            self.APARTMENT_TYPE_CHOICES.T1: "nb_t1",
+            self.APARTMENT_TYPE_CHOICES.T1_BIS: "nb_t1_bis",
+            self.APARTMENT_TYPE_CHOICES.T2: "nb_t2",
+            self.APARTMENT_TYPE_CHOICES.T3: "nb_t3",
+            self.APARTMENT_TYPE_CHOICES.T4: "nb_t4",
+            self.APARTMENT_TYPE_CHOICES.T5: "nb_t5",
+            self.APARTMENT_TYPE_CHOICES.T6: "nb_t6",
+            self.APARTMENT_TYPE_CHOICES.T7_MORE: "nb_t7_more",
+        }
+
+        field_name = field_by_type.get(appartment_type)
+        if not field_name:
+            raise ValueError(f"Invalid appartment type: {appartment_type}")
+
+        return getattr(self, field_name) or 0
+
 
 class ExternalSource(models.Model):
     SOURCE_ACCESLIBRE = "acceslibre"
@@ -279,6 +319,12 @@ class ExternalSource(models.Model):
     SOURCE_LOGIS_METROPOLE = "logis-metropole"
     SOURCE_CARDINAL_CAMPUS = "cardinal-campus"
     SOURCE_SAIEM_DRAGUIGNAN = "saiem-draguignan"
+    SOURCE_ACLEF = "aclef"
+    SOURCE_ALJT = "aljt"
+    SOURCE_AVEYRON_HABITAT = "aveyron-habitat"
+    SOURCE_ORYON = "oryon"
+    SOURCE_CAMPUS_ET_TOITS = "campus-et-toits"
+    SOURCE_FAC_HABITAT = "fac-habitat"
     SOURCE_CHOICES = (
         (SOURCE_ACCESLIBRE, "Accèslibre"),
         (SOURCE_CLEF, "CLEF"),
@@ -320,6 +366,12 @@ class ExternalSource(models.Model):
         (SOURCE_LOGIS_METROPOLE, "Logis Métropole"),
         (SOURCE_CARDINAL_CAMPUS, "Cardinal Campus"),
         (SOURCE_SAIEM_DRAGUIGNAN, "Saiem Draguignan"),
+        (SOURCE_ACLEF, "ACLEF"),
+        (SOURCE_ALJT, "ALJT"),
+        (SOURCE_AVEYRON_HABITAT, "Aveyron Habitat"),
+        (SOURCE_ORYON, "Oryon"),
+        (SOURCE_CAMPUS_ET_TOITS, "Campus et Toits"),
+        (SOURCE_FAC_HABITAT, "Fac Habitat"),
     )
 
     accommodation = models.ForeignKey("Accommodation", on_delete=models.CASCADE, related_name="sources")
@@ -348,3 +400,34 @@ class FavoriteAccommodation(models.Model):
 
     def __str__(self):
         return f"{self.user} puts {self.accommodation} on favorites"
+
+
+class AccommodationApplication(models.Model):
+    STATUS_SUBMITTED = "submitted"
+    STATUS_REVIEWED = "reviewed"
+    STATUS_ACCEPTED = "accepted"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = (
+        (STATUS_SUBMITTED, "Submitted"),
+        (STATUS_REVIEWED, "Reviewed"),
+        (STATUS_ACCEPTED, "Accepted"),
+        (STATUS_REJECTED, "Rejected"),
+    )
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="accommodation_applications")
+    accommodation = models.ForeignKey(
+        "accommodation.Accommodation", on_delete=models.CASCADE, related_name="applications"
+    )
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default=STATUS_SUBMITTED)
+    dossierfacile_status = models.CharField(max_length=64)
+    dossierfacile_url = models.URLField(max_length=500)
+    dossierfacile_pdf_url = models.URLField(max_length=500, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("student", "accommodation")
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.student} application for {self.accommodation}"

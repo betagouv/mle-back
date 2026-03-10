@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/accommodations/", include("accommodation.urls")),
     path("api/accounts/", include("account.urls")),
     path("api/alerts/", include("alerts.urls")),
+    path("api/dossier-facile/", include("dossier_facile.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),

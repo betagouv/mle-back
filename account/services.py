@@ -1,11 +1,12 @@
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.conf import settings
 import logging
+
+from django.conf import settings
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from notifications.exceptions import EmailDeliveryError
 from notifications.factories import get_email_gateway
 from notifications.services import send_reset_password
-from notifications.exceptions import EmailDeliveryError
 
 from account.models import Student
 

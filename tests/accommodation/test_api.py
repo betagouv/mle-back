@@ -12,7 +12,7 @@ import accommodation.events.bootstrap as bootstrap_module
 from accommodation.events.bus import accommodation_event_bus
 from accommodation.events.events import AccommodationCreatedEvent, AccommodationUpdatedEvent
 from accommodation.models import Accommodation
-from tests.account.factories import OwnerFactory, UserFactory
+from tests.account.factories import OwnerFactory, StudentFactory, UserFactory
 from tests.territories.factories import AcademyFactory
 
 from .factories import AccommodationFactory, ExternalSourceFactory
@@ -151,6 +151,8 @@ class AccommodationListAPITests(APITestCase):
                 "slug": self.accommodation_nantes_accessible_w_coliving_cheap.slug,
                 "city": self.accommodation_nantes_accessible_w_coliving_cheap.city,
                 "postal_code": self.accommodation_nantes_accessible_w_coliving_cheap.postal_code,
+                "target_audience": "etudiants",
+                "residence_type": ANY,
                 "nb_total_apartments": ANY,
                 "nb_accessible_apartments": 2,
                 "nb_coliving_apartments": 5,
@@ -550,8 +552,8 @@ class MyAccommodationDetailAPITests(APITestCase):
             response = self.client.post(url, payload, format="json")
             assert response.status_code == status.HTTP_201_CREATED, response.content
 
-            mock_handler.assert_called_once()
-            event = mock_handler.call_args[0][0]
+            assert mock_handler.call_count == 2
+            event = mock_handler.call_args_list[-1][0][0]
             assert isinstance(event, AccommodationCreatedEvent)
 
             acc = Accommodation.objects.get(name="New Accommodation")
@@ -566,8 +568,8 @@ class MyAccommodationDetailAPITests(APITestCase):
             response = self.client.patch(url, payload, format="json")
             assert response.status_code == status.HTTP_200_OK
 
-            mock_handler.assert_called_once()
-            event = mock_handler.call_args[0][0]
+            assert mock_handler.call_count == 2
+            event = mock_handler.call_args_list[-1][0][0]
             assert isinstance(event, AccommodationUpdatedEvent)
             assert event.accommodation_id == self.my_accommodation.id
 
@@ -583,6 +585,8 @@ class MyAccommodationDetailAPITests(APITestCase):
             "postal_code": "75008",
             "published": True,
             "images_files": [SimpleUploadedFile("file.jpg", b"file_content", content_type="image/jpeg")],
+            "residence_type": "universitaire-conventionnee",
+            "target_audience": "etudiants",
         }
 
         response = self.client.post(url, payload, format="multipart")
@@ -629,6 +633,11 @@ class MyAccommodationDetailAPITests(APITestCase):
             "nb_t2": 16,
             "price_min_t1": 300,
             "price_max_t1": 450,
+            "target_audience": "etudiants",
+            "residence_type": "universitaire-conventionnee",
+            "address": "123 Rue de Paris",
+            "city": "Paris",
+            "postal_code": "75001",
         }
 
         response = self.client.patch(url, payload, format="json")
@@ -647,6 +656,10 @@ class MyAccommodationDetailAPITests(APITestCase):
         assert data["price_min_t1"] == 300
         assert data["price_max_t1"] == 450
 
+        geometry = response.json()["geometry"]
+        assert geometry["type"] == "Point"
+        assert geometry["coordinates"] == [2.35, 48.85]
+
         self.my_accommodation.refresh_from_db()
         assert self.my_accommodation.name == "Updated Accommodation Name"
         assert self.my_accommodation.nb_total_apartments == 120
@@ -659,6 +672,33 @@ class MyAccommodationDetailAPITests(APITestCase):
 
         self.my_accommodation.refresh_from_db()
         assert self.my_accommodation.published is False
+
+    @patch("accommodation.serializers.get_geolocator")
+    def test_patch_updates_geom_when_address_changes(self, mock_get_geolocator):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+        mock_get_geolocator.return_value.geocode.return_value = type(
+            "Location", (), {"longitude": 3.1415, "latitude": 48.9876}
+        )()
+
+        response = self.client.patch(url, {"address": "12 rue de la Paix"}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["geometry"]["coordinates"] == [3.1415, 48.9876]
+
+        self.my_accommodation.refresh_from_db()
+        assert self.my_accommodation.address == "12 rue de la Paix"
+        assert self.my_accommodation.geom.x == 3.1415
+        assert self.my_accommodation.geom.y == 48.9876
+
+    @patch("accommodation.serializers.get_geolocator")
+    def test_patch_returns_400_when_new_address_cannot_be_geocoded(self, mock_get_geolocator):
+        url = reverse("my-accommodation-detail", args=[self.my_accommodation.slug])
+        mock_get_geolocator.return_value.geocode.return_value = None
+
+        response = self.client.patch(url, {"address": "Unknown address"}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["address"] == ["Unable to geocode this address."]
 
     def test_patch_cannot_update_others_accommodation(self):
         url = reverse("my-accommodation-detail", args=[self.other_accommodation.slug])
@@ -838,3 +878,58 @@ class FavoriteAccommodationViewSetTests(APITestCase):
 
         response = self.client.delete(url, format="json")
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+class AccommodationApplicationAPITests(APITestCase):
+    def setUp(self):
+        self.owner = OwnerFactory()
+        self.owner_user = self.owner.users.first()
+        self.accommodation = AccommodationFactory(owner=self.owner, published=True, available=True)
+
+    def test_student_can_apply_with_validated_dossierfacile(self):
+        student = StudentFactory.create(
+            user__is_active=True,
+            user__is_staff=False,
+            dossierfacile_status="VALIDATED",
+            dossierfacile_url="https://dfc.example/dossier/tenant-1",
+            dossierfacile_pdf_url="https://dfc.example/dossier/tenant-1.pdf",
+        )
+        self.client.force_authenticate(user=student.user)
+
+        response = self.client.post(reverse("accommodation-apply", args=[self.accommodation.slug]), {}, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["dossierfacile_status"] == "verified"
+        assert response.json()["dossierfacile_url"] == "https://dfc.example/dossier/tenant-1"
+
+    def test_student_cannot_apply_without_validated_dossierfacile(self):
+        student = StudentFactory.create(
+            user__is_active=True,
+            user__is_staff=False,
+            dossierfacile_status="INCOMPLETE",
+            dossierfacile_url="https://dfc.example/dossier/tenant-2",
+        )
+        self.client.force_authenticate(user=student.user)
+
+        response = self.client.post(reverse("accommodation-apply", args=[self.accommodation.slug]), {}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["type"] == "dossierfacile_not_validated"
+
+    def test_owner_can_list_applications_for_their_accommodations(self):
+        student = StudentFactory.create(
+            user__is_active=True,
+            user__is_staff=False,
+            dossierfacile_status="VALIDATED",
+            dossierfacile_url="https://dfc.example/dossier/tenant-3",
+            dossierfacile_pdf_url="https://dfc.example/dossier/tenant-3.pdf",
+        )
+        self.client.force_authenticate(user=student.user)
+        self.client.post(reverse("accommodation-apply", args=[self.accommodation.slug]), {}, format="json")
+
+        self.client.force_authenticate(user=self.owner_user)
+        response = self.client.get(reverse("my-accommodation-applications"))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 1
+        application = response.json()["results"][0]
+        assert application["accommodation_slug"] == self.accommodation.slug
+        assert application["student_email"] == student.user.email
+        assert application["dossierfacile_url"] == "https://dfc.example/dossier/tenant-3"

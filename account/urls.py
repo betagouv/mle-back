@@ -4,12 +4,12 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
     OwnerViewSet,
+    StudentGetTokenView,
+    StudentLogoutView,
+    StudentPasswordResetConfirmView,
     StudentRegistrationView,
     StudentRegistrationValidationView,
-    StudentGetTokenView,
     StudentRequestPasswordResetView,
-    StudentPasswordResetConfirmView,
-    StudentLogoutView,
 )
 
 urlpatterns = [

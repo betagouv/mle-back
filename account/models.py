@@ -12,6 +12,7 @@ class Owner(models.Model):
     url = models.URLField(max_length=500, blank=True, null=True)
     users = models.ManyToManyField(User, blank=True, related_name="owners")
     image = models.BinaryField(null=True, blank=True)
+    accept_dossier_facile_applications = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = gettext_lazy("Owner")
@@ -52,6 +53,39 @@ class Student(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    def _get_dossierfacile_tenant(self):
+        return self.dossier_facile_tenants.order_by("-updated_at", "-created_at").first()
+
+    @property
+    def dossierfacile_tenant_id(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.tenant_id if tenant else None
+
+    @property
+    def dossierfacile_status(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.status if tenant else None
+
+    @property
+    def dossierfacile_url(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.url if tenant else None
+
+    @property
+    def dossierfacile_pdf_url(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.pdf_url if tenant else None
+
+    @property
+    def dossierfacile_linked_at(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.created_at if tenant else None
+
+    @property
+    def dossierfacile_last_synced_at(self):
+        tenant = self._get_dossierfacile_tenant()
+        return tenant.last_synced_at if tenant else None
 
 
 class StudentRegistrationToken(models.Model):

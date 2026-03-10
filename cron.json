@@ -10,9 +10,6 @@
             "command": "0 2 * * * python manage.py import_iBAIL_arpej_API"
         },
         {
-            "command": "0 2 * * * python manage.py import_fac_habitat"
-        },
-        {
             "command": "0 4 1 * * python manage.py sync_city_average_rent"
         },
         {

@@ -10,6 +10,11 @@ from accommodation.serializers import AccommodationImportSerializer
 from django.contrib.gis.geos import Point
 from account.models import Owner
 
+# TODO : add this command to the cron.json file
+# {
+#     "command": "0 2 * * * python manage.py import_fac_habitat"
+# }
+
 
 class Command(GeoBaseCommand):
     help = "Import Mon Logement Etudiant accommodations from a JSON file downloaded from SFTP."
